@@ -151,4 +151,4 @@ and the Graph client retry/pagination logic via `httpx.MockTransport`.
 
 ## License
 
-Internal tool — see your organization's policy.
+MIT — see [LICENSE](LICENSE).
