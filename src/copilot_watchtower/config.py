@@ -1,0 +1,196 @@
+"""Application paths and runtime configuration.
+
+Centralizes resolution of per-user data directories on Windows
+(`%LOCALAPPDATA%\\CopilotWatchTower`) and exposes the application
+constants used by the rest of the package.
+"""
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from . import __app_name__
+
+# Microsoft Graph PowerShell well-known client ID — reused for the
+# delegated bootstrap flow so administrators do not need to pre-register
+# any Entra application before running the tool. Confirmed in the plan
+# (`/memories/session/plan.md`, Phase 1).
+BOOTSTRAP_CLIENT_ID = "14d82eec-204b-4c2f-b7e8-296a70dab67e"
+
+MS_GRAPH_RESOURCE_ID = "00000003-0000-0000-c000-000000000000"
+MS_GRAPH_BASE_V1 = "https://graph.microsoft.com/v1.0"
+MS_GRAPH_BASE_BETA = "https://graph.microsoft.com/beta"
+
+# Application permission GUIDs (app role IDs on the Microsoft Graph SP).
+GRAPH_APP_ROLE_AI_ENTERPRISE_INTERACTION_READ_ALL = "839c90ab-5771-41ee-aef8-a562e8487c1e"
+GRAPH_APP_ROLE_USER_READ_ALL = "df021288-bdef-4463-88db-98f22de89214"
+GRAPH_APP_ROLE_ORGANIZATION_READ_ALL = "498476ce-e0fe-48b0-b801-37ba7e2685c6"
+# v2: audit + reports permissions (Phase B). All application-scoped Roles.
+GRAPH_APP_ROLE_AUDIT_LOG_READ_ALL = "b0afded3-3588-46d8-8b3d-9842eff778da"
+GRAPH_APP_ROLE_AUDIT_LOGS_QUERY_READ_ALL = "5e1e9171-754d-478c-812c-f1755a9a4c2d"
+GRAPH_APP_ROLE_REPORTS_READ_ALL = "230c1aed-a721-4c5d-9cb4-a90514e508ef"
+GRAPH_APP_ROLE_REPORT_SETTINGS_READWRITE_ALL = "2a60023f-3219-47ad-baa4-40e17cd02a1d"
+# v3: Copilot admin/agent inventory APIs. These are application-scoped
+# Microsoft Graph roles used by /copilot/agentRegistrations and the
+# Copilot admin catalog/policy endpoints.
+GRAPH_APP_ROLE_AGENT_REGISTRATION_READ_ALL = "d3acceb6-4673-47c0-aeac-582f2c7cf72c"
+GRAPH_APP_ROLE_COPILOT_PACKAGES_READ_ALL = "72f0655d-6228-4ddc-8e1b-164973b9213b"
+GRAPH_APP_ROLE_COPILOT_POLICY_SETTINGS_READ = "556d5e2e-1081-4452-8147-26c3a1b06f58"
+
+# MicrosoftPurviewEDiscovery resource. Kept as a token-audience candidate for
+# non-proxy export URLs; direct-download proxy URLs go through Playwright.
+PURVIEW_EDISCOVERY_RESOURCE_ID = "b26e684c-5068-4120-a679-64a5d2c909d9"
+
+# Delegated permission (oauth2PermissionScope) GUID for eDiscovery.ReadWrite.All
+# on the Microsoft Graph SP. NOTE: this is the *delegated* scope id and is
+# distinct from the application role id (b2620db1-3bf7-4c5b-9cb9-576d29eac736).
+# It is declared in the app registration so the bootstrap admin's tenant-wide
+# admin consent also covers eDiscovery — letting a non-admin eDiscovery Manager
+# run collection later without hitting an individual consent prompt (which they
+# cannot satisfy, since eDiscovery.ReadWrite.All requires admin consent).
+GRAPH_DELEGATED_SCOPE_EDISCOVERY_READWRITE_ALL = "acb8f680-0834-4146-b69e-4ab1b39745ad"
+
+# Delegated scopes used during bootstrap.
+#
+# ``RoleManagement.ReadWrite.Exchange`` lets the bootstrap admin grant the
+# service principal the Exchange Online "View-Only Audit Logs" role via the
+# Microsoft Graph beta ``/roleManagement/exchange/roleAssignments``
+# endpoint — bypassing the brittle ExchangeOnlineManagement PowerShell
+# path which can route role-group lookups to the wrong recipient catalog
+# on tenants migrated to Microsoft Purview unified RBAC.
+DELEGATED_BOOTSTRAP_SCOPES = [
+    "Application.ReadWrite.All",
+    "AppRoleAssignment.ReadWrite.All",
+    "Directory.Read.All",
+    "RoleManagement.ReadWrite.Exchange",
+    "ReportSettings.ReadWrite.All",
+    # Requested during onboarding so the bootstrap admin consents to (and
+    # obtains a refresh token for) the new Purview eDiscovery experience in
+    # the same sign-in. The cached refresh token then lets eDiscovery
+    # collection acquire tokens silently — no second device-code login.
+    "eDiscovery.ReadWrite.All",
+]
+
+DELEGATED_COPILOT_AGENT_SYNC_SCOPES = [
+    "CopilotPackages.Read.All",
+    "AppCatalog.Read.All",
+]
+
+# Delegated scopes for the new Microsoft Purview eDiscovery experience.
+#
+# The new eDiscovery Graph endpoints (``/security/cases/ediscoveryCases``)
+# support *delegated* authentication, so an eDiscovery Manager can run
+# on-demand collection of a single user's Copilot interactions (including
+# users without a Copilot license, whose prompts/responses are still
+# stored in their mailbox).
+#
+# IMPORTANT — this scope alone is NOT sufficient. Two further gates apply
+# at run time and are outside the OAuth consent:
+#   1. The signed-in user must belong to an eDiscovery role group
+#      (eDiscovery Manager or Administrator) in Microsoft Purview, or the
+#      API returns 403 even with a valid token.
+#   2. Creating/exporting eDiscovery searches via these endpoints requires
+#      the tenant's eDiscovery (Premium) capability; on non-premium
+#      tenants the export/download stage may be rejected. Verify against a
+#      live tenant before relying on the Graph export path.
+DELEGATED_EDISCOVERY_SCOPES = [
+    "eDiscovery.ReadWrite.All",
+]
+
+# Client-credentials scope (always /.default for app-only tokens).
+CLIENT_CREDENTIALS_SCOPE = "https://graph.microsoft.com/.default"
+
+# Candidate audiences for *backend* eDiscovery export downloads from the
+# eDiscovery proxy service (``*.proxyservice.ediscovery.svc.cloud.microsoft``).
+#
+# The Graph control plane (case/search/export create + poll) is authorised
+# with a ``graph.microsoft.com`` token, but the proxy that streams the actual
+# export package does NOT accept a Graph-audience token. Some tenants expose a
+# server-side download path for Exchange/Purview audiences; newer
+# IsDirectDownloadProxy links may still reject every access token and require
+# an interactive id_token browser session. The app tries these audiences
+# silently and, by design, does not open a manual browser fallback.
+PURVIEW_EXPORT_SCOPE = f"{PURVIEW_EDISCOVERY_RESOURCE_ID}/.default"
+PURVIEW_EXPORT_SCOPES = (
+    PURVIEW_EXPORT_SCOPE,
+    "https://ps.compliance.protection.outlook.com/.default",
+    "https://outlook.office365.com/.default",
+)
+
+# Default polling cadence (minutes). User-overridable in settings.
+DEFAULT_POLL_INTERVAL_MINUTES = 15
+
+# Safety margin subtracted from the per-user watermark to absorb clock
+# skew and late-arriving server-side records.
+WATERMARK_SAFETY_MARGIN_SECONDS = 300
+
+# Concurrency cap for per-user Graph requests.
+MAX_CONCURRENT_USER_REQUESTS = 8
+
+
+@dataclass(frozen=True)
+class AppPaths:
+    """Resolved filesystem locations for user data, logs, and i18n.
+
+    The ``db_path`` attribute reflects the *currently selected profile*.
+    Use :meth:`resolve` to obtain the shared shell (root/logs/i18n) and
+    then :meth:`with_profile` to bind it to a specific profile's
+    SQLite database.
+    """
+
+    root: Path
+    data_dir: Path
+    log_dir: Path
+    db_path: Path
+    i18n_dir: Path
+    profile_id: str | None = None
+
+    @classmethod
+    def resolve(cls) -> "AppPaths":
+        local_app = os.environ.get("LOCALAPPDATA")
+        if local_app:
+            root = Path(local_app) / __app_name__
+        else:  # Linux/macOS dev environments
+            root = Path.home() / ".local" / "share" / __app_name__
+        data_dir = root
+        log_dir = root / "logs"
+        # Default to the legacy single-profile DB path; multi-profile
+        # callers re-bind via :meth:`with_profile`.
+        db_path = root / "store.db"
+        # `i18n` ships with the package; allow override via env for tests.
+        i18n_dir = Path(__file__).resolve().parent / "i18n"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        log_dir.mkdir(parents=True, exist_ok=True)
+        return cls(
+            root=root,
+            data_dir=data_dir,
+            log_dir=log_dir,
+            db_path=db_path,
+            i18n_dir=i18n_dir,
+            profile_id=None,
+        )
+
+    def with_profile(self, profile_id: str, db_path: Path) -> "AppPaths":
+        """Return a new ``AppPaths`` pointing at ``db_path`` for ``profile_id``."""
+        return AppPaths(
+            root=self.root,
+            data_dir=self.data_dir,
+            log_dir=self.log_dir,
+            db_path=db_path,
+            i18n_dir=self.i18n_dir,
+            profile_id=profile_id,
+        )
+
+
+@dataclass
+class RuntimeOptions:
+    """Mutable runtime options. Persisted values live in the `settings`
+    table; this object is loaded from there on startup."""
+
+    poll_interval_minutes: int = DEFAULT_POLL_INTERVAL_MINUTES
+    scope_mode: str = "LICENSED"  # ALL_ACTIVE | LICENSED | GROUP | CUSTOM
+    scope_group_id: str | None = None
+    scope_upns: list[str] = field(default_factory=list)
+    backfill_done_initial: bool = False
+    language: str = "ko_KR"  # ko_KR | en_US

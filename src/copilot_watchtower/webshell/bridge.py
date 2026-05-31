@@ -1,0 +1,668 @@
+"""Python ↔ JS bridge exposed to the embedded web shell via QWebChannel.
+
+Every slot returns a JSON string so the JS side gets a predictable
+serialised payload regardless of Qt's metatype coverage. Filters are
+also accepted as JSON strings to keep the surface small and stable.
+
+The bridge intentionally has no HTTP listener — all communication runs
+inside the host process through QWebChannel.
+"""
+from __future__ import annotations
+
+import json
+import logging
+from dataclasses import dataclass
+from typing import Any
+
+from PySide6.QtCore import QObject, Signal, Slot
+
+from .. import __app_name__
+from ..app_labels import display_app_name
+from ..config import RuntimeOptions
+from ..db import Repository
+from ..profiles import ProfileRegistry
+from .actions import OperationsController
+
+log = logging.getLogger(__name__)
+
+_THREAD_TURN_BODY_LIMIT = 2000
+
+
+@dataclass(frozen=True)
+class BridgeContext:
+    """Read-only context the shell hands to the bridge.
+
+    Keeping it explicit avoids the bridge reaching into shell internals
+    and makes test setup obvious.
+    """
+
+    repo: Repository
+    registry: ProfileRegistry | None = None
+    profile_id: str | None = None
+    options: RuntimeOptions | None = None
+
+
+class Bridge(QObject):
+    """QWebChannel-exposed facade over Repository analytics helpers."""
+
+    log_message = Signal(str)
+    bridge_event = Signal(str)  # JSON push channel for live updates
+
+    def __init__(
+        self,
+        context: BridgeContext,
+        controller: OperationsController | None = None,
+        parent: QObject | None = None,
+    ) -> None:
+        super().__init__(parent)
+        self._context = context
+        self._controller = controller
+        if controller is not None:
+            # Chain signal-to-signal so PySide6 marshals correctly even though
+            # both objects already live in the main thread.
+            controller.event.connect(self.bridge_event)
+
+    # ---- system / context ------------------------------------------
+
+    @Slot(result=str)
+    def system_info(self) -> str:
+        profile_name = None
+        if self._context.registry is not None and self._context.profile_id:
+            profile = self._context.registry.get(self._context.profile_id)
+            if profile is not None:
+                profile_name = profile.name
+        return _dumps(
+            {
+                "app": __app_name__,
+                "profile": profile_name,
+                "profile_id": self._context.profile_id,
+            }
+        )
+
+    # ---- analytics: user-focused -----------------------------------
+
+    @Slot(str, result=str)
+    def analytics_user_activity_overview(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        rows = self._context.repo.user_activity_overview(
+            date_from=filters.get("date_from"),
+            date_to=filters.get("date_to"),
+            user_id=filters.get("user_id"),
+            app=filters.get("app"),
+            search=filters.get("search"),
+            source_type=filters.get("source_type") or "api",
+            limit=int(filters.get("limit") or 500),
+        )
+        return _dumps([_label_app(row) for row in rows])
+
+    @Slot(str, result=str)
+    def analytics_user_daily_activity(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        rows = self._context.repo.user_daily_activity(
+            date_from=filters.get("date_from"),
+            date_to=filters.get("date_to"),
+            user_id=filters.get("user_id"),
+            app=filters.get("app"),
+            search=filters.get("search"),
+            source_type=filters.get("source_type") or "api",
+            limit=int(filters.get("limit") or 2000),
+        )
+        return _dumps([_label_app(row) for row in rows])
+
+    @Slot(str, result=str)
+    def analytics_user_daily_app_usage(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        rows = self._context.repo.user_daily_app_usage(
+            date_from=filters.get("date_from"),
+            date_to=filters.get("date_to"),
+            user_id=filters.get("user_id"),
+            app=filters.get("app"),
+            search=filters.get("search"),
+            source_type=filters.get("source_type") or "api",
+            limit=int(filters.get("limit") or 2000),
+        )
+        out: list[dict[str, Any]] = []
+        for row in rows:
+            entry = dict(row)
+            entry["app_raw"] = row.get("app") or ""
+            entry["app"] = display_app_name(row.get("app") or "")
+            out.append(entry)
+        return _dumps(out)
+
+    @Slot(str, result=str)
+    def analytics_interaction_apps(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        apps = self._context.repo.interaction_apps(
+            date_from=filters.get("date_from"),
+            date_to=filters.get("date_to"),
+            user_id=filters.get("user_id"),
+            source_type=filters.get("source_type") or "api",
+        )
+        return _dumps(
+            [
+                {"value": app, "label": display_app_name(app)}
+                for app in apps
+            ]
+        )
+
+    # ---- users -----------------------------------------------------
+
+    @Slot(result=str)
+    def users_in_scope(self) -> str:
+        users = self._context.repo.users_in_scope()
+        return _dumps(
+            [
+                {
+                    "id": user.id,
+                    "upn": user.upn,
+                    "display_name": user.display_name,
+                    "enabled": user.enabled,
+                    "licensed": user.has_copilot_license,
+                }
+                for user in users
+            ]
+        )
+
+    @Slot(result=str)
+    def ediscovery_users(self) -> str:
+        users = self._context.repo.users_with_interactions(source_type="ediscovery")
+        return _dumps(
+            [
+                {
+                    "id": user.id,
+                    "upn": user.upn,
+                    "display_name": user.display_name,
+                    "enabled": user.enabled,
+                    "licensed": user.has_copilot_license,
+                }
+                for user in users
+            ]
+        )
+
+    # ---- conversations --------------------------------------------
+
+    @Slot(str, result=str)
+    def conversations_list(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        threads = self._context.repo.list_threads(
+            user_id=filters.get("user_id"),
+            date_from=filters.get("date_from"),
+            date_to=filters.get("date_to"),
+            app=filters.get("app"),
+            search=filters.get("search"),
+            source_type=filters.get("source_type") or "api",
+            limit=int(filters.get("limit") or 200),
+        )
+        return _dumps([_thread_summary(thread) for thread in threads])
+
+    @Slot(str, result=str)
+    def conversations_detail(self, thread_id: str) -> str:
+        thread = self._context.repo.get_thread(thread_id)
+        if thread is None:
+            return _dumps({"thread": None, "turns": [], "audit": []})
+        turns = self._context.repo.thread_turns(thread_id, source_type=thread.source_type)
+        audit_events = self._context.repo.audit_events_for_thread(thread)
+        return _dumps(
+            {
+                "thread": _thread_summary(thread),
+                "turns": [_thread_turn(turn) for turn in turns],
+                "audit": [_audit_event_row(event) for event in audit_events],
+            }
+        )
+
+    # ---- agents ----------------------------------------------------
+
+    @Slot(str, result=str)
+    def agents_list(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        rows = self._context.repo.list_copilot_agent_activity(
+            threshold_days=int(filters.get("threshold_days") or 30),
+            include_all=bool(filters.get("include_all", True)),
+            search=filters.get("search"),
+        )
+        return _dumps([_agent_row(row) for row in rows])
+
+    # ---- security / audit -----------------------------------------
+
+    @Slot(str, result=str)
+    def audit_events_list(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        rows = self._context.repo.list_audit_events(
+            source=filters.get("source"),
+            user_id=filters.get("user_id"),
+            date_from=filters.get("date_from"),
+            date_to=filters.get("date_to"),
+            search=filters.get("search"),
+            limit=int(filters.get("limit") or 300),
+        )
+        return _dumps([_audit_event_full(event) for event in rows])
+
+    @Slot(result=str)
+    def admin_diagnostics_list(self) -> str:
+        rows = self._context.repo.list_copilot_admin_diagnostics()
+        return _dumps(
+            [
+                {
+                    "key": row.key,
+                    "label": row.label,
+                    "endpoint": row.endpoint,
+                    "status": row.status,
+                    "status_code": row.status_code,
+                    "summary": row.summary,
+                    "error": row.error,
+                    "captured_at": row.captured_at,
+                }
+                for row in rows
+            ]
+        )
+
+    # ---- official Microsoft reports -------------------------------
+
+    @Slot(str, result=str)
+    def usage_snapshots_list(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        rows = self._context.repo.list_usage_snapshots(
+            period=filters.get("period"),
+            date_from=filters.get("date_from"),
+            date_to=filters.get("date_to"),
+            search=filters.get("search"),
+            limit=int(filters.get("limit") or 500),
+        )
+        return _dumps([_usage_snapshot_row(row) for row in rows])
+
+    @Slot(str, result=str)
+    def usage_counts_list(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        rows = self._context.repo.list_usage_count_rows(
+            report_type=filters.get("report_type"),
+            period=filters.get("period"),
+            limit=int(filters.get("limit") or 200),
+        )
+        return _dumps([_usage_count_row(row) for row in rows])
+
+    @Slot(result=str)
+    def usage_periods_summary(self) -> str:
+        repo = self._context.repo
+        latest = {period: repo.latest_usage_snapshot_date(period) for period in ("D7", "D30", "D90", "D180")}
+        return _dumps({"latest_snapshot_dates": latest})
+
+    # ---- operations / system --------------------------------------
+
+    @Slot(str, result=str)
+    def operations_recent_runs(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        runs = self._context.repo.recent_runs(limit=int(filters.get("limit") or 50))
+        return _dumps(
+            [
+                {
+                    "id": run.id,
+                    "started_at": run.started_at,
+                    "finished_at": run.finished_at,
+                    "users_processed": run.users_processed,
+                    "interactions_fetched": run.interactions_fetched,
+                    "errors_count": run.errors_count,
+                    "trigger": run.trigger,
+                }
+                for run in runs
+            ]
+        )
+
+    @Slot(result=str)
+    def operations_audit_state(self) -> str:
+        rows = []
+        for source in ("purview", "entra_audit", "entra_signin"):
+            state = self._context.repo.get_audit_collection_state(source)
+            if state is None:
+                continue
+            rows.append(
+                {
+                    "source": state.source,
+                    "last_collected_at": state.last_collected_at,
+                    "last_success_at": state.last_success_at,
+                    "last_error": state.last_error,
+                    "last_error_at": state.last_error_at,
+                    "last_record_count": state.last_record_count,
+                    "pending_query_id": state.pending_query_id,
+                    "enabled": state.enabled,
+                }
+            )
+        return _dumps(rows)
+
+    @Slot(result=str)
+    def operations_summary(self) -> str:
+        repo = self._context.repo
+        return _dumps(
+            {
+                "users": {
+                    "total": repo.total_users(),
+                    "readiness": repo.readiness_rate(),
+                },
+                "interactions": repo.total_interactions(),
+                "threads": repo.thread_count(),
+            }
+        )
+
+    @Slot(result=str)
+    def profiles_list(self) -> str:
+        if self._context.registry is None:
+            return _dumps([])
+        active = self._context.registry.active_profile_id
+        out: list[dict[str, Any]] = []
+        for profile in self._context.registry.profiles:
+            out.append(
+                {
+                    "id": profile.id,
+                    "name": profile.name,
+                    "tenant_domain": profile.tenant_domain,
+                    "display_name": profile.display_name,
+                    "bootstrap_complete": bool(profile.bootstrap_complete),
+                    "last_used_at": profile.last_used_at,
+                    "created_at": profile.created_at,
+                    "active": profile.id == active,
+                    "current": profile.id == self._context.profile_id,
+                }
+            )
+        return _dumps(out)
+
+    @Slot(result=str)
+    def settings_summary(self) -> str:
+        options = self._context.options
+        repo = self._context.repo
+        tenant_id = repo.get_text_setting("tenant_id")
+        client_id = repo.get_text_setting("client_id")
+        secret_expires_at = repo.get_text_setting("secret_expires_at")
+        language = repo.get_text_setting("language") or (options.language if options else None)
+        return _dumps(
+            {
+                "tenant_id": tenant_id,
+                "client_id": client_id,
+                "secret_expires_at": secret_expires_at,
+                "language": language,
+                "poll_interval_minutes": options.poll_interval_minutes if options else None,
+                "scope_mode": options.scope_mode if options else None,
+                "scope_group_id": options.scope_group_id if options else None,
+                "scope_upns": list(options.scope_upns) if options else [],
+                "bootstrap_complete": repo.get_text_setting("bootstrap_complete") == "1",
+            }
+        )
+
+    # ---- actions --------------------------------------------------
+
+    @Slot(str, result=str)
+    def collection_start(self, kind: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.start_collection(kind))
+
+    @Slot(str, result=str)
+    def collection_stop(self, kind: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.stop_collection(kind))
+
+    @Slot(result=str)
+    def collection_status(self) -> str:
+        if self._controller is None:
+            return _dumps({"running": []})
+        return _dumps(self._controller.collection_status())
+
+    @Slot(str, result=str)
+    def ediscovery_collect_start(self, payload_json: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        try:
+            payload = json.loads(payload_json) if payload_json else {}
+        except (TypeError, ValueError):
+            return _dumps({"ok": False, "error": "잘못된 요청 형식입니다."})
+        if not isinstance(payload, dict):
+            return _dumps({"ok": False, "error": "잘못된 요청 형식입니다."})
+        target_upn = str(payload.get("target_upn") or "").strip()
+        window_start = payload.get("window_start")
+        window_end = payload.get("window_end")
+        job_id = payload.get("job_id")
+        return _dumps(
+            self._controller.start_ediscovery_collection(
+                target_upn,
+                window_start=str(window_start) if window_start else None,
+                window_end=str(window_end) if window_end else None,
+                job_id=str(job_id) if job_id else None,
+            )
+        )
+
+    @Slot(str, result=str)
+    def ediscovery_collect_stop(self, job_id: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.stop_ediscovery_collection(job_id))
+
+    @Slot(result=str)
+    def ediscovery_collect_status(self) -> str:
+        if self._controller is None:
+            return _dumps({"jobs": []})
+        return _dumps(self._controller.ediscovery_status())
+
+    @Slot(str, result=str)
+    def ediscovery_open_download(self, job_id: str) -> str:
+        """Disabled: the product must not open manual browser download UI."""
+        return _dumps(
+            {
+                "ok": False,
+                "error": "수동 브라우저 다운로드는 지원하지 않습니다. 자동 백엔드 다운로드만 시도합니다.",
+            }
+        )
+
+    @Slot(str, result=str)
+    def ediscovery_import_export(self, job_id: str) -> str:
+        """Disabled: the product must not ask the operator to import ZIPs."""
+        return _dumps(
+            {
+                "ok": False,
+                "error": "수동 ZIP 가져오기는 지원하지 않습니다. 자동 백엔드 다운로드만 시도합니다.",
+            }
+        )
+
+    @Slot(str, result=str)
+    def profile_switch(self, profile_id: str) -> str:
+
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.switch_profile(profile_id))
+
+    @Slot(str, result=str)
+    def profile_add(self, name: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.add_profile(name))
+
+    @Slot(str, str, result=str)
+    def profile_remove(self, profile_id: str, delete_data_json: str = "true") -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        try:
+            delete_data = bool(json.loads(delete_data_json))
+        except (TypeError, ValueError):
+            delete_data = True
+        return _dumps(self._controller.remove_profile(profile_id, delete_data=delete_data))
+
+    @Slot(str, result=str)
+    def settings_update(self, payload_json: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        try:
+            payload = json.loads(payload_json or "{}")
+        except (TypeError, ValueError):
+            return _dumps({"ok": False, "error": "잘못된 JSON 입력"})
+        if not isinstance(payload, dict):
+            return _dumps({"ok": False, "error": "payload는 객체여야 합니다."})
+        return _dumps(self._controller.update_settings(payload))
+
+    @Slot(str, result=str)
+    def open_system_dialog(self, kind: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.open_system_dialog(kind))
+    @Slot(result=str)
+    def diagnostics_ping(self) -> str:
+        """Round-trip diagnostic. Pushes a bridge_event so the UI can verify the live channel works."""
+        if self._controller is not None:
+            self._controller.emit_test_event()
+        log.info("diagnostics_ping")
+        return _dumps({"ok": True})
+
+def _parse_filters(raw: str | None) -> dict[str, Any]:
+    if not raw:
+        return {}
+    try:
+        parsed = json.loads(raw)
+    except (TypeError, ValueError):
+        log.debug("Bridge received non-JSON filters payload: %r", raw)
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    return parsed
+
+
+def _label_app(row: dict[str, Any]) -> dict[str, Any]:
+    entry = dict(row)
+    raw = row.get("top_app") or ""
+    entry["top_app_raw"] = raw
+    entry["top_app"] = display_app_name(raw)
+    return entry
+
+
+def _thread_summary(thread: Any) -> dict[str, Any]:
+    return {
+        "id": thread.id,
+        "user_id": thread.user_id,
+        "display_name": thread.display_name,
+        "upn": thread.upn,
+        "started_at": thread.started_at,
+        "ended_at": thread.ended_at,
+        "app_raw": thread.app or "",
+        "app": display_app_name(thread.app or ""),
+        "turn_count": int(thread.turn_count),
+        "prompt_count": int(thread.prompt_count),
+        "response_count": int(thread.response_count),
+        "title": thread.title or "",
+        "topic_keywords": list(thread.topic_keywords or []),
+        "session_ids": list(thread.session_ids or []),
+        "source_type": getattr(thread, "source_type", "api"),
+    }
+
+
+def _thread_turn(turn: Any) -> dict[str, Any]:
+    body = turn.body_text or ""
+    if len(body) > _THREAD_TURN_BODY_LIMIT:
+        body = body[:_THREAD_TURN_BODY_LIMIT] + "…"
+    return {
+        "id": turn.id,
+        "created_at": turn.created_at,
+        "interaction_type": turn.interaction_type or "",
+        "app_raw": turn.app or "",
+        "app": display_app_name(turn.app or ""),
+        "session_id": turn.session_id,
+        "body_text": body,
+        "body_content_type": turn.body_content_type or "",
+        "source_type": getattr(turn, "source_type", "api"),
+    }
+
+
+def _audit_event_row(event: Any) -> dict[str, Any]:
+    return {
+        "id": event.id,
+        "source": event.source,
+        "event_time": event.event_time,
+        "upn": event.upn,
+        "operation": event.operation,
+        "workload": event.workload,
+        "app_raw": event.app or "",
+        "app": display_app_name(event.app or ""),
+        "result": event.result,
+    }
+
+
+def _audit_event_full(event: Any) -> dict[str, Any]:
+    base = _audit_event_row(event)
+    base.update(
+        {
+            "user_id": event.user_id,
+            "client_ip": event.client_ip,
+            "target_resources": event.target_resources,
+            "raw_json": event.raw_json,
+            "fetched_at": event.fetched_at,
+        }
+    )
+    return base
+
+
+def _usage_snapshot_row(row: Any) -> dict[str, Any]:
+    return {
+        "snapshot_date": row.snapshot_date,
+        "user_id": row.user_id,
+        "upn": row.upn,
+        "period": row.period,
+        "display_name": row.display_name,
+        "last_activity_overall": row.last_activity_overall,
+        "last_activity_teams": row.last_activity_teams,
+        "last_activity_word": row.last_activity_word,
+        "last_activity_excel": row.last_activity_excel,
+        "last_activity_powerpoint": row.last_activity_powerpoint,
+        "last_activity_outlook": row.last_activity_outlook,
+        "last_activity_onenote": row.last_activity_onenote,
+        "last_activity_loop": row.last_activity_loop,
+        "last_activity_bizchat": row.last_activity_bizchat,
+    }
+
+
+def _usage_count_row(row: Any) -> dict[str, Any]:
+    return {
+        "report_type": row.report_type,
+        "report_refresh_date": row.report_refresh_date,
+        "period": row.period,
+        "report_date": row.report_date,
+        "any_app_enabled_users": row.any_app_enabled_users,
+        "any_app_active_users": row.any_app_active_users,
+        "teams_enabled_users": row.teams_enabled_users,
+        "teams_active_users": row.teams_active_users,
+        "word_enabled_users": row.word_enabled_users,
+        "word_active_users": row.word_active_users,
+        "powerpoint_enabled_users": row.powerpoint_enabled_users,
+        "powerpoint_active_users": row.powerpoint_active_users,
+        "outlook_enabled_users": row.outlook_enabled_users,
+        "outlook_active_users": row.outlook_active_users,
+        "excel_enabled_users": row.excel_enabled_users,
+        "excel_active_users": row.excel_active_users,
+        "onenote_enabled_users": row.onenote_enabled_users,
+        "onenote_active_users": row.onenote_active_users,
+        "loop_enabled_users": row.loop_enabled_users,
+        "loop_active_users": row.loop_active_users,
+        "copilot_chat_enabled_users": row.copilot_chat_enabled_users,
+        "copilot_chat_active_users": row.copilot_chat_active_users,
+    }
+
+
+def _agent_row(row: Any) -> dict[str, Any]:
+    agent = row.agent
+    return {
+        "id": agent.id,
+        "display_name": agent.display_name,
+        "app_identity": agent.app_identity,
+        "app_external_id": agent.app_external_id,
+        "add_on_guid": agent.add_on_guid,
+        "source": agent.source,
+        "status": agent.status,
+        "last_activity_at": agent.last_activity_at,
+        "last_activity_source": agent.last_activity_source,
+        "usage_event_count": int(agent.usage_event_count or 0),
+        "state": row.state,
+        "is_stale": bool(row.is_stale),
+        "days_inactive": row.days_inactive,
+        "confidence": row.confidence,
+        "threshold_days": int(row.threshold_days),
+        "audit_coverage_start": row.audit_coverage_start,
+        "audit_coverage_end": row.audit_coverage_end,
+    }
+
+
+def _dumps(payload: Any) -> str:
+    return json.dumps(payload, ensure_ascii=False, default=str)

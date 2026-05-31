@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Node / frontend
+node_modules/
+web/node_modules/
+web/dist/
+web/.vite/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+pytest-output*.txt
+
+# Local data (NEVER commit collected interactions or secrets)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.log
+logs/
+
+# PyInstaller
+*.spec.bak
+release/
+
+# OS
+Thumbs.db
+.DS_Store
