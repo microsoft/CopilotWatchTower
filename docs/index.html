@@ -8,7 +8,10 @@
 <meta property="og:title" content="CopilotWatchTower (코파일럿 워치타워)" />
 <meta property="og:description" content="조직의 Microsoft 365 Copilot 사용 현황을 관리자가 직접 수집·분석하는 Windows 데스크톱 도구." />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="screenshots/01-dashboard.png" />
+<meta property="og:image" content="app-icon.png" />
+<link rel="icon" type="image/x-icon" href="favicon.ico" />
+<link rel="icon" type="image/png" href="app-icon.png" />
+<link rel="apple-touch-icon" href="app-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
@@ -52,7 +55,7 @@
   }
   .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
   .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 17px; letter-spacing: -.2px; }
-  .brand .logo { width: 32px; height: 32px; flex: 0 0 auto; }
+  .brand .logo { width: 32px; height: 32px; flex: 0 0 auto; border-radius: 8px; }
   .nav-links { display: flex; gap: 28px; align-items: center; font-size: 14.5px; color: var(--muted); }
   .nav-links a:hover { color: var(--text); }
   .nav-cta {
@@ -77,6 +80,10 @@
     color: var(--muted); padding: 7px 14px; border-radius: 999px; font-size: 13px; margin-bottom: 26px;
   }
   .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #3ad29f; box-shadow: 0 0 10px #3ad29f; }
+  .hero-logo {
+    width: 96px; height: 96px; border-radius: 22px; margin-bottom: 26px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.45); border: 1px solid var(--border);
+  }
   h1.title {
     font-size: clamp(34px, 6vw, 60px); font-weight: 900; letter-spacing: -1.5px; line-height: 1.12;
   }
@@ -198,17 +205,7 @@
 <header>
   <div class="wrap nav">
     <div class="brand">
-      <svg class="logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-          <linearGradient id="g" x1="0" y1="0" x2="48" y2="48">
-            <stop stop-color="#5b8cff"/><stop offset="1" stop-color="#7c5cff"/>
-          </linearGradient>
-        </defs>
-        <path d="M24 3l16 6v10c0 11-7 18-16 23C15 37 8 30 8 19V9l16-6z" fill="url(#g)" opacity=".22"/>
-        <path d="M24 3l16 6v10c0 11-7 18-16 23C15 37 8 30 8 19V9l16-6z" stroke="url(#g)" stroke-width="2.2"/>
-        <circle cx="24" cy="20" r="5.5" stroke="url(#g)" stroke-width="2.2"/>
-        <path d="M24 25.5V33" stroke="url(#g)" stroke-width="2.2" stroke-linecap="round"/>
-      </svg>
+      <img class="logo" src="app-icon.png" alt="CopilotWatchTower 로고" />
       <span>CopilotWatchTower</span>
     </div>
     <nav class="nav-links">
@@ -225,6 +222,8 @@
 <section class="hero">
   <div class="wrap">
     <span class="badge"><span class="dot"></span> Windows 데스크톱 · Python + PySide6 · 로컬 전용</span>
+    <br/>
+    <img class="hero-logo" src="app-icon.png" alt="CopilotWatchTower 앱 아이콘" />
     <h1 class="title">조직의 <span class="grad">Microsoft 365 Copilot</span><br/>사용 현황을 한눈에</h1>
     <p class="subtitle">
       테넌트 관리자를 위한 <strong>Copilot 사용 현황·대화 수집 도구</strong>입니다.
