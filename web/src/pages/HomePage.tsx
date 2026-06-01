@@ -14,20 +14,20 @@ import {
 import { Card } from "../components/Card";
 import { KpiCard } from "../components/KpiCard";
 import {
-  type CollectionRun,
   type OperationsSummary,
   type UsageCountRow,
+  type UserDailyAppUsageRow,
   getAdoptionInsights,
   getOperationsSummary,
   getUserDailyActivity,
+  getUserDailyAppUsage,
   getUserActivityOverview,
   getUsagePeriodsSummary,
   isBridgeAvailable,
-  listRecentRuns,
   listAuditEvents,
   listUsageCounts,
 } from "../lib/bridge";
-import { defaultDateRange, formatKstDateTime, formatNumber } from "../lib/format";
+import { defaultDateRange, formatNumber } from "../lib/format";
 
 const BRIDGE_AVAILABLE = isBridgeAvailable();
 
@@ -43,7 +43,11 @@ export function HomePage() {
     queryFn: getOperationsSummary,
     enabled: BRIDGE_AVAILABLE,
   });
-  const runsQuery = useQuery({ queryKey: ["home-runs"], queryFn: () => listRecentRuns(8), enabled: BRIDGE_AVAILABLE });
+  const runsQuery = useQuery({
+    queryKey: ["home-app-usage", range],
+    queryFn: () => getUserDailyAppUsage({ ...range, limit: 5000 }),
+    enabled: BRIDGE_AVAILABLE,
+  });
   const dailyQuery = useQuery({
     queryKey: ["home-daily", range],
     queryFn: () => getUserDailyActivity({ ...range, limit: 2000 }),
@@ -73,7 +77,7 @@ export function HomePage() {
   const overview = overviewQuery.data ?? [];
   const daily = dailyQuery.data ?? [];
   const summary: OperationsSummary | undefined = summaryQuery.data;
-  const runs = runsQuery.data ?? [];
+  const appBreakdown = buildAppBreakdown(runsQuery.data ?? []);
   const periodsLatest = (periodsQuery.data?.latest_snapshot_dates ?? {}) as Partial<
     Record<"D7" | "D30" | "D90" | "D180", string | null>
   >;
@@ -88,7 +92,6 @@ export function HomePage() {
   const totalThreads = overview.reduce((s, row) => s + row.thread_count, 0);
   const topUsers = [...overview].sort((a, b) => b.message_count - a.message_count).slice(0, 5);
   const trend = buildTrend(daily);
-  const recentActivity = runs.slice(0, 6);
 
   const adoption = adoptionQuery.data?.adoption;
   const sessions = adoptionQuery.data?.sessions;
@@ -150,18 +153,22 @@ export function HomePage() {
           </ul>
         </Card>
 
-        <Card title="최근 활동" actions={<Activity size={16} color="var(--accent)" />}>
-          <ul className="activity-list">
-            {recentActivity.length === 0 && <li className="empty-state">최근 수집 이력이 없습니다.</li>}
-            {recentActivity.map((run: CollectionRun) => (
-              <li className="activity-item" key={run.id}>
-                <span>
-                  <strong>{run.trigger}</strong>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{formatKstDateTime(run.started_at)}</div>
-                </span>
-                <span className={`status-badge ${run.errors_count ? "warn" : "ok"}`}>{run.errors_count ? "확인" : "성공"}</span>
-              </li>
-            ))}
+        <Card title="앱별 사용 분포" actions={<span style={{ fontSize: 11, color: "var(--text-muted)" }}>최근 30일 · 턴 기준</span>}>
+          <ul className="rank-list">
+            {appBreakdown.length === 0 && <li className="empty-state">표시할 앱 활동이 없습니다.</li>}
+            {appBreakdown.map((item, index) => {
+              const max = Math.max(...appBreakdown.map((row) => row.messages), 1);
+              return (
+                <li className="rank-item" key={item.app}>
+                  <span className="rank-index">{index + 1}</span>
+                  <span>
+                    <strong>{item.app}</strong>
+                    <div className="rank-meter"><div className="rank-meter-fill" style={{ width: `${Math.round((item.messages / max) * 100)}%` }} /></div>
+                  </span>
+                  <span className="tabular">{formatNumber(item.messages)}</span>
+                </li>
+              );
+            })}
           </ul>
         </Card>
       </div>
@@ -199,4 +206,16 @@ function buildTrend(rows: Array<{ day: string; message_count: number; thread_cou
     byDay.set(row.day, bucket);
   }
   return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
+}
+
+function buildAppBreakdown(rows: UserDailyAppUsageRow[]) {
+  const byApp = new Map<string, number>();
+  for (const row of rows) {
+    const app = row.app || "기타";
+    byApp.set(app, (byApp.get(app) ?? 0) + row.message_count);
+  }
+  return [...byApp.entries()]
+    .map(([app, messages]) => ({ app, messages }))
+    .sort((a, b) => b.messages - a.messages)
+    .slice(0, 6);
 }

@@ -5,17 +5,18 @@ import { Card } from "../components/Card";
 import { Column, DataTable } from "../components/DataTable";
 import { KpiCard } from "../components/KpiCard";
 import { KIND_LABELS, LiveLogPanel } from "../components/LiveLogPanel";
+import { RawJsonButton } from "../components/RawJsonModal";
 import { useToast } from "../components/Toast";
 import {
   type AuditCollectionStateRow,
   type CollectionKind,
-  type CollectionRun,
   type CollectionStatus,
   getAuditCollectionState,
   getCollectionStatus,
   getOperationsSummary,
   isBridgeAvailable,
-  listRecentRuns,
+  listRunLogs,
+  type RunLogRow,
   startCollection,
   stopCollection,
 } from "../lib/bridge";
@@ -25,36 +26,35 @@ import { useBridgeEvents } from "../lib/useBridgeEvents";
 const BRIDGE_AVAILABLE = isBridgeAvailable();
 
 interface KindConfig {
-  showRuns: boolean;
   showAuditState: boolean;
   description: string;
 }
 
 const KIND_CONFIG: Record<CollectionKind, KindConfig> = {
   conversation: {
-    showRuns: true,
     showAuditState: false,
     description: "Graph API로 사용자 Copilot 대화를 수집하고 스레드로 인덱싱합니다.",
   },
   audit: {
-    showRuns: false,
     showAuditState: true,
     description: "Purview·Entra 감사 로그에서 보안·접근 이벤트를 수집합니다.",
   },
   usage: {
-    showRuns: false,
     showAuditState: false,
     description: "Microsoft 365 Copilot 공식 사용량 보고서 스냅샷을 수집합니다.",
   },
   diagnostics: {
-    showRuns: false,
     showAuditState: false,
     description: "Copilot 관리 API(에이전트 등록·카탈로그)와 감사 로그에서 에이전트 인벤토리와 사용 신호를 수집합니다.",
   },
   consumption: {
-    showRuns: false,
+
     showAuditState: false,
-    description: "PPAC 자동 로그인으로 Copilot Studio 메시지·AI Builder 크레딧·Power Platform 요청 소비량 리포트를 내려받습니다. 수집한 데이터는 비용/소비량 화면에서 확인합니다.",
+    description: "PPAC 자동 로그인으로 Copilot Studio 메시지·AI Builder 크레딧·Power Platform 요청 소비량 리포트를 내려받습니다. 수집한 데이터는 파워플랫폼 크레딧 화면에서 확인합니다.",
+  },
+  transcripts: {
+    showAuditState: false,
+    description: "Dataverse 자동 로그인으로 Copilot Studio 커스텀 에이전트의 Teams 대화 기록(대화 트랜스크립트)을 수집합니다. 수집한 데이터는 대화 탐색(Teams) 화면에서 확인합니다.",
   },
 };
 
@@ -75,22 +75,23 @@ export function CollectionPage({ kind }: { kind: CollectionKind }) {
     enabled: BRIDGE_AVAILABLE,
     refetchInterval: 4000,
   });
-  const runsQuery = useQuery({
-    queryKey: ["ops-runs"],
-    queryFn: () => listRecentRuns(50),
-    enabled: BRIDGE_AVAILABLE && config.showRuns,
-  });
   const auditStateQuery = useQuery({
     queryKey: ["ops-audit-state"],
     queryFn: getAuditCollectionState,
     enabled: BRIDGE_AVAILABLE && config.showAuditState,
   });
+  const runLogsQuery = useQuery({
+    queryKey: ["run-logs", kind],
+    queryFn: () => listRunLogs(kind, 30),
+    enabled: BRIDGE_AVAILABLE,
+    refetchInterval: 4000,
+  });
 
   const summary = summaryQuery.data;
   const status: CollectionStatus = statusQuery.data ?? { running: [] };
-  const runs = runsQuery.data ?? [];
   const auditState = auditStateQuery.data ?? [];
   const running = useMemo(() => status.running.some((row) => row.kind === kind), [status, kind]);
+  const sessionRuns = runLogsQuery.data ?? [];
 
   const { events, clear, paused, togglePause } = useBridgeEvents();
   const cycleSeenRef = useRef<Set<number>>(new Set());
@@ -99,6 +100,9 @@ export function CollectionPage({ kind }: { kind: CollectionKind }) {
   const [logSearch, setLogSearch] = useState("");
   const [errorsOnly, setErrorsOnly] = useState(false);
   const [group, setGroup] = useState(true);
+  // Opt-in (transcripts only): add myself as system administrator to
+  // environments I lack access to, before collecting their transcripts.
+  const [addSelfAsAdmin, setAddSelfAsAdmin] = useState(false);
 
   // Events for this collection kind (plus system events for context).
   const kindEvents = useMemo(
@@ -142,10 +146,10 @@ export function CollectionPage({ kind }: { kind: CollectionKind }) {
   useEffect(() => {
     const finished = events.filter((e) => e.type === "cycle_finished" && String(e.payload?.kind ?? "") === kind);
     if (!finished.length) return;
-    queryClient.invalidateQueries({ queryKey: ["ops-runs"] });
     queryClient.invalidateQueries({ queryKey: ["ops-audit-state"] });
     queryClient.invalidateQueries({ queryKey: ["ops-summary"] });
     queryClient.invalidateQueries({ queryKey: ["ops-status"] });
+    queryClient.invalidateQueries({ queryKey: ["run-logs", kind] });
     const fresh = finished.filter((e) => !cycleSeenRef.current.has(e.id));
     if (!fresh.length) return;
     for (const ev of fresh) cycleSeenRef.current.add(ev.id);
@@ -190,40 +194,71 @@ export function CollectionPage({ kind }: { kind: CollectionKind }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-      <section style={{ display: "flex", flexDirection: "column", gap: 16, padding: "18px 24px", minHeight: 0 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-          {kind === "conversation" ? (
-            <>
-              <KpiCard label="대상 사용자" value={formatNumber(summary?.users.total)} hint={`활성 30일 ${formatNumber(summary?.users.readiness.active_30d)}`} />
-              <KpiCard label="수집 대화" value={formatNumber(summary?.interactions)} hint="누적" />
-              <KpiCard label="스레드" value={formatNumber(summary?.threads)} hint="현재 인덱스" />
-            </>
-          ) : (
-            <>
-              <KpiCard label="상태" value={running ? "실행 중" : "대기"} tone={running ? "positive" : "neutral"} />
-              <KpiCard label="진행률" value={progress ? `${Math.round(progress.percent)}%` : "—"} hint={progress?.message ?? ""} />
-              <KpiCard
-                label="전체 진행 중"
-                value={formatNumber(status.running.length)}
-                hint={status.running.length ? status.running.map((r) => KIND_LABELS[r.kind] ?? r.kind).join(", ") : "없음"}
-                tone={status.running.length ? "positive" : "neutral"}
-              />
-            </>
-          )}
-        </div>
+      <section style={{ display: "flex", flexDirection: "column", gap: 16, padding: "18px 24px", minHeight: 0, overflowY: "auto" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "stretch", flexWrap: "wrap" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(120px, 1fr))", gap: 12, flex: 1, minWidth: 320 }}>
+            {kind === "conversation" ? (
+              <>
+                <KpiCard label="대상 사용자" value={formatNumber(summary?.users.total)} hint={`활성 30일 ${formatNumber(summary?.users.readiness.active_30d)}`} />
+                <KpiCard label="수집 대화" value={formatNumber(summary?.interactions)} hint="누적" />
+                <KpiCard label="스레드" value={formatNumber(summary?.threads)} hint="현재 인덱스" />
+              </>
+            ) : (
+              <>
+                <KpiCard label="상태" value={running ? "실행 중" : "대기"} tone={running ? "positive" : "neutral"} />
+                <KpiCard label="진행률" value={progress ? `${Math.round(progress.percent)}%` : "—"} hint={progress?.message ?? ""} />
+                <KpiCard
+                  label="전체 진행 중"
+                  value={formatNumber(status.running.length)}
+                  hint={status.running.length ? status.running.map((r) => KIND_LABELS[r.kind] ?? r.kind).join(", ") : "없음"}
+                  tone={status.running.length ? "positive" : "neutral"}
+                />
+              </>
+            )}
+          </div>
 
-        <Card title={`${label} 작업`}>
-          <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "var(--text-muted)" }}>{config.description}</p>
           <CollectionTile
             label={label}
             running={running}
             progress={progress}
-            onStart={() => runAction(`${label} 시작`, () => startCollection(kind))}
+            onStart={() =>
+              runAction(`${label} 시작`, () =>
+                startCollection(kind, kind === "transcripts" ? { addSelfAsAdmin } : undefined),
+              )
+            }
             onStop={() => runAction(`${label} 중단`, () => stopCollection(kind))}
-          />
-        </Card>
+          >
+            {kind === "transcripts" && (
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 8,
+                  fontSize: 12,
+                  color: "var(--text)",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={addSelfAsAdmin}
+                  onChange={(e) => setAddSelfAsAdmin(e.target.checked)}
+                  disabled={running}
+                  style={{ marginTop: 2 }}
+                />
+                <span>
+                  권한이 없는 환경에 나를 시스템 관리자로 자동 추가
+                  <span style={{ display: "block", color: "var(--text-muted)", fontSize: 11, marginTop: 2 }}>
+                    토큰을 발급받지 못한 환경에 한해, 관리 센터에서 본인을 시스템 관리자로 추가한 뒤 다시 수집을
+                    시도합니다. 공유·운영 환경에 관리자 권한을 부여하는 작업이므로 필요할 때만 사용하세요.
+                  </span>
+                </span>
+              </label>
+            )}
+          </CollectionTile>
+        </div>
 
-        <Card title="실시간 로그">
+        <Card title="실시간 로그" bodyStyle={{ minWidth: 0, overflow: "hidden" }}>
           <LiveLogPanel
             events={filteredEvents}
             onClear={clear}
@@ -244,17 +279,19 @@ export function CollectionPage({ kind }: { kind: CollectionKind }) {
           />
         </Card>
 
-        {config.showRuns && (
-          <Card title="수집 이력" actions={<span style={{ fontSize: 11, color: "var(--text-muted)" }}>{runs.length}건</span>}>
-            <DataTable<CollectionRun>
-              rows={runs}
-              rowKey={(row) => String(row.id)}
-              initialSort={{ key: "started_at", direction: "desc" }}
-              columns={runColumns}
-              maxHeight="40vh"
-            />
-          </Card>
-        )}
+        <Card
+          title="실행 이력"
+          actions={<span style={{ fontSize: 11, color: "var(--text-muted)" }}>최근 {sessionRuns.length}건</span>}
+        >
+          <DataTable<RunLogRow>
+            rows={sessionRuns}
+            rowKey={(row) => String(row.id)}
+            initialSort={{ key: "started_at", direction: "desc" }}
+            columns={sessionRunColumns(label)}
+            maxHeight="40vh"
+            empty="아직 실행 기록이 없습니다. 수집을 시작하면 성공·실패와 관계없이 행이 추가됩니다."
+          />
+        </Card>
 
         {config.showAuditState && (
           <Card title="감사 수집 상태">
@@ -299,12 +336,14 @@ function CollectionTile({
   progress,
   onStart,
   onStop,
+  children,
 }: {
   label: string;
   running: boolean;
   progress?: { percent: number; message: string };
   onStart: () => void;
   onStop: () => void;
+  children?: React.ReactNode;
 }) {
   return (
     <div
@@ -316,7 +355,8 @@ function CollectionTile({
         display: "flex",
         flexDirection: "column",
         gap: 10,
-        maxWidth: 420,
+        flex: "0 0 320px",
+        minWidth: 280,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -343,6 +383,7 @@ function CollectionTile({
           중단
         </button>
       </div>
+      {children}
       {progress && (
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <div style={{ height: 4, borderRadius: 2, background: "var(--border)", overflow: "hidden" }}>
@@ -364,23 +405,50 @@ function CollectionTile({
   );
 }
 
-const runColumns: Column<CollectionRun>[] = [
-  { key: "id", header: "#", align: "right", cell: (r) => String(r.id), sortValue: (r) => r.id },
-  { key: "trigger", header: "트리거", cell: (r) => r.trigger, sortValue: (r) => r.trigger },
-  { key: "started_at", header: "시작", cell: (r) => formatKstDateTime(r.started_at), sortValue: (r) => r.started_at },
-  { key: "finished_at", header: "종료", cell: (r) => (r.finished_at ? formatKstDateTime(r.finished_at) : "진행 중") },
-  { key: "users_processed", header: "사용자", align: "right", cell: (r) => formatNumber(r.users_processed) },
-  { key: "interactions_fetched", header: "대화", align: "right", cell: (r) => formatNumber(r.interactions_fetched) },
-  {
-    key: "errors_count",
-    header: "오류",
-    align: "right",
-    cell: (r) => (
-      <span style={{ color: r.errors_count ? "var(--danger)" : "var(--text)" }}>{formatNumber(r.errors_count)}</span>
-    ),
-    sortValue: (r) => r.errors_count,
-  },
-];
+const RUN_STATUS_META: Record<string, { label: string; color: string }> = {
+  running: { label: "진행 중", color: "var(--warn)" },
+  success: { label: "성공", color: "var(--ok)" },
+  warn: { label: "오류 있음", color: "var(--warn)" },
+  error: { label: "중단", color: "var(--danger)" },
+};
+
+function formatRunLog(run: RunLogRow): string {
+  if (!run.logs.length) return "기록된 로그가 없습니다.";
+  return run.logs.map((line) => `[${formatKstDateTime(line.at)}] ${line.text}`).join("\n");
+}
+
+function sessionRunColumns(label: string): Column<RunLogRow>[] {
+  return [
+    {
+      key: "started_at",
+      header: "시작",
+      cell: (r) => formatKstDateTime(r.started_at),
+      sortValue: (r) => r.started_at,
+    },
+    {
+      key: "finished_at",
+      header: "종료",
+      cell: (r) => (r.finished_at ? formatKstDateTime(r.finished_at) : "진행 중"),
+      sortValue: (r) => r.finished_at ?? "",
+    },
+    {
+      key: "status",
+      header: "상태",
+      cell: (r) => {
+        const meta = RUN_STATUS_META[r.status] ?? { label: r.status, color: "var(--text-muted)" };
+        return <span style={{ color: meta.color, fontWeight: 600 }}>{meta.label}</span>;
+      },
+      sortValue: (r) => r.status,
+    },
+    { key: "summary", header: "요약", cell: (r) => r.summary || "—" },
+    {
+      key: "log",
+      header: "로그",
+      align: "right",
+      cell: (r) => <RawJsonButton raw={formatRunLog(r)} title={`${label} 실행 로그`} />,
+    },
+  ];
+}
 
 const auditStateColumns: Column<AuditCollectionStateRow>[] = [
   { key: "source", header: "소스", cell: (r) => r.source, sortValue: (r) => r.source },

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Card } from "../components/Card";
 import { Column, DataTable } from "../components/DataTable";
+import { RawJsonButton } from "../components/RawJsonModal";
 import { useToast } from "../components/Toast";
 import {
   type ConversationAuditEvent,
@@ -17,6 +18,7 @@ import {
   getUsersInScope,
   isBridgeAvailable,
   listConversationApps,
+  openExportsFolder,
   listEdiscoveryUsers,
   listConversations,
 } from "../lib/bridge";
@@ -32,7 +34,7 @@ const SCOPE_OPTIONS: { value: SearchScope; label: string }[] = [
   { value: "body", label: "본문" },
 ];
 
-export function ConversationsPage({ sourceType = "api" }: { sourceType?: "api" | "ediscovery" }) {
+export function ConversationsPage({ sourceType = "api" }: { sourceType?: "api" | "ediscovery" | "dataverse" }) {
   const initialFilters: ConversationFilters = useMemo(() => {
     const range = defaultDateRange();
     return {
@@ -295,7 +297,7 @@ function ScopeToggle({ value, onChange }: { value: SearchScope; onChange: (scope
   );
 }
 
-function searchPlaceholder(sourceType: "api" | "ediscovery", scope: SearchScope): string {
+function searchPlaceholder(sourceType: "api" | "ediscovery" | "dataverse", scope: SearchScope): string {
   const where = scope === "title" ? "제목" : scope === "body" ? "대화 본문" : "제목·본문";
   const prefix = sourceType === "ediscovery" ? "복원 대화 " : "";
   return `${prefix}${where} 검색`;
@@ -348,7 +350,7 @@ function threadColumns(
     {
       key: "user",
       header: "사용자",
-      width: 160,
+      width: 80,
       cell: (r) => r.display_name || r.upn || r.user_id,
       sortValue: (r) => (r.display_name || r.upn || r.user_id).toLowerCase(),
     },
@@ -426,6 +428,7 @@ function ThreadExportControl({ threadId }: { threadId: string }) {
       const result = await exportThread(threadId, fmt);
       if (result.ok) {
         toast.push(`스레드 내보내기 완료: ${result.filename ?? ""}`, "success");
+        await openExportsFolder();
       } else {
         toast.push(`내보내기 실패: ${result.error ?? "알 수 없는 오류"}`, "danger");
       }
@@ -592,12 +595,15 @@ function TurnBubble({ turn, userLabel }: { turn: ConversationTurn; userLabel: st
         padding: "8px 10px",
       }}
     >
-      <header style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>
-        <strong style={{ color: "var(--text)" }}>{speaker}</strong>
-        {" · "}
-        <span title={turn.app_raw}>{turn.app}</span>
-        {" · "}
-        {formatKstDateTime(turn.created_at)}
+      <header style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <strong style={{ color: "var(--text)" }}>{speaker}</strong>
+          {" · "}
+          <span title={turn.app_raw}>{turn.app}</span>
+          {" · "}
+          {formatKstDateTime(turn.created_at)}
+        </span>
+        <RawJsonButton raw={turn.raw_json} title={`원본 데이터 · ${speaker}`} />
       </header>
       <div style={{ whiteSpace: "pre-wrap", fontSize: 12.5, color: "var(--text)" }}>{turn.body_text}</div>
     </article>
@@ -609,13 +615,18 @@ function AuditRow({ event }: { event: ConversationAuditEvent }) {
     event.result?.toLowerCase().includes("success") ? "var(--ok)" : event.result ? "var(--warn)" : "var(--text-muted)";
   return (
     <div style={{ padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-      <div style={{ fontSize: 12, color: "var(--text)" }}>{event.operation || "(operation)"}</div>
-      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-        {formatKstDateTime(event.event_time)}
-        {event.workload ? ` · ${event.workload}` : ""}
-        {event.app ? ` · ${event.app}` : ""}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 12, color: "var(--text)" }}>{event.operation || "(operation)"}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+            {formatKstDateTime(event.event_time)}
+            {event.workload ? ` · ${event.workload}` : ""}
+            {event.app ? ` · ${event.app}` : ""}
+          </div>
+          {event.result && <div style={{ fontSize: 11, color: resultTone }}>{event.result}</div>}
+        </div>
+        <RawJsonButton raw={event.raw_json} title={`원본 감사 이벤트 · ${event.operation || ""}`} />
       </div>
-      {event.result && <div style={{ fontSize: 11, color: resultTone }}>{event.result}</div>}
     </div>
   );
 }

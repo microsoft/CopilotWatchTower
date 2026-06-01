@@ -405,6 +405,13 @@ class Bridge(QObject):
             ]
         )
 
+    @Slot(str, result=str)
+    def operations_run_logs(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        kind = str(filters.get("kind") or "")
+        limit = int(filters.get("limit") or 30)
+        return _dumps(self._controller.recent_run_logs(kind, limit))
+
     @Slot(result=str)
     def operations_audit_state(self) -> str:
         rows = []
@@ -498,11 +505,17 @@ class Bridge(QObject):
 
     # ---- actions --------------------------------------------------
 
-    @Slot(str, result=str)
-    def collection_start(self, kind: str) -> str:
+    @Slot(str, str, result=str)
+    def collection_start(self, kind: str, options_json: str) -> str:
         if self._controller is None:
             return _dumps({"ok": False, "error": "controller not wired"})
-        return _dumps(self._controller.start_collection(kind))
+        try:
+            options = json.loads(options_json) if options_json else {}
+        except (TypeError, ValueError):
+            options = {}
+        if not isinstance(options, dict):
+            options = {}
+        return _dumps(self._controller.start_collection(kind, options=options))
 
     @Slot(str, result=str)
     def collection_stop(self, kind: str) -> str:
@@ -745,6 +758,7 @@ def _thread_turn(turn: Any) -> dict[str, Any]:
         "session_id": turn.session_id,
         "body_text": body,
         "body_content_type": turn.body_content_type or "",
+        "raw_json": turn.raw_json,
         "source_type": getattr(turn, "source_type", "api"),
     }
 
@@ -760,6 +774,7 @@ def _audit_event_row(event: Any) -> dict[str, Any]:
         "app_raw": event.app or "",
         "app": display_app_name(event.app or ""),
         "result": event.result,
+        "raw_json": getattr(event, "raw_json", None),
     }
 
 

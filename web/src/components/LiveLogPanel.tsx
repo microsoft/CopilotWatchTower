@@ -5,11 +5,12 @@ import { formatKstDateTime } from "../lib/format";
 import type { LiveEvent } from "../lib/useBridgeEvents";
 
 export const KIND_LABELS: Record<CollectionKind, string> = {
-  conversation: "대화 수집",
+  conversation: "대화 수집(API)",
   audit: "감사 이벤트",
   usage: "공식 사용량",
   diagnostics: "에이전트",
-  consumption: "비용/소비량",
+  consumption: "파워플랫폼 크레딧",
+  transcripts: "대화 수집(Teams)",
 };
 
 const KIND_COLOR: Record<string, string> = {
@@ -211,17 +212,20 @@ function LogRow({ event, count }: { event: NormalisedEvent; count: number }) {
           fontWeight: 600,
           textTransform: "uppercase",
           letterSpacing: "0.04em",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
         }}
       >
         {event.kindLabel}
       </span>
-      <div style={{ color: tone.color }}>
+      <div style={{ color: tone.color, minWidth: 0, overflowWrap: "anywhere", wordBreak: "break-word" }}>
         <span>{event.headline}</span>
         {count > 1 && (
           <span style={{ color: "#94a3b8", marginLeft: 6 }}>×{count}</span>
         )}
         {event.detail && !open && (
-          <div style={{ color: "#94a3b8", fontSize: 11, marginTop: 2, whiteSpace: "pre-wrap" }}>{event.detail}</div>
+          <div style={{ color: "#94a3b8", fontSize: 11, marginTop: 2, whiteSpace: "pre-wrap", overflowWrap: "anywhere", wordBreak: "break-word" }}>{event.detail}</div>
         )}
         {open && (
           <pre style={{ margin: "6px 0 0", color: "#cbd5f5", fontSize: 11, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
@@ -403,6 +407,7 @@ const containerStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: 8,
+  minWidth: 0,
 };
 
 const toolbarStyle: CSSProperties = {
@@ -433,8 +438,13 @@ const listStyle: CSSProperties = {
   background: "#0b1220",
   color: "#e2e8f0",
   borderRadius: 8,
-  height: 320,
+  minHeight: 120,
+  maxHeight: 320,
+  width: "100%",
+  boxSizing: "border-box",
+  flexShrink: 0,
   overflowY: "auto",
+  overflowX: "hidden",
   border: "1px solid #1f2a3c",
 };
 

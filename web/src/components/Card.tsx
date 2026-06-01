@@ -21,6 +21,7 @@ export function Card({ title, actions, children, style, bodyStyle }: CardProps) 
         flexDirection: "column",
         gap: 8,
         minHeight: 0,
+        flexShrink: 0,
         ...style,
       }}
     >

@@ -57,6 +57,7 @@ export function DataExportPage() {
         setProgress(null);
         setLastFile({ filename: String(p.filename ?? ""), count: Number(p.count ?? 0) });
         toast.push(`내보내기 완료: ${p.filename} (${p.count ?? 0}건)`, "success");
+        void openExportsFolder();
         break;
       case "export.failed":
         setBusy(false);

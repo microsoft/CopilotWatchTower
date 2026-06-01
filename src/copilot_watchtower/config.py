@@ -171,6 +171,71 @@ LICENSING_REPORT_UNITS = {
     LICENSING_REPORT_API_FLOW: "requests",
 }
 
+# ---------------------------------------------------------------------------
+# Dataverse — Copilot Studio conversation transcripts (custom engine agents)
+# ---------------------------------------------------------------------------
+# Copilot Studio persists *every* channel's conversation (Teams, web, etc.)
+# into the Dataverse ``conversationtranscript`` table of the environment that
+# hosts the agent. The Graph ``getAllEnterpriseInteractions`` substrate only
+# captures BizChat-channel turns, so custom-engine agents chatted from Teams
+# are invisible there. Reading the Dataverse table directly recovers them.
+#
+# Auth mirrors the consumption collector: rather than minting a standalone
+# delegated token (which expires independently), we drive a real Power Apps
+# maker-portal sign-in with Playwright and reuse the ``*.crm.dynamics.com``
+# bearer tokens that the SPA already acquires for each environment + the
+# Global Discovery Service.
+DATAVERSE_DISCOVERY_RESOURCE = "https://globaldisco.crm.dynamics.com"
+DATAVERSE_DISCOVERY_INSTANCES_URL = (
+    f"{DATAVERSE_DISCOVERY_RESOURCE}/api/discovery/v2.0/Instances"
+)
+# Dataverse Web API version segment ({org}/api/data/{version}/...).
+DATAVERSE_API_VERSION = "v9.2"
+# Host fragment that identifies a Dataverse-audience bearer token / request.
+# Regional Dataverse instances live on numbered hosts — North America is
+# ``*.crm.dynamics.com`` but other regions are ``*.crmN.dynamics.com`` (e.g.
+# Korea is ``*.crm21.dynamics.com``). Matching only ``crm.dynamics.com`` would
+# silently drop every non-NA region's token, so we match the broader
+# ``.dynamics.com`` suffix (the Global Discovery host is excluded separately).
+DATAVERSE_TOKEN_HOST_FRAGMENT = ".dynamics.com"
+# Maker portal page whose load drives the SPA to acquire Dataverse tokens.
+POWERAPPS_MAKER_URL = "https://make.powerapps.com/environments"
+# Maker portal page for a *specific* environment. Loading it makes the SPA
+# silently mint that environment's org-audience Dataverse token via MSAL, which
+# is how we obtain a token per environment (Global Discovery is unreachable).
+POWERAPPS_MAKER_ENV_URL = "https://make.powerapps.com/environments/{env_id}/home"
+# Fallback maker page that *always* calls the environment's Dataverse Web API
+# (it lists solutions from the org), forcing MSAL to mint the org token when the
+# home page alone does not trigger an org API call.
+POWERAPPS_MAKER_ENV_SOLUTIONS_URL = (
+    "https://make.powerapps.com/environments/{env_id}/solutions"
+)
+# Power Platform admin center page for a *specific* environment. A tenant admin
+# can open it and add themselves to an environment they lack maker access to
+# (the "+ 나 추가" / "Add myself" button on the System administrator panel),
+# breaking the chicken-and-egg cycle where an org-audience Dataverse token can
+# not be minted for an environment the signed-in user can not reach. Used only
+# when the operator opts in via the collection page checkbox.
+POWERPLATFORM_ADMIN_ENV_URL = (
+    "https://admin.powerplatform.microsoft.com/manage/environments/{env_id}/hub"
+)
+# Business Application Platform (BAP) API. The maker portal calls this to
+# enumerate every environment the signed-in user can reach (the Global
+# Discovery Service token is a different audience we usually cannot mint), so we
+# reuse the captured BAP token to list environments + their org URLs.
+BAP_RESOURCE = "https://api.bap.microsoft.com"
+BAP_API_VERSION = "2023-06-01"
+BAP_ENVIRONMENTS_URL = (
+    f"{BAP_RESOURCE}/providers/Microsoft.BusinessAppPlatform/environments"
+    f"?api-version={BAP_API_VERSION}&$expand=properties.linkedEnvironmentMetadata"
+)
+# Host fragment that identifies a BAP-audience bearer token / request.
+BAP_TOKEN_HOST_FRAGMENT = "api.bap.microsoft.com"
+# Default look-back window. Copilot Studio transcripts default to a 30-day
+# retention, so periodic collection inside that window is required to avoid
+# permanent data loss.
+DATAVERSE_DEFAULT_WINDOW_DAYS = 28
+
 # Candidate audiences for *backend* eDiscovery export downloads from the
 # eDiscovery proxy service (``*.proxyservice.ediscovery.svc.cloud.microsoft``).
 #

@@ -30,7 +30,8 @@ log = logging.getLogger(__name__)
 SCHEMA_RESOURCE = ("copilot_watchtower.db", "schema.sql")
 SOURCE_API = "api"
 SOURCE_EDISCOVERY = "ediscovery"
-VALID_SOURCES = {SOURCE_API, SOURCE_EDISCOVERY}
+SOURCE_DATAVERSE = "dataverse"
+VALID_SOURCES = {SOURCE_API, SOURCE_EDISCOVERY, SOURCE_DATAVERSE}
 
 
 @dataclass
@@ -239,6 +240,19 @@ class CollectionRunStats:
 
 
 @dataclass
+class RunLogRecord:
+    id: int
+    kind: str
+    trigger: str
+    started_at: str
+    finished_at: str | None
+    status: str
+    error_count: int
+    summary: str | None
+    logs_json: str | None
+
+
+@dataclass
 class EdiscoveryJob:
     id: str
     target_upn: str
@@ -307,6 +321,35 @@ def _migrate(conn: sqlite3.Connection) -> None:
             ")"
         )
 
+    # Early Dataverse (Teams) collections stored Bot Framework activity
+    # timestamps as raw epoch integers (e.g. "1780015999") instead of ISO 8601
+    # strings. A numeric string sorts before any "2025-..." date, so those turns
+    # fell outside the default date-range filter and never appeared in the
+    # conversation views. Rewrite any all-digit dataverse timestamps to ISO.
+    # Idempotent: converted values contain "-"/"T" and stop matching the GLOB.
+    _epoch_to_iso = (
+        "strftime('%Y-%m-%dT%H:%M:%SZ', "
+        "CASE WHEN CAST({col} AS INTEGER) >= 1000000000000 "
+        "THEN CAST({col} AS INTEGER) / 1000 "
+        "ELSE CAST({col} AS INTEGER) END, 'unixepoch')"
+    )
+    _all_digits = "{col} GLOB '[0-9]*' AND {col} NOT GLOB '*[^0-9]*'"
+    if cols:
+        conn.execute(
+            f"UPDATE interactions SET created_at = {_epoch_to_iso.format(col='created_at')} "
+            f"WHERE source_type='dataverse' AND {_all_digits.format(col='created_at')}"
+        )
+    if thread_cols:
+        conn.execute(
+            f"UPDATE conversation_threads SET started_at = {_epoch_to_iso.format(col='started_at')} "
+            f"WHERE source_type='dataverse' AND {_all_digits.format(col='started_at')}"
+        )
+        conn.execute(
+            f"UPDATE conversation_threads SET ended_at = {_epoch_to_iso.format(col='ended_at')} "
+            f"WHERE source_type='dataverse' AND ended_at IS NOT NULL "
+            f"AND {_all_digits.format(col='ended_at')}"
+        )
+
 
 def initialize(db_path: Path) -> None:
     """Create tables/indexes/FTS if missing. Idempotent."""
@@ -314,6 +357,14 @@ def initialize(db_path: Path) -> None:
     with _connect(db_path) as conn:
         _migrate(conn)
         conn.executescript(_load_schema_sql())
+        # Any run-log row still marked "running" at startup belongs to a
+        # collection that never completed (app closed/crashed mid-run). Mark
+        # those as interrupted so the history panel never shows a stuck row.
+        conn.execute(
+            "UPDATE collection_run_logs SET status='error', "
+            "finished_at=COALESCE(finished_at, started_at) "
+            "WHERE finished_at IS NULL OR status='running'"
+        )
 
 
 class Repository:
@@ -657,6 +708,52 @@ class Repository:
             for r in rows
         ]
 
+    def update_interaction_attribution(
+        self, updates: Iterable[tuple[str, str, str]]
+    ) -> int:
+        """Bulk-correct ``user_id``/``interaction_type`` for existing rows.
+
+        ``updates`` is an iterable of ``(interaction_id, user_id,
+        interaction_type)`` tuples. Used to repair previously mis-attributed
+        Dataverse turns without re-collecting from the source.
+        """
+        rows = [
+            (user_id, interaction_type, row_id)
+            for row_id, user_id, interaction_type in updates
+        ]
+        if not rows:
+            return 0
+        with _connect(self.db_path) as conn:
+            conn.executemany(
+                "UPDATE interactions SET user_id = ?, interaction_type = ? WHERE id = ?",
+                rows,
+            )
+        return len(rows)
+
+    def display_names_for_ids(self, ids: Iterable[str]) -> dict[str, str]:
+        """Return a ``{user_id: display_name}`` map for known users.
+
+        Only ids that exist in the ``users`` table with a non-empty
+        ``display_name`` are returned. Used to resolve friendly names for
+        repaired Dataverse participants from the Graph-collected directory.
+        """
+        wanted = [i for i in dict.fromkeys(ids) if i]
+        if not wanted:
+            return {}
+        result: dict[str, str] = {}
+        with _connect(self.db_path) as conn:
+            for start in range(0, len(wanted), 500):
+                chunk = wanted[start : start + 500]
+                placeholders = ",".join("?" for _ in chunk)
+                rows = conn.execute(
+                    f"SELECT id, display_name FROM users WHERE id IN ({placeholders})",
+                    chunk,
+                ).fetchall()
+                for r in rows:
+                    if r["display_name"]:
+                        result[r["id"]] = r["display_name"]
+        return result
+
     # ---- collection state -------------------------------------------
 
     def get_collection_state(self, user_id: str) -> tuple[str | None, bool]:
@@ -749,6 +846,68 @@ class Repository:
             )
             for r in rows
         ]
+
+    # ---- run logs (unified, per-kind history) ------------------------
+
+    def create_run_log(self, kind: str, trigger: str, started_at: str) -> int:
+        with _connect(self.db_path) as conn:
+            cur = conn.execute(
+                "INSERT INTO collection_run_logs(kind, trigger, started_at, status) "
+                "VALUES (?, ?, ?, 'running')",
+                (kind, trigger, started_at),
+            )
+            return int(cur.lastrowid)
+
+    def finish_run_log(
+        self,
+        run_log_id: int,
+        *,
+        finished_at: str,
+        status: str,
+        error_count: int,
+        summary: str,
+        logs_json: str,
+    ) -> None:
+        with _connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE collection_run_logs SET finished_at=?, status=?, "
+                "error_count=?, summary=?, logs_json=? WHERE id=?",
+                (finished_at, status, error_count, summary, logs_json, run_log_id),
+            )
+
+    def recent_run_logs(self, kind: str, limit: int = 30) -> list[RunLogRecord]:
+        with _connect(self.db_path) as conn:
+            rows = conn.execute(
+                "SELECT id, kind, trigger, started_at, finished_at, status, "
+                "error_count, summary, logs_json FROM collection_run_logs "
+                "WHERE kind=? ORDER BY id DESC LIMIT ?",
+                (kind, limit),
+            ).fetchall()
+        return [
+            RunLogRecord(
+                id=r["id"],
+                kind=r["kind"],
+                trigger=r["trigger"],
+                started_at=r["started_at"],
+                finished_at=r["finished_at"],
+                status=r["status"],
+                error_count=r["error_count"],
+                summary=r["summary"],
+                logs_json=r["logs_json"],
+            )
+            for r in rows
+        ]
+
+    def prune_run_logs(self, kind: str, keep: int = 30) -> None:
+        """Keep only the newest ``keep`` run-log rows for ``kind``."""
+        with _connect(self.db_path) as conn:
+            conn.execute(
+                "DELETE FROM collection_run_logs WHERE kind=? AND id NOT IN ("
+                "  SELECT id FROM collection_run_logs WHERE kind=? "
+                "  ORDER BY id DESC LIMIT ?"
+                ")",
+                (kind, kind, keep),
+            )
 
     # ---- statistics --------------------------------------------------
 

@@ -13,6 +13,7 @@ import {
   Gauge,
   Home,
   Coins,
+  Info,
   MessageSquareText,
   Activity,
   ShieldAlert,
@@ -28,15 +29,18 @@ export type NavKey =
   | "insights"
   | "conversationsApi"
   | "conversationsEdiscovery"
+  | "conversationsDataverse"
   | "agents"
   | "consumption"
   | "security"
   | "reports"
+  | "collectOverview"
   | "collectConversation"
   | "collectAudit"
   | "collectUsage"
   | "collectDiagnostics"
   | "collectConsumption"
+  | "collectTranscripts"
   | "ediscovery"
   | "backupRestore"
   | "dataExport"
@@ -63,6 +67,7 @@ const SECTIONS: NavSection[] = [
       { key: "insights", label: "사용 인사이트", icon: BarChart3 },
       { key: "conversationsApi", label: "대화 탐색(API)", icon: MessageSquareText },
       { key: "conversationsEdiscovery", label: "대화 탐색(e-Discovery)", icon: SearchCheck },
+      { key: "conversationsDataverse", label: "대화 탐색(Teams)", icon: Bot },
       { key: "agents", label: "에이전트", icon: Bot },
     ],
   },
@@ -72,19 +77,21 @@ const SECTIONS: NavSection[] = [
     items: [
       { key: "security", label: "보안/감사", icon: ShieldCheck },
       { key: "reports", label: "공식 보고서", icon: ClipboardList },
-      { key: "consumption", label: "비용/소비량", icon: Coins },
+      { key: "consumption", label: "파워플랫폼 크레딧", icon: Coins },
     ],
   },
   {
     title: "데이터 수집",
     icon: Database,
     items: [
-      { key: "collectConversation", label: "대화 수집", icon: MessageSquareText },
+      { key: "collectOverview", label: "개요", icon: Info },
+      { key: "collectConversation", label: "대화 수집(API)", icon: MessageSquareText },
+      { key: "ediscovery", label: "대화 수집(e-Discovery)", icon: FileSearch },
+      { key: "collectTranscripts", label: "대화 수집(Teams)", icon: Bot },
+      { key: "collectDiagnostics", label: "에이전트", icon: Bot },
+      { key: "collectConsumption", label: "파워플랫폼 크레딧", icon: Coins },
       { key: "collectAudit", label: "감사 이벤트", icon: ShieldAlert },
       { key: "collectUsage", label: "공식 사용량", icon: Activity },
-      { key: "collectDiagnostics", label: "에이전트", icon: Bot },
-      { key: "collectConsumption", label: "비용/소비량", icon: Coins },
-      { key: "ediscovery", label: "eDiscovery 수집", icon: FileSearch },
     ],
   },
   {

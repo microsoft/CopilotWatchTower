@@ -9,6 +9,8 @@ _SIMPLE_APP_LABELS = {
     "teams": "Teams",
     "microsoft teams": "Teams",
     "skypeteams": "Teams",
+    "msteams": "Teams",
+    "directline": "Copilot Studio (웹)",
     "word": "Word",
     "excel": "Excel",
     "powerpoint": "PowerPoint",

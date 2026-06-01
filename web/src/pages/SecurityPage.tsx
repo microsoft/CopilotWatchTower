@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card } from "../components/Card";
 import { Column, DataTable } from "../components/DataTable";
 import { KpiCard } from "../components/KpiCard";
+import { RawJsonButton } from "../components/RawJsonModal";
 import {
   type AdminDiagnosticRow,
   type AuditEventFilters,
@@ -31,7 +32,6 @@ export function SecurityPage() {
   }, []);
   const [draft, setDraft] = useState<AuditEventFilters>(initialFilters);
   const [applied, setApplied] = useState<AuditEventFilters>(initialFilters);
-  const [selected, setSelected] = useState<AuditEventRow | null>(null);
 
   const eventsQuery = useQuery({
     queryKey: ["audit-events", applied],
@@ -123,21 +123,15 @@ export function SecurityPage() {
           />
         </Card>
 
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12, minHeight: 0 }}>
-          <Card title="감사 이벤트" actions={<span style={{ fontSize: 11, color: "var(--text-muted)" }}>{events.length}건</span>}>
-            <DataTable<AuditEventRow>
-              rows={events}
-              rowKey={(row) => row.id}
-              initialSort={{ key: "event_time", direction: "desc" }}
-              columns={eventColumns(setSelected, selected?.id ?? null)}
-              maxHeight="50vh"
-            />
-          </Card>
-          <Card title={selected ? "이벤트 상세" : "선택된 이벤트 없음"}>
-            {!selected && <div className="empty-state">왼쪽 표에서 이벤트를 선택하세요.</div>}
-            {selected && <AuditEventDetail event={selected} />}
-          </Card>
-        </div>
+        <Card title="감사 이벤트" actions={<span style={{ fontSize: 11, color: "var(--text-muted)" }}>{events.length}건</span>}>
+          <DataTable<AuditEventRow>
+            rows={events}
+            rowKey={(row) => row.id}
+            initialSort={{ key: "event_time", direction: "desc" }}
+            columns={eventColumns()}
+            maxHeight="50vh"
+          />
+        </Card>
 
         {!BRIDGE_AVAILABLE && (
           <div className="empty-state">브리지 미연결 상태입니다. 데스크톱 앱에서 --web 으로 실행하세요.</div>
@@ -192,10 +186,7 @@ const diagnosticColumns: Column<AdminDiagnosticRow>[] = [
   { key: "captured_at", header: "수집", cell: (r) => formatKstDateTime(r.captured_at), sortValue: (r) => r.captured_at },
 ];
 
-function eventColumns(
-  onSelect: (event: AuditEventRow) => void,
-  selectedId: string | null,
-): Column<AuditEventRow>[] {
+function eventColumns(): Column<AuditEventRow>[] {
   return [
     {
       key: "event_time",
@@ -234,58 +225,10 @@ function eventColumns(
       key: "detail",
       header: "",
       cell: (r) => (
-        <button
-          type="button"
-          onClick={() => onSelect(r)}
-          style={{
-            background: r.id === selectedId ? "var(--accent-soft)" : "transparent",
-            color: "var(--accent-strong)",
-            border: "1px solid var(--accent-soft)",
-            borderRadius: 6,
-            padding: "2px 8px",
-            fontSize: 11,
-          }}
-        >
-          상세
-        </button>
+        <RawJsonButton raw={r.raw_json} title={`원본 감사 이벤트 · ${r.operation || ""}`} />
       ),
     },
   ];
-}
-
-function AuditEventDetail({ event }: { event: AuditEventRow }) {
-  let pretty = event.raw_json ?? "";
-  if (pretty) {
-    try {
-      pretty = JSON.stringify(JSON.parse(pretty), null, 2);
-    } catch {
-      // leave raw if it's not valid JSON
-    }
-  }
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8, minHeight: 0 }}>
-      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-        <div><strong>{event.operation || "(operation)"}</strong></div>
-        <div>{formatKstDateTime(event.event_time)}</div>
-        <div>{event.upn || event.user_id || "—"}</div>
-        {event.client_ip && <div>IP: {event.client_ip}</div>}
-      </div>
-      <pre
-        style={{
-          background: "var(--surface-muted)",
-          padding: 10,
-          borderRadius: 6,
-          fontSize: 11.5,
-          fontFamily: "var(--font-mono)",
-          maxHeight: "50vh",
-          overflow: "auto",
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {pretty || "(raw_json 없음)"}
-      </pre>
-    </div>
-  );
 }
 
 function deriveSecurityKpis(rows: AuditEventRow[]) {

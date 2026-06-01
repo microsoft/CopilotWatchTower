@@ -11,7 +11,7 @@ export interface AnalyticsFilters {
   app?: string | null;
   search?: string | null;
   limit?: number | null;
-  source_type?: "api" | "ediscovery" | null;
+  source_type?: "api" | "ediscovery" | "dataverse" | null;
 }
 
 export interface UserActivityOverviewRow {
@@ -113,7 +113,7 @@ export interface ConversationThreadSummary {
   title: string;
   topic_keywords: string[];
   session_ids: string[];
-  source_type: "api" | "ediscovery";
+  source_type: "api" | "ediscovery" | "dataverse";
   match_snippet?: string | null;
   body_match?: boolean;
 }
@@ -127,7 +127,8 @@ export interface ConversationTurn {
   session_id: string | null;
   body_text: string;
   body_content_type: string;
-  source_type: "api" | "ediscovery";
+  raw_json: string | null;
+  source_type: "api" | "ediscovery" | "dataverse";
 }
 
 export interface ConversationAuditEvent {
@@ -140,6 +141,7 @@ export interface ConversationAuditEvent {
   app: string;
   app_raw: string;
   result: string | null;
+  raw_json: string | null;
 }
 
 export interface ConversationDetail {
@@ -156,7 +158,7 @@ export interface ConversationFilters {
   search?: string | null;
   search_scope?: "title" | "body" | "all" | null;
   limit?: number | null;
-  source_type?: "api" | "ediscovery" | null;
+  source_type?: "api" | "ediscovery" | "dataverse" | null;
 }
 
 export interface ConversationAppOption {
@@ -303,6 +305,24 @@ export interface CollectionRun {
   trigger: string;
 }
 
+export interface RunLogLine {
+  at: string;
+  type: string;
+  text: string;
+}
+
+export interface RunLogRow {
+  id: number;
+  kind: string;
+  trigger: string;
+  started_at: string;
+  finished_at: string | null;
+  status: string;
+  error_count: number;
+  summary: string;
+  logs: RunLogLine[];
+}
+
 export interface AuditCollectionStateRow {
   source: string;
   last_collected_at: string | null;
@@ -388,12 +408,13 @@ interface RawBridge {
   consumption_collect_start(cb: (raw: string) => void): void;
   consumption_collect_stop(cb: (raw: string) => void): void;
   operations_recent_runs(filters: string, cb: (raw: string) => void): void;
+  operations_run_logs(filters: string, cb: (raw: string) => void): void;
   operations_audit_state(cb: (raw: string) => void): void;
   operations_summary(cb: (raw: string) => void): void;
   insights_adoption_summary(filters: string, cb: (raw: string) => void): void;
   profiles_list(cb: (raw: string) => void): void;
   settings_summary(cb: (raw: string) => void): void;
-  collection_start(kind: string, cb: (raw: string) => void): void;
+  collection_start(kind: string, optionsJson: string, cb: (raw: string) => void): void;
   collection_stop(kind: string, cb: (raw: string) => void): void;
   collection_status(cb: (raw: string) => void): void;
   ediscovery_collect_start(payload: string, cb: (raw: string) => void): void;
@@ -550,7 +571,7 @@ export async function getConversationDetail(threadId: string): Promise<Conversat
 }
 
 export async function listConversationApps(
-  sourceType: "api" | "ediscovery",
+  sourceType: "api" | "ediscovery" | "dataverse",
 ): Promise<ConversationAppOption[]> {
   const bridge = await loadBridge();
   return callJson<ConversationAppOption[]>((cb) => bridge.conversation_apps(sourceType, cb));
@@ -679,6 +700,11 @@ export async function listRecentRuns(limit = 50): Promise<CollectionRun[]> {
   return callJson<CollectionRun[]>((cb) => bridge.operations_recent_runs(JSON.stringify({ limit }), cb));
 }
 
+export async function listRunLogs(kind: CollectionKind, limit = 30): Promise<RunLogRow[]> {
+  const bridge = await loadBridge();
+  return callJson<RunLogRow[]>((cb) => bridge.operations_run_logs(JSON.stringify({ kind, limit }), cb));
+}
+
 export async function getAuditCollectionState(): Promise<AuditCollectionStateRow[]> {
   const bridge = await loadBridge();
   return callJson<AuditCollectionStateRow[]>((cb) => bridge.operations_audit_state(cb));
@@ -704,7 +730,7 @@ export async function getSettingsSummary(): Promise<SettingsSummary> {
   return callJson<SettingsSummary>((cb) => bridge.settings_summary(cb));
 }
 
-export type CollectionKind = "conversation" | "audit" | "usage" | "diagnostics" | "consumption";
+export type CollectionKind = "conversation" | "audit" | "usage" | "diagnostics" | "consumption" | "transcripts";
 
 export interface ActionResult {
   ok: boolean;
@@ -729,9 +755,12 @@ export interface BridgeEvent {
   at: string;
 }
 
-export async function startCollection(kind: CollectionKind): Promise<ActionResult> {
+export async function startCollection(
+  kind: CollectionKind,
+  options?: Record<string, unknown>,
+): Promise<ActionResult> {
   const bridge = await loadBridge();
-  return callJson<ActionResult>((cb) => bridge.collection_start(kind, cb));
+  return callJson<ActionResult>((cb) => bridge.collection_start(kind, JSON.stringify(options ?? {}), cb));
 }
 
 export async function stopCollection(kind: CollectionKind): Promise<ActionResult> {

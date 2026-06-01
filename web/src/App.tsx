@@ -10,6 +10,7 @@ import { EdiscoveryPage } from "./pages/EdiscoveryPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { ConsumptionPage } from "./pages/ConsumptionPage";
 import { CollectionPage } from "./pages/CollectionPage";
+import { CollectionOverviewPage } from "./pages/CollectionOverviewPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { BackupRestorePage } from "./pages/BackupRestorePage";
 import { DataExportPage } from "./pages/DataExportPage";
@@ -63,15 +64,18 @@ const PAGE_REGISTRY: Record<NavKey, () => JSX.Element> = {
   insights: InsightsPage,
   conversationsApi: () => <ConversationsPage sourceType="api" />,
   conversationsEdiscovery: () => <ConversationsPage sourceType="ediscovery" />,
+  conversationsDataverse: () => <ConversationsPage sourceType="dataverse" />,
   agents: AgentsPage,
   security: SecurityPage,
   reports: ReportsPage,
   consumption: ConsumptionPage,
+  collectOverview: CollectionOverviewPage,
   collectConversation: () => <CollectionPage kind="conversation" />,
   collectAudit: () => <CollectionPage kind="audit" />,
   collectUsage: () => <CollectionPage kind="usage" />,
   collectDiagnostics: () => <CollectionPage kind="diagnostics" />,
   collectConsumption: () => <CollectionPage kind="consumption" />,
+  collectTranscripts: () => <CollectionPage kind="transcripts" />,
   ediscovery: EdiscoveryPage,
   backupRestore: BackupRestorePage,
   dataExport: DataExportPage,

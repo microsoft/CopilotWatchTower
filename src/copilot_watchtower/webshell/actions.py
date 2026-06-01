@@ -13,7 +13,8 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass
+import threading
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -45,6 +46,7 @@ from ..workers import (
     CollectorThread,
     CollectorWorker,
     ConsumptionCollectorWorker,
+    DataverseCollectorWorker,
     EdiscoveryCollectorWorker,
     MaintenanceWorker,
     new_job_id,
@@ -55,8 +57,62 @@ log = logging.getLogger(__name__)
 CONVERSATION_KIND = "conversation"
 EDISCOVERY_KIND = "ediscovery"
 CONSUMPTION_KIND = "consumption"
+DATAVERSE_KIND = "transcripts"
 _AUDIT_KINDS = ("audit", "usage", "diagnostics")
 _ALL_KINDS = (CONVERSATION_KIND, *_AUDIT_KINDS)
+
+# Kinds whose runs are recorded in the unified "실행 이력" (collection_run_logs).
+_RUN_LOG_KINDS = frozenset(
+    (CONVERSATION_KIND, *_AUDIT_KINDS, CONSUMPTION_KIND, DATAVERSE_KIND)
+)
+_RUN_LOG_KEEP = 30
+
+
+def _run_log_line(event_type: str, payload: dict) -> str:
+    """Render one captured log line for a run-history entry (mirrors the UI)."""
+    if event_type in ("log", "error"):
+        return str(payload.get("line") or "")
+    if event_type == "progress":
+        msg = str(payload.get("message") or "")
+        pct = payload.get("percent")
+        return f"{msg} ({round(float(pct))}%)".strip() if pct is not None else msg
+    if event_type == "audit_progress":
+        return f"{payload.get('source') or ''} +{int(payload.get('fetched') or 0)}".strip()
+    if event_type == "consumption_progress":
+        return f"{payload.get('status') or ''} {payload.get('message') or ''}".strip()
+    if event_type == "user_progress":
+        who = payload.get("display") or payload.get("user_id") or ""
+        return f"{who} +{int(payload.get('fetched') or 0)}".strip()
+    if event_type == "cycle_started":
+        trig = payload.get("trigger")
+        return f"▶ 수집 시작 ({trig})" if trig else "▶ 수집 시작"
+    return ""
+
+
+def _run_log_summary(kind: str, payload: dict) -> str:
+    def n(value: object) -> str:
+        return f"{int(value or 0):,}"
+
+    if kind == CONVERSATION_KIND:
+        return (
+            f"사용자 {n(payload.get('users'))} · 대화 {n(payload.get('interactions'))}"
+            f" · 오류 {n(payload.get('errors'))}"
+        )
+    if kind in _AUDIT_KINDS:
+        return (
+            f"이벤트 {n(payload.get('audit_events'))} · 사용량 {n(payload.get('usage_rows'))}"
+            f" · 진단 {n(payload.get('diagnostics'))} · 오류 {n(payload.get('errors'))}"
+        )
+    if kind in (CONSUMPTION_KIND, DATAVERSE_KIND):
+        return f"추가 {n(payload.get('rows_added'))} · 오류 {n(payload.get('errors'))}"
+    return f"오류 {n(payload.get('errors'))}"
+
+
+@dataclass
+class _RunLogBuffer:
+    id: int
+    has_error: bool = False
+    lines: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -94,6 +150,10 @@ class OperationsController(QObject):
         # Backup/restore/export run on their own short-lived threads; keep a
         # reference so they are not garbage-collected mid-run.
         self._maint_threads: dict[str, CollectorThread] = {}
+        # Per-kind in-flight run-log buffers. Events fire from worker threads,
+        # so guard the dict + line buffers with a lock. Persisted on finish.
+        self._run_logs: dict[str, _RunLogBuffer] = {}
+        self._run_logs_lock = threading.Lock()
         # Worker-thread callbacks (Python lambdas) can not target a QObject
         # slot, so PySide6 ignores QueuedConnection and runs them in the
         # worker thread. We route every event through a QueuedConnection
@@ -115,9 +175,17 @@ class OperationsController(QObject):
 
     # ---- collection -------------------------------------------------
 
-    def start_collection(self, kind: str, *, trigger: str = "manual") -> dict:
+    def start_collection(
+        self, kind: str, *, trigger: str = "manual", options: dict | None = None
+    ) -> dict:
         if kind == CONSUMPTION_KIND:
             return self.start_consumption_collection(trigger=trigger)
+        if kind == DATAVERSE_KIND:
+            opts = options or {}
+            return self.start_dataverse_collection(
+                add_self_as_admin=bool(opts.get("addSelfAsAdmin")),
+                trigger=trigger,
+            )
         if kind not in _ALL_KINDS:
             raise ValueError(f"Unknown collection kind: {kind}")
         if kind in self._jobs:
@@ -278,6 +346,72 @@ class OperationsController(QObject):
                 "cycle_finished",
                 {
                     "kind": CONSUMPTION_KIND,
+                    "rows_added": int(rows_added),
+                    "errors": int(errors),
+                },
+            )
+        )
+
+    # ---- Dataverse transcripts (Copilot Studio custom agents) -------
+
+    def start_dataverse_collection(
+        self,
+        *,
+        window_days: int | None = None,
+        teams_only: bool = False,
+        add_self_as_admin: bool = False,
+        trigger: str = "manual",
+    ) -> dict:
+        if DATAVERSE_KIND in self._jobs:
+            return {"ok": False, "error": "이미 진행 중입니다: 대화 기록 수집"}
+        kwargs: dict = {
+            "teams_only": teams_only,
+            "add_self_as_admin": add_self_as_admin,
+            "trigger": trigger,
+        }
+        if window_days is not None:
+            kwargs["window_days"] = int(window_days)
+        worker = DataverseCollectorWorker(self.repo, **kwargs)
+        self._connect_dataverse_worker(worker)
+
+        thread = CollectorThread(worker, parent=self)
+        thread.finished.connect(thread.deleteLater)
+        thread.finished.connect(lambda k=DATAVERSE_KIND: self._on_job_finished(k))
+
+        self._jobs[DATAVERSE_KIND] = _RunningJob(
+            kind=DATAVERSE_KIND, thread=thread, graph=None, started_at=_now_iso()
+        )
+        self.state_changed.emit()
+        self._emit_event("collection.started", {"kind": DATAVERSE_KIND, "trigger": trigger})
+        thread.start()
+        return {"ok": True, "kind": DATAVERSE_KIND}
+
+    def stop_dataverse_collection(self) -> dict:
+        return self.stop_collection(DATAVERSE_KIND)
+
+    def _connect_dataverse_worker(self, worker: DataverseCollectorWorker) -> None:
+        worker.log_line.connect(
+            lambda line: self._emit_event("log", {"kind": DATAVERSE_KIND, "line": line})
+        )
+        worker.error.connect(
+            lambda line: self._emit_event("error", {"kind": DATAVERSE_KIND, "line": line})
+        )
+        worker.progress.connect(
+            lambda status, message: self._emit_event(
+                "consumption_progress",
+                {"kind": DATAVERSE_KIND, "status": status, "message": message},
+            )
+        )
+        worker.cycle_started.connect(
+            lambda trigger: self._emit_event(
+                "cycle_started", {"kind": DATAVERSE_KIND, "trigger": trigger}
+            )
+        )
+        worker.cycle_finished.connect(
+            lambda rows_added, errors: self._emit_event(
+                "cycle_finished",
+                {
+                    "kind": DATAVERSE_KIND,
                     "rows_added": int(rows_added),
                     "errors": int(errors),
                 },
@@ -855,9 +989,84 @@ class OperationsController(QObject):
         return AppOnlyTokenProvider(tenant_id, client_id, secret)
 
     def _emit_event(self, kind: str, payload: dict) -> None:
+        try:
+            self._record_run_log_event(kind, payload)
+        except Exception:
+            log.exception("run-log 기록 실패")
         self._event_proxy.emit(
             json.dumps({"type": kind, "payload": payload, "at": _now_iso()}, ensure_ascii=False)
         )
+
+    def _record_run_log_event(self, event_type: str, payload: dict) -> None:
+        """Persist collection run history (start/append/finish) per kind.
+
+        ``event_type`` is the event name; the collection kind lives in
+        ``payload['kind']``. Called from worker threads, so all buffer access
+        is guarded by ``self._run_logs_lock``.
+        """
+        kind = payload.get("kind")
+        if not isinstance(kind, str) or kind not in _RUN_LOG_KINDS:
+            return
+
+        if event_type == "collection.started":
+            trigger = str(payload.get("trigger") or "manual")
+            run_log_id = self.repo.create_run_log(kind, trigger, _now_iso())
+            with self._run_logs_lock:
+                self._run_logs[kind] = _RunLogBuffer(id=run_log_id)
+            return
+
+        if event_type == "cycle_finished":
+            with self._run_logs_lock:
+                buf = self._run_logs.pop(kind, None)
+            if buf is None:
+                return
+            error_count = int(payload.get("errors") or 0)
+            status = "warn" if (error_count > 0 or buf.has_error) else "success"
+            self.repo.finish_run_log(
+                buf.id,
+                finished_at=_now_iso(),
+                status=status,
+                error_count=error_count,
+                summary=_run_log_summary(kind, payload),
+                logs_json=json.dumps(buf.lines, ensure_ascii=False),
+            )
+            try:
+                self.repo.prune_run_logs(kind, _RUN_LOG_KEEP)
+            except Exception:
+                log.exception("run-log 정리 실패")
+            return
+
+        # Any other event with a known kind: capture a log line if it renders.
+        text = _run_log_line(event_type, payload)
+        if not text:
+            return
+        with self._run_logs_lock:
+            buf = self._run_logs.get(kind)
+            if buf is None:
+                return
+            if event_type == "error":
+                buf.has_error = True
+            if len(buf.lines) < 2000:
+                buf.lines.append({"at": _now_iso(), "type": event_type, "text": text})
+
+    def recent_run_logs(self, kind: str, limit: int = _RUN_LOG_KEEP) -> list[dict]:
+        records = self.repo.recent_run_logs(kind, limit)
+        out: list[dict] = []
+        for r in records:
+            out.append(
+                {
+                    "id": r.id,
+                    "kind": r.kind,
+                    "trigger": r.trigger,
+                    "started_at": r.started_at,
+                    "finished_at": r.finished_at,
+                    "status": r.status,
+                    "error_count": r.error_count,
+                    "summary": r.summary or "",
+                    "logs": json.loads(r.logs_json) if r.logs_json else [],
+                }
+            )
+        return out
 
 
 def _now_iso() -> str:

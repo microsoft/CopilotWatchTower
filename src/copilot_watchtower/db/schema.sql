@@ -107,6 +107,24 @@ CREATE TABLE IF NOT EXISTS collection_runs (
     trigger              TEXT NOT NULL                    -- scheduled | manual | backfill
 );
 
+-- v4: unified per-kind run history with captured live-log lines. One row per
+-- collection run for *every* kind (conversation, audit, usage, diagnostics,
+-- consumption, transcripts). Survives restarts so the operator can inspect
+-- past runs and their logs from the "실행 이력" panel.
+CREATE TABLE IF NOT EXISTS collection_run_logs (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind         TEXT NOT NULL,
+    trigger      TEXT NOT NULL DEFAULT 'manual',
+    started_at   TEXT NOT NULL,
+    finished_at  TEXT,
+    status       TEXT NOT NULL DEFAULT 'running',         -- running | success | warn | error
+    error_count  INTEGER NOT NULL DEFAULT 0,
+    summary      TEXT,
+    logs_json    TEXT                                     -- JSON array of {at, type, text}
+);
+
+CREATE INDEX IF NOT EXISTS ix_run_logs_kind_started ON collection_run_logs(kind, started_at DESC);
+
 -- ---------------------------------------------------------------------
 -- v2: conversation threads (Phase A)
 -- ---------------------------------------------------------------------

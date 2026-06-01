@@ -179,6 +179,26 @@ def _refresh_all_profile_metadata(registry: ProfileRegistry) -> None:
             log.exception("Failed to refresh profile metadata for %s", profile.id)
 
 
+def _repair_dataverse_attribution_once(repo: Repository) -> None:
+    """One-time backfill: fix Dataverse turns mis-attributed to 'unknown'.
+
+    Older collections stored every Dataverse turn as a user prompt owned by
+    ``dataverse:unknown`` because the activity role is an integer enum the
+    parser did not decode. Re-attribute the existing rows once per profile,
+    guarded by a settings flag so it never runs again after it succeeds.
+    """
+    flag = "dataverse_attribution_repaired_v1"
+    try:
+        if repo.get_text_setting(flag) == "1":
+            return
+        from .services.dataverse import repair_dataverse_attribution
+
+        repair_dataverse_attribution(repo)
+        repo.set_text_setting(flag, "1")
+    except Exception:
+        log.exception("Dataverse 귀속 보정 중 오류가 발생했습니다.")
+
+
 def _cleanup_abandoned_onboarding_app(wizard: OnboardingWizard) -> None:
     """Best-effort cleanup when onboarding created an app but was cancelled."""
     registered = wizard.registered_app_or_none()
@@ -291,6 +311,7 @@ def run() -> int:
         paths = paths_shell.with_profile(profile.id, registry.profile_db_path(profile.id))
         initialize(paths.db_path)
         repo = Repository(paths.db_path)
+        _repair_dataverse_attribution_once(repo)
         options = _load_options(repo)
         QLocale.setDefault(QLocale(options.language.replace("_", "-")))
         _install_translator(app, paths, options.language)
