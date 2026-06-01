@@ -378,6 +378,31 @@ def test_enablement_opportunities_are_action_oriented(seeded_repo: Repository) -
     assert "risk_review" in keys
 
 
+def test_adoption_summary_splits_licensed_active_inactive(seeded_repo: Repository) -> None:
+    summary = seeded_repo.adoption_summary(days=30)
+    # u-1, u-2, u-3 are licensed + in-scope; u-out is excluded.
+    assert summary["licensed_total"] == 3
+    # u-1 and u-2 have interactions; u-3 has none.
+    assert summary["active"] == 2
+    assert summary["inactive"] == 1
+    assert summary["adoption_rate"] == pytest.approx(2 / 3)
+
+
+def test_licensed_inactive_users_lists_only_idle_licensed(seeded_repo: Repository) -> None:
+    rows = seeded_repo.licensed_inactive_users(days=30)
+    assert [r["user_id"] for r in rows] == ["u-3"]
+    assert rows[0]["name"] == "User 3"
+
+
+def test_meaningful_interaction_count_is_session_based(seeded_repo: Repository) -> None:
+    result = seeded_repo.meaningful_interaction_count(days=30)
+    # u-1's 6 prompts collapse to 1 session (s-1); u-2's 3 prompts → 1 session (s-2).
+    assert result["sessions"] == 2
+    # Raw prompt count is still exposed for the parallel turn view.
+    assert result["prompts"] == 9
+    assert result["users"] == 2
+
+
 def test_user_activity_overview_counts_threads_messages_apps(user_analytics_repo: Repository) -> None:
     rows = user_analytics_repo.user_activity_overview(
         date_from="2026-05-01",
@@ -448,3 +473,12 @@ def test_raw_graph_app_identifiers_get_readable_labels() -> None:
     assert display_app_name("IPM.SkypeTeams.Message.Copilot.WebChat") == "Teams: Copilot Chat"
     assert display_app_name("IPM.SkypeTeams.Message.Copilot.Word") == "Teams: Word"
     assert display_app_name("BizChat") == "Copilot Chat"
+
+
+def test_expanded_app_labels_cover_more_surfaces() -> None:
+    assert display_app_name("forms") == "Forms"
+    assert display_app_name("planner") == "Planner"
+    assert display_app_name("stream") == "Stream"
+    assert display_app_name("whiteboard") == "Whiteboard"
+    assert display_app_name("sharepoint") == "SharePoint"
+    assert display_app_name("share point") == "SharePoint"

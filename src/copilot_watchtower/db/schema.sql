@@ -336,7 +336,44 @@ CREATE INDEX IF NOT EXISTS ix_ediscovery_jobs_upn
 CREATE INDEX IF NOT EXISTS ix_ediscovery_jobs_status
     ON ediscovery_jobs(status, updated_at DESC);
 
+-- ---------------------------------------------------------------------
+-- v5: Power Platform consumption (agent cost-credit reporting)
+-- ---------------------------------------------------------------------
+--
+-- Granular consumption rows downloaded from the unofficial Power Platform
+-- Licensing API (PPAC consumption reports). One row per
+-- (report_type, usage_date, environment, user, product). The licensing CSV
+-- identifies users by AAD object id only, so the UI joins ``user_id`` back
+-- to the existing ``users`` table for display names. Kept deliberately
+-- separate from ``interactions`` — this is licensing/billing data, a
+-- different domain with a different lifecycle.
+
+CREATE TABLE IF NOT EXISTS power_platform_consumption (
+    id                       TEXT PRIMARY KEY,    -- hash(report_type|usage_date|environment_id|user_key|product)
+    report_type              TEXT NOT NULL,       -- MCSMessages | AIByUserAndEnvironment | ApiByLicensedUser | ...
+    usage_date               TEXT NOT NULL,       -- the day the consumption occurred (YYYY-MM-DD)
+    environment_id           TEXT,
+    environment_name         TEXT,
+    user_id                  TEXT,                -- AAD object id from the CSV (may be empty for env-level rows)
+    user_key                 TEXT NOT NULL,       -- COALESCE(user_id, '_env:'||environment_id, '_total')
+    product                  TEXT,                -- sub-product split where the report provides one
+    quantity                 REAL NOT NULL DEFAULT 0,  -- messages / credits / requests consumed
+    unit                     TEXT,                -- messages | credits | requests
+    window_start             TEXT,                -- collection window (inclusive)
+    window_end               TEXT,                -- collection window (exclusive)
+    raw_json                 TEXT,                -- original CSV row as JSON for debugging
+    captured_at              TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_pp_consumption
+    ON power_platform_consumption(report_type, usage_date, user_key, COALESCE(product, ''));
+CREATE INDEX IF NOT EXISTS ix_pp_consumption_date
+    ON power_platform_consumption(report_type, usage_date DESC);
+CREATE INDEX IF NOT EXISTS ix_pp_consumption_user
+    ON power_platform_consumption(user_id);
+
 INSERT OR IGNORE INTO schema_version(version) VALUES (1);
 INSERT OR IGNORE INTO schema_version(version) VALUES (2);
 INSERT OR IGNORE INTO schema_version(version) VALUES (3);
 INSERT OR IGNORE INTO schema_version(version) VALUES (4);
+INSERT OR IGNORE INTO schema_version(version) VALUES (5);

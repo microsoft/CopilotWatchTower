@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 export interface Column<T> {
   key: string;
@@ -17,6 +17,8 @@ interface DataTableProps<T> {
   rowKey: (row: T) => string;
   initialSort?: { key: string; direction: "asc" | "desc" };
   maxHeight?: number | string;
+  fill?: boolean;
+  resizable?: boolean;
   onRowClick?: (row: T) => void;
   selectedRowKey?: string | null;
 }
@@ -28,11 +30,49 @@ export function DataTable<T>({
   rowKey,
   initialSort,
   maxHeight = 360,
+  fill = false,
+  resizable = false,
   onRowClick,
   selectedRowKey,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | undefined>(initialSort?.key);
   const [direction, setDirection] = useState<"asc" | "desc">(initialSort?.direction ?? "desc");
+  const [colWidths, setColWidths] = useState<Record<string, number>>({});
+  const resizeRef = useRef<{ key: string; startX: number; startW: number } | null>(null);
+  const tableRef = useRef<HTMLTableElement | null>(null);
+
+  useEffect(() => {
+    if (!resizable) return;
+    function onMove(event: MouseEvent) {
+      const state = resizeRef.current;
+      if (!state) return;
+      const next = Math.max(48, state.startW + (event.clientX - state.startX));
+      setColWidths((prev) => ({ ...prev, [state.key]: next }));
+    }
+    function onUp() {
+      if (resizeRef.current) {
+        resizeRef.current = null;
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      }
+    }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [resizable]);
+
+  function startResize(event: React.MouseEvent, column: Column<T>) {
+    event.preventDefault();
+    event.stopPropagation();
+    const th = (event.currentTarget as HTMLElement).closest("th");
+    const startW = colWidths[column.key] ?? th?.offsetWidth ?? 120;
+    resizeRef.current = { key: column.key, startX: event.clientX, startW };
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }
 
   const sorted = useMemo(() => {
     if (!sortKey) return rows;
@@ -63,12 +103,27 @@ export function DataTable<T>({
   };
 
   return (
-    <div style={{ maxHeight, overflow: "auto", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+    <div
+      style={
+        fill
+          ? { flex: 1, minHeight: 0, overflow: "auto", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }
+          : { maxHeight, overflow: "auto", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }
+      }
+    >
+      <table
+        ref={tableRef}
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontSize: 12.5,
+          tableLayout: resizable ? "fixed" : "auto",
+        }}
+      >
         <thead>
           <tr>
             {columns.map((column) => {
               const isSorted = sortKey === column.key;
+              const resolvedWidth = colWidths[column.key] ?? column.width;
               return (
                 <th
                   key={column.key}
@@ -83,14 +138,32 @@ export function DataTable<T>({
                     position: "sticky",
                     top: 0,
                     cursor: column.sortValue ? "pointer" : "default",
-                    width: column.width,
+                    width: resolvedWidth,
                     whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                     fontVariantNumeric: "tabular-nums",
                   }}
                   title={column.sortValue ? "클릭하여 정렬" : undefined}
                 >
                   {column.header}
                   {isSorted && <span style={{ marginLeft: 4 }}>{direction === "asc" ? "▲" : "▼"}</span>}
+                  {resizable && (
+                    <span
+                      onMouseDown={(e) => startResize(e, column)}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        height: "100%",
+                        width: 8,
+                        cursor: "col-resize",
+                        userSelect: "none",
+                      }}
+                      title="드래그하여 너비 조정"
+                    />
+                  )}
                 </th>
               );
             })}
@@ -125,6 +198,8 @@ export function DataTable<T>({
                       padding: "8px 10px",
                       borderBottom: "1px solid var(--border)",
                       whiteSpace: "nowrap",
+                      overflow: resizable ? "hidden" : undefined,
+                      textOverflow: resizable ? "ellipsis" : undefined,
                       fontVariantNumeric: column.align === "right" ? "tabular-nums" : undefined,
                     }}
                   >

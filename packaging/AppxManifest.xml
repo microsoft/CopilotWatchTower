@@ -5,13 +5,14 @@
   Build pipeline (high level):
     1. pyinstaller packaging/copilot-watchtower.spec
     2. Place dist/CopilotWatchTower/* alongside this manifest in a
-       staging folder (e.g. msix-staging\).
-    3. makeappx pack /d msix-staging /p CopilotWatchTower.msix
+       staging folder (e.g. build\msix-staging\).
+    3. makeappx pack /d build\msix-staging /p CopilotWatchTower.msix
     4. signtool sign /fd SHA256 /a CopilotWatchTower.msix
 
-  Replace the Publisher attribute below with the certificate subject
-  used for signing before packaging for distribution. The Identity Name
-  and Publisher must match the signing certificate exactly.
+  The whole pipeline is automated by packaging\build-msix.ps1, which also
+  patches the Identity Name / Publisher / Version below from its parameters
+  so they match the signing certificate. The Contoso values here are
+  placeholders for manual/unsigned local testing only.
 -->
 <Package
     xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"

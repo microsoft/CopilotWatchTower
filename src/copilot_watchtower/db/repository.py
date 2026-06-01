@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 import sqlite3
 from collections import Counter
 from collections.abc import Iterable, Iterator
@@ -79,6 +80,10 @@ class ThreadRow:
     display_name: str | None = None
     upn: str | None = None
     source_type: str = SOURCE_API
+    # Derived (full-text search) — populated by list_threads when a body
+    # search matches one of the thread's interactions.
+    match_snippet: str | None = None
+    body_match: bool = False
 
 
 @dataclass
@@ -142,6 +147,26 @@ class UsageCountRow:
     copilot_chat_enabled_users: int | None
     copilot_chat_active_users: int | None
     raw_json: str | None = None
+
+
+@dataclass
+class ConsumptionRow:
+    """A single Power Platform consumption record (one usage day/user/product)."""
+
+    report_type: str
+    usage_date: str
+    environment_id: str | None
+    environment_name: str | None
+    user_id: str | None
+    product: str | None
+    quantity: float
+    unit: str | None
+    window_start: str | None = None
+    window_end: str | None = None
+    raw_json: str | None = None
+    # Populated on read by joining the users table; ignored on write.
+    display_name: str | None = None
+    upn: str | None = None
 
 
 @dataclass
@@ -875,43 +900,90 @@ class Repository:
         date_to: str | None = None,
         app: str | None = None,
         search: str | None = None,
+        search_scope: str = "title",
         source_type: str | None = SOURCE_API,
         limit: int = 200,
         offset: int = 0,
     ) -> list[ThreadRow]:
-        clauses: list[str] = []
+        search = (search or "").strip() or None
+        scope = (search_scope or "title").strip().lower()
+        if scope not in ("title", "body", "all"):
+            scope = "title"
+        norm_source = _normalise_source_type(source_type) if source_type else None
+
+        with _connect(self.db_path) as conn:
+            snippet_map: dict[str, str] = {}
+            if search and scope in ("body", "all"):
+                snippet_map = _fts_body_snippets(conn, search, norm_source)
+            body_ids = list(snippet_map.keys())
+
+            clauses: list[str] = []
+            params: list[Any] = []
+            if user_id:
+                clauses.append("t.user_id = ?")
+                params.append(user_id)
+            if date_from:
+                clauses.append("t.started_at >= ?")
+                params.append(date_from)
+            if date_to:
+                clauses.append("t.started_at <= ?")
+                params.append(date_to)
+            if app:
+                clauses.append("t.app = ?")
+                params.append(app)
+            if search:
+                if scope == "title":
+                    clauses.append("t.title LIKE ?")
+                    params.append(f"%{search}%")
+                elif scope == "body":
+                    if not body_ids:
+                        return []
+                    placeholders = ",".join("?" for _ in body_ids)
+                    clauses.append(f"t.id IN ({placeholders})")
+                    params.extend(body_ids)
+                else:  # all: title OR body
+                    sub = ["t.title LIKE ?"]
+                    params.append(f"%{search}%")
+                    if body_ids:
+                        placeholders = ",".join("?" for _ in body_ids)
+                        sub.append(f"t.id IN ({placeholders})")
+                        params.extend(body_ids)
+                    clauses.append("(" + " OR ".join(sub) + ")")
+            if norm_source:
+                clauses.append("t.source_type = ?")
+                params.append(norm_source)
+            where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+            params.extend([limit, offset])
+            sql = (
+                "SELECT t.id, t.user_id, t.started_at, t.ended_at, t.app, t.turn_count, "
+                "       t.prompt_count, t.response_count, t.session_ids, t.topic_keywords, "
+                "       t.title, t.cluster_label, t.computed_at, t.source_type, u.display_name, u.upn "
+                "FROM conversation_threads t LEFT JOIN users u ON u.id = t.user_id "
+                f"{where} ORDER BY t.started_at DESC LIMIT ? OFFSET ?"
+            )
+            rows = conn.execute(sql, params).fetchall()
+
+        threads = [_row_to_thread(r) for r in rows]
+        for thread in threads:
+            snippet = snippet_map.get(thread.id)
+            if snippet:
+                thread.match_snippet = snippet
+                thread.body_match = True
+        return threads
+
+    def thread_apps(self, *, source_type: str | None = SOURCE_API) -> list[str]:
+        """Distinct, non-null app identifiers for the thread app filter dropdown."""
+        norm_source = _normalise_source_type(source_type) if source_type else None
+        sql = "SELECT DISTINCT app FROM conversation_threads"
         params: list[Any] = []
-        if user_id:
-            clauses.append("t.user_id = ?")
-            params.append(user_id)
-        if date_from:
-            clauses.append("t.started_at >= ?")
-            params.append(date_from)
-        if date_to:
-            clauses.append("t.started_at <= ?")
-            params.append(date_to)
-        if app:
-            clauses.append("t.app = ?")
-            params.append(app)
-        if search:
-            clauses.append("t.title LIKE ?")
-            like = f"%{search}%"
-            params.append(like)
-        if source_type:
-            clauses.append("t.source_type = ?")
-            params.append(_normalise_source_type(source_type))
-        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
-        params.extend([limit, offset])
-        sql = (
-            "SELECT t.id, t.user_id, t.started_at, t.ended_at, t.app, t.turn_count, "
-            "       t.prompt_count, t.response_count, t.session_ids, t.topic_keywords, "
-            "       t.title, t.cluster_label, t.computed_at, t.source_type, u.display_name, u.upn "
-            "FROM conversation_threads t LEFT JOIN users u ON u.id = t.user_id "
-            f"{where} ORDER BY t.started_at DESC LIMIT ? OFFSET ?"
-        )
+        if norm_source:
+            sql += " WHERE source_type = ?"
+            params.append(norm_source)
+        sql += " ORDER BY app"
         with _connect(self.db_path) as conn:
             rows = conn.execute(sql, params).fetchall()
-        return [_row_to_thread(r) for r in rows]
+        return [r[0] for r in rows if r[0]]
+
 
     def get_thread(self, thread_id: str, *, source_type: str | None = None) -> ThreadRow | None:
         source_clauses, source_params = _source_filter_clause(alias="t", source_type=source_type)
@@ -1397,6 +1469,189 @@ class Repository:
         with _connect(self.db_path) as conn:
             rows = conn.execute(sql, params).fetchall()
         return [_row_to_usage_snapshot(r) for r in rows]
+
+    # ---- Power Platform consumption -------------------------------
+
+    def upsert_consumption_rows(self, rows_in: Iterable[ConsumptionRow]) -> int:
+        """Insert/replace consumption rows. Returns the number written."""
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        rows: list[tuple[Any, ...]] = []
+        for c in rows_in:
+            user_key = c.user_id or (
+                f"_env:{c.environment_id}" if c.environment_id else "_total"
+            )
+            product = c.product or ""
+            row_id = hashlib.sha1(
+                f"{c.report_type}|{c.usage_date}|{user_key}|{product}".encode("utf-8")
+            ).hexdigest()[:32]
+            rows.append(
+                (
+                    row_id,
+                    c.report_type,
+                    c.usage_date,
+                    c.environment_id,
+                    c.environment_name,
+                    c.user_id,
+                    user_key,
+                    c.product,
+                    float(c.quantity or 0.0),
+                    c.unit,
+                    c.window_start,
+                    c.window_end,
+                    c.raw_json,
+                    now,
+                )
+            )
+        if not rows:
+            return 0
+        with _connect(self.db_path) as conn:
+            conn.executemany(
+                "INSERT INTO power_platform_consumption("
+                "  id, report_type, usage_date, environment_id, environment_name, "
+                "  user_id, user_key, product, quantity, unit, window_start, window_end, "
+                "  raw_json, captured_at"
+                ") VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
+                "ON CONFLICT(id) DO UPDATE SET "
+                "  environment_name=excluded.environment_name, "
+                "  quantity=excluded.quantity, "
+                "  unit=excluded.unit, "
+                "  window_start=excluded.window_start, "
+                "  window_end=excluded.window_end, "
+                "  raw_json=excluded.raw_json, "
+                "  captured_at=excluded.captured_at",
+                rows,
+            )
+        return len(rows)
+
+    def list_consumption_rows(
+        self,
+        *,
+        report_type: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        user_id: str | None = None,
+        search: str | None = None,
+        limit: int = 500,
+        offset: int = 0,
+    ) -> list[ConsumptionRow]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if report_type:
+            clauses.append("c.report_type = ?")
+            params.append(report_type)
+        if date_from:
+            clauses.append("c.usage_date >= ?")
+            params.append(date_from)
+        if date_to:
+            clauses.append("c.usage_date <= ?")
+            params.append(date_to)
+        if user_id:
+            clauses.append("c.user_id = ?")
+            params.append(user_id)
+        if search:
+            needle = f"%{search.strip().lower()}%"
+            clauses.append(
+                "LOWER(COALESCE(u.display_name,'') || ' ' || COALESCE(u.upn,'') || ' ' || "
+                "COALESCE(c.user_id,'') || ' ' || COALESCE(c.environment_name,'') || ' ' || "
+                "COALESCE(c.product,'')) LIKE ?"
+            )
+            params.append(needle)
+        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        params.extend([limit, offset])
+        sql = (
+            "SELECT c.report_type, c.usage_date, c.environment_id, c.environment_name, "
+            "       c.user_id, c.product, c.quantity, c.unit, c.window_start, c.window_end, "
+            "       c.raw_json, u.display_name AS display_name, u.upn AS upn "
+            "FROM power_platform_consumption c "
+            "LEFT JOIN users u ON u.id = c.user_id "
+            f"{where} "
+            "ORDER BY c.usage_date DESC, c.quantity DESC "
+            "LIMIT ? OFFSET ?"
+        )
+        with _connect(self.db_path) as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return [_row_to_consumption(r) for r in rows]
+
+    def consumption_daily_totals(
+        self, *, report_type: str, days: int = 30
+    ) -> list[tuple[str, float]]:
+        """Return [(usage_date, total_quantity)] ascending for the last N days."""
+        with _connect(self.db_path) as conn:
+            rows = conn.execute(
+                "SELECT usage_date, SUM(quantity) AS total "
+                "FROM power_platform_consumption "
+                "WHERE report_type = ? AND usage_date >= date('now', ?) "
+                "GROUP BY usage_date ORDER BY usage_date ASC",
+                (report_type, f"-{int(days)} day"),
+            ).fetchall()
+        return [(r["usage_date"], float(r["total"] or 0.0)) for r in rows]
+
+    def consumption_top_users(
+        self, *, report_type: str, days: int = 30, limit: int = 20
+    ) -> list[dict[str, Any]]:
+        """Return the heaviest consumers for a report type over the window."""
+        with _connect(self.db_path) as conn:
+            rows = conn.execute(
+                "SELECT c.user_id AS user_id, "
+                "       COALESCE(u.display_name, c.user_id, '(환경 단위)') AS display_name, "
+                "       u.upn AS upn, "
+                "       SUM(c.quantity) AS total "
+                "FROM power_platform_consumption c "
+                "LEFT JOIN users u ON u.id = c.user_id "
+                "WHERE c.report_type = ? AND c.usage_date >= date('now', ?) "
+                "GROUP BY c.user_key "
+                "ORDER BY total DESC LIMIT ?",
+                (report_type, f"-{int(days)} day", int(limit)),
+            ).fetchall()
+        return [
+            {
+                "user_id": r["user_id"],
+                "display_name": r["display_name"],
+                "upn": r["upn"],
+                "total": float(r["total"] or 0.0),
+            }
+            for r in rows
+        ]
+
+    def consumption_summary(self, *, report_type: str, days: int = 30) -> dict[str, Any]:
+        """Aggregate KPIs for one report type over the window."""
+        with _connect(self.db_path) as conn:
+            r = conn.execute(
+                "SELECT SUM(quantity) AS total, "
+                "       COUNT(DISTINCT CASE WHEN user_id IS NOT NULL AND user_id <> '' "
+                "                           THEN user_id END) AS users, "
+                "       COUNT(DISTINCT CASE WHEN environment_id IS NOT NULL AND environment_id <> '' "
+                "                           THEN environment_id END) AS environments, "
+                "       MAX(usage_date) AS latest_date, "
+                "       MIN(usage_date) AS earliest_date, "
+                "       MAX(unit) AS unit "
+                "FROM power_platform_consumption "
+                "WHERE report_type = ? AND usage_date >= date('now', ?)",
+                (report_type, f"-{int(days)} day"),
+            ).fetchone()
+        total = float(r["total"] or 0.0) if r else 0.0
+        earliest = r["earliest_date"] if r else None
+        latest = r["latest_date"] if r else None
+        # Linear projection to a 30-day month based on observed daily average.
+        active_days = 0
+        if earliest and latest:
+            try:
+                d0 = datetime.fromisoformat(earliest)
+                d1 = datetime.fromisoformat(latest)
+                active_days = max((d1 - d0).days + 1, 1)
+            except ValueError:
+                active_days = 0
+        projected_month = (total / active_days * 30.0) if active_days else 0.0
+        return {
+            "report_type": report_type,
+            "total": total,
+            "users": int(r["users"] or 0) if r else 0,
+            "environments": int(r["environments"] or 0) if r else 0,
+            "latest_date": latest,
+            "earliest_date": earliest,
+            "unit": (r["unit"] if r else None),
+            "projected_month": projected_month,
+        }
 
     def upsert_usage_count_rows(self, rows_in: Iterable[UsageCountRow]) -> int:
         import hashlib
@@ -2319,6 +2574,101 @@ class Repository:
             )
         return out
 
+    def adoption_summary(self, days: int = 30, *, source_type: str | None = SOURCE_API) -> dict[str, Any]:
+        """Adoption gap: licensed/in-scope users vs. those active in the window.
+
+        Returns the licensed population, how many were active in the period,
+        and the inactive remainder (the "adoption gap"). Powers a home
+        dashboard KPI card highlighting under-utilised licenses.
+        """
+        source_clauses, source_params = _source_filter_clause(alias="i", source_type=source_type)
+        source_sql = "" if not source_clauses else " AND " + " AND ".join(source_clauses)
+        with _connect(self.db_path) as conn:
+            row = conn.execute(
+                "SELECT "
+                "  COUNT(*) AS licensed_total, "
+                "  SUM(CASE WHEN active.user_id IS NOT NULL THEN 1 ELSE 0 END) AS active "
+                "FROM users u "
+                "LEFT JOIN ("
+                "  SELECT DISTINCT i.user_id FROM interactions i "
+                f"  WHERE i.created_at >= date('now', ?){source_sql}"
+                ") active ON active.user_id = u.id "
+                "WHERE u.has_copilot_license = 1 AND u.in_scope = 1",
+                [f"-{days} day", *source_params],
+            ).fetchone()
+        licensed_total = int(row["licensed_total"] or 0)
+        active = int(row["active"] or 0)
+        inactive = max(0, licensed_total - active)
+        return {
+            "licensed_total": licensed_total,
+            "active": active,
+            "inactive": inactive,
+            "adoption_rate": (active / licensed_total) if licensed_total else 0.0,
+            "days": days,
+        }
+
+    def licensed_inactive_users(
+        self,
+        days: int = 30,
+        *,
+        limit: int = 200,
+        source_type: str | None = SOURCE_API,
+    ) -> list[dict[str, Any]]:
+        """Licensed, in-scope users with no collected activity in the window."""
+        source_clauses, source_params = _source_filter_clause(alias="i", source_type=source_type)
+        source_sql = "" if not source_clauses else " AND " + " AND ".join(source_clauses)
+        with _connect(self.db_path) as conn:
+            rows = conn.execute(
+                "SELECT u.id, COALESCE(u.display_name, u.upn, u.id) AS name, u.upn, "
+                "       (SELECT MAX(i2.created_at) FROM interactions i2 "
+                "          WHERE i2.user_id = u.id) AS last_seen "
+                "FROM users u "
+                "WHERE u.has_copilot_license = 1 AND u.in_scope = 1 "
+                "  AND u.id NOT IN ("
+                "    SELECT DISTINCT i.user_id FROM interactions i "
+                f"    WHERE i.created_at >= date('now', ?){source_sql}"
+                "  ) "
+                "ORDER BY name LIMIT ?",
+                [f"-{days} day", *source_params, limit],
+            ).fetchall()
+        return [
+            {
+                "user_id": r["id"],
+                "name": r["name"],
+                "upn": r["upn"],
+                "last_seen": r["last_seen"],
+            }
+            for r in rows
+        ]
+
+    def meaningful_interaction_count(self, days: int = 30, *, source_type: str | None = SOURCE_API) -> dict[str, Any]:
+        """Session-based "meaningful interaction" count (distinct prompt sessions).
+
+        Mirrors the session-centric counting used by some external Copilot
+        usage reports: each conversation session that contains at least one
+        user prompt counts once. Shown alongside the raw turn count so both
+        the per-turn and per-session views are visible in parallel.
+        """
+        source_clauses, source_params = _source_filter_clause(source_type=source_type)
+        source_sql = "" if not source_clauses else " AND " + " AND ".join(source_clauses)
+        with _connect(self.db_path) as conn:
+            row = conn.execute(
+                "SELECT "
+                "  COUNT(*) AS prompts, "
+                "  COUNT(DISTINCT COALESCE(session_id, thread_id, id)) AS sessions, "
+                "  COUNT(DISTINCT user_id) AS users "
+                "FROM interactions "
+                "WHERE created_at >= date('now', ?) "
+                f"  AND LOWER(COALESCE(interaction_type,'')) = 'userprompt'{source_sql}",
+                [f"-{days} day", *source_params],
+            ).fetchone()
+        return {
+            "sessions": int(row["sessions"] or 0),
+            "prompts": int(row["prompts"] or 0),
+            "users": int(row["users"] or 0),
+            "days": days,
+        }
+
     def conversation_quality_summary(self, days: int = 30, *, source_type: str | None = SOURCE_API) -> dict[str, Any]:
         """Thread/session-level quality signals from raw interactions."""
         source_clauses, source_params = _source_filter_clause(source_type=source_type)
@@ -2563,6 +2913,74 @@ def _normalise_source_type(value: str | None) -> str:
     return source
 
 
+# Maximum number of body-match threads to pull back for a single search. Keeps
+# the follow-up "t.id IN (...)" parameter list comfortably under SQLite's
+# variable cap and bounds snippet rendering work.
+_FTS_BODY_LIMIT = 800
+
+
+def _sanitize_fts_query(raw: str) -> str:
+    """Build a safe FTS5 MATCH expression from arbitrary user input.
+
+    Each whitespace token becomes a quoted prefix term (``"term"*``) joined by
+    implicit AND. Quoting neutralises FTS5 operator characters so casual input
+    never raises a syntax error, while prefix matching keeps results lenient.
+    """
+    tokens = re.findall(r"\w+", raw, flags=re.UNICODE)
+    if not tokens:
+        return ""
+    return " ".join(f'"{token}"*' for token in tokens)
+
+
+def _fts_body_snippets(
+    conn: sqlite3.Connection,
+    search: str,
+    source_type: str | None,
+) -> dict[str, str]:
+    """Return {thread_id: snippet} for interactions whose body matches ``search``.
+
+    The raw query is tried first so power users can use FTS5 syntax (AND/OR,
+    "phrases", prefix*). If that is not a valid MATCH expression we fall back to
+    a sanitised prefix query so ordinary text still works.
+    """
+    raw = search.strip()
+    if not raw:
+        return {}
+    candidates: list[str] = [raw]
+    sanitized = _sanitize_fts_query(raw)
+    if sanitized and sanitized != raw:
+        candidates.append(sanitized)
+
+    source_sql = ""
+    source_params: list[Any] = []
+    if source_type:
+        source_sql = " AND i.source_type = ?"
+        source_params = [source_type]
+
+    for match_query in candidates:
+        try:
+            cur = conn.execute(
+                "SELECT i.thread_id AS tid, "
+                "       snippet(interactions_fts, 0, '\u3010', '\u3011', ' \u2026 ', 12) AS snip "
+                "FROM interactions_fts f "
+                "JOIN interactions i ON i.rowid = f.rowid "
+                "WHERE interactions_fts MATCH ? AND i.thread_id IS NOT NULL"
+                f"{source_sql} "
+                "LIMIT ?",
+                [match_query, *source_params, _FTS_BODY_LIMIT],
+            )
+        except sqlite3.OperationalError:
+            continue
+        result: dict[str, str] = {}
+        for row in cur.fetchall():
+            tid = row["tid"]
+            if tid and tid not in result:
+                result[tid] = row["snip"]
+        return result
+    return {}
+
+
+
 def _source_filter_clause(
     *,
     alias: str | None = None,
@@ -2740,6 +3158,24 @@ def _opportunity(
         "unit": unit,
         "description": description,
     }
+
+
+def _row_to_consumption(r: sqlite3.Row) -> ConsumptionRow:
+    return ConsumptionRow(
+        report_type=r["report_type"],
+        usage_date=r["usage_date"],
+        environment_id=r["environment_id"],
+        environment_name=r["environment_name"],
+        user_id=r["user_id"],
+        product=r["product"],
+        quantity=float(r["quantity"] or 0.0),
+        unit=r["unit"],
+        window_start=r["window_start"],
+        window_end=r["window_end"],
+        raw_json=r["raw_json"],
+        display_name=r["display_name"],
+        upn=r["upn"],
+    )
 
 
 def _row_to_usage_snapshot(r: sqlite3.Row) -> UsageSnapshotRow:

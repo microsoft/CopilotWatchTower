@@ -8,8 +8,11 @@ import { AgentsPage } from "./pages/AgentsPage";
 import { SecurityPage } from "./pages/SecurityPage";
 import { EdiscoveryPage } from "./pages/EdiscoveryPage";
 import { ReportsPage } from "./pages/ReportsPage";
-import { OperationsPage } from "./pages/OperationsPage";
+import { ConsumptionPage } from "./pages/ConsumptionPage";
+import { CollectionPage } from "./pages/CollectionPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { BackupRestorePage } from "./pages/BackupRestorePage";
+import { DataExportPage } from "./pages/DataExportPage";
 import { HomePage } from "./pages/HomePage";
 import { getSystemInfo, isBridgeAvailable } from "./lib/bridge";
 
@@ -43,7 +46,12 @@ export function App() {
     <div className="app-shell">
       <Sidebar active={active} onSelect={setActive} profileLabel={profile.name} appName={profile.appName} />
       <main className="app-main">
-        <ContextHeader active={active} bridgeOnline={profile.bridgeOnline} />
+        <ContextHeader
+          active={active}
+          bridgeOnline={profile.bridgeOnline}
+          profileLabel={profile.name}
+          onManageProfile={() => setActive("settings")}
+        />
         <Page />
       </main>
     </div>
@@ -57,8 +65,15 @@ const PAGE_REGISTRY: Record<NavKey, () => JSX.Element> = {
   conversationsEdiscovery: () => <ConversationsPage sourceType="ediscovery" />,
   agents: AgentsPage,
   security: SecurityPage,
-  ediscovery: EdiscoveryPage,
   reports: ReportsPage,
-  operations: OperationsPage,
+  consumption: ConsumptionPage,
+  collectConversation: () => <CollectionPage kind="conversation" />,
+  collectAudit: () => <CollectionPage kind="audit" />,
+  collectUsage: () => <CollectionPage kind="usage" />,
+  collectDiagnostics: () => <CollectionPage kind="diagnostics" />,
+  collectConsumption: () => <CollectionPage kind="consumption" />,
+  ediscovery: EdiscoveryPage,
+  backupRestore: BackupRestorePage,
+  dataExport: DataExportPage,
   settings: SettingsPage,
 };

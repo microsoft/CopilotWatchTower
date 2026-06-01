@@ -38,14 +38,17 @@ a:hover {
 .app-shell {
   display: grid;
   grid-template-columns: auto 1fr;
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
 }
 
 .app-main {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
 }
 
 .sidebar-shell {
@@ -81,6 +84,14 @@ a:hover {
   background: linear-gradient(135deg, #1a76ff, #4fd1ff);
   box-shadow: 0 10px 22px rgba(20, 99, 255, 0.32);
   flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.sidebar-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .sidebar-brand-text { min-width: 0; }
@@ -184,7 +195,10 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+  flex-wrap: wrap;
 }
+.topbar-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.topbar-actions { flex-wrap: wrap; justify-content: flex-end; }
 
 .topbar-title { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0; }
 .topbar-subtitle { margin: 4px 0 0; color: var(--text-muted); font-size: 12px; }
@@ -213,10 +227,13 @@ a:hover {
   color: var(--text-soft);
 }
 .profile-chip { padding-right: 12px; }
+.profile-chip { cursor: pointer; transition: border-color 120ms ease, background 120ms ease; }
+.profile-chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+.icon-button { cursor: pointer; }
 .profile-avatar { width: 24px; height: 24px; border-radius: 999px; background: var(--accent); color: white; display: grid; place-items: center; font-size: 12px; font-weight: 800; }
 .live-pill { border-color: transparent; background: var(--ok-soft); color: var(--ok); font-weight: 700; }
 
-.dashboard-page { padding: 18px 24px 28px; display: flex; flex-direction: column; gap: 14px; }
+.dashboard-page { padding: 18px 24px 28px; display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0; overflow-y: auto; }
 .dashboard-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .dashboard-main-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .dashboard-bottom-grid { display: grid; grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr); gap: 12px; }
@@ -237,6 +254,14 @@ a:hover {
 @media (max-width: 1100px) {
   .dashboard-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard-bottom-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+  .dashboard-page { padding: 12px 14px 20px; }
+  .dashboard-kpis { grid-template-columns: 1fr; }
+  .topbar { padding: 10px 14px; min-height: 0; }
+  .topbar-title { font-size: 17px; }
+  .chart-wrap { height: 220px; }
 }
 
 .empty-state {

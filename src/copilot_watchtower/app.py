@@ -3,9 +3,13 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
+from importlib import resources
+from pathlib import Path
 
 from PySide6.QtCore import QLocale, QtMsgType, QTranslator, qInstallMessageHandler
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from . import __app_name__
@@ -94,6 +98,19 @@ def _load_options(repo: Repository) -> RuntimeOptions:
         scope_upns=upns,
         language=language,
     )
+
+
+def _resolve_app_icon() -> QIcon | None:
+    """Return the bundled application icon, preferring the multi-size .ico."""
+    for name in ("app.ico", "app.png"):
+        try:
+            resource = resources.files("copilot_watchtower.resources").joinpath(name)
+            path = Path(str(resource))
+        except (ModuleNotFoundError, FileNotFoundError):
+            continue
+        if path.exists():
+            return QIcon(str(path))
+    return None
 
 
 def _install_translator(app: QApplication, paths: AppPaths, language: str) -> None:
@@ -231,6 +248,16 @@ def _wants_web_shell() -> bool:
 
 
 def run() -> int:
+    # The main shell embeds Chromium via QWebEngineView. Inside an MSIX
+    # AppContainer the Chromium *sandbox* subprocess cannot initialise and
+    # the WebEngine process crashes the instant it spawns — which Windows
+    # surfaces as the generic "go to advanced options ... Repair" dialog.
+    # Disabling the sandbox before QtWebEngine initialises is the standard
+    # fix for embedded WebEngine apps and is safe for a packaged desktop
+    # tool. ``setdefault`` lets an operator override it if they ever need
+    # the sandbox back.
+    os.environ.setdefault("QTWEBENGINE_DISABLE_SANDBOX", "1")
+
     paths_shell = AppPaths.resolve()
     configure_logging(paths_shell, verbose="--verbose" in sys.argv)
     _install_crash_handlers()
@@ -246,6 +273,10 @@ def run() -> int:
     app = QApplication(sys.argv)
     app.setApplicationName(__app_name__)
     app.setOrganizationName(__app_name__)
+
+    app_icon = _resolve_app_icon()
+    if app_icon is not None:
+        app.setWindowIcon(app_icon)
 
     # Outer loop — each iteration is a "session" for one profile. The
     # main shell can request a switch (e.g. via the profile button)

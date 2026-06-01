@@ -49,6 +49,49 @@ class _Graph:
         yield from self.interactions
 
 
+class _SkuGraph:
+    def __init__(self, skus: list[dict]) -> None:
+        self._skus = skus
+
+    def list_subscribed_skus(self) -> list[dict]:
+        return self._skus
+
+
+def test_copilot_sku_ids_match_commercial_and_edu(repo: Repository) -> None:
+    # EDU shares the M365_COPILOT_APPS service plan with the commercial SKU,
+    # so both must be detected via COPILOT_SERVICE_PLAN_IDS.
+    graph = _SkuGraph(
+        [
+            {
+                "skuId": "639dec6b-bb19-468b-871c-c5c441c4b0cb",  # Microsoft_365_Copilot
+                "servicePlans": [
+                    {"servicePlanId": "a62f8878-de10-42f3-b68f-6149a25ceb97"},  # M365_COPILOT_APPS
+                ],
+            },
+            {
+                "skuId": "ad9c22b3-52d7-4e7e-973c-88121ea96436",  # Microsoft_365_Copilot_EDU
+                "servicePlans": [
+                    {"servicePlanId": "a62f8878-de10-42f3-b68f-6149a25ceb97"},  # shared APPS plan
+                ],
+            },
+            {
+                "skuId": "00000000-0000-0000-0000-000000000000",  # unrelated SKU
+                "servicePlans": [
+                    {"servicePlanId": "11111111-1111-1111-1111-111111111111"},
+                ],
+            },
+        ]
+    )
+    worker = CollectorWorker(repo, graph, RuntimeOptions())  # type: ignore[arg-type]
+
+    sku_ids = worker._copilot_sku_ids()
+
+    assert sku_ids == {
+        "639dec6b-bb19-468b-871c-c5c441c4b0cb",
+        "ad9c22b3-52d7-4e7e-973c-88121ea96436",
+    }
+
+
 def test_collector_counts_rechecked_overlap_as_zero_new(repo: Repository) -> None:
     user = UserRow("u1", "u1@x", "User One", True, True, True)
     repo.upsert_users([user])

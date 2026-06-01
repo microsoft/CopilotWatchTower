@@ -6,15 +6,22 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ClipboardList,
+  Database,
+  DatabaseBackup,
+  Download,
   FileSearch,
   Gauge,
   Home,
+  Coins,
   MessageSquareText,
+  Activity,
+  ShieldAlert,
   SearchCheck,
   Settings,
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
+import appLogo from "../assets/app-logo.png";
 
 export type NavKey =
   | "home"
@@ -22,10 +29,17 @@ export type NavKey =
   | "conversationsApi"
   | "conversationsEdiscovery"
   | "agents"
+  | "consumption"
   | "security"
-  | "ediscovery"
   | "reports"
-  | "operations"
+  | "collectConversation"
+  | "collectAudit"
+  | "collectUsage"
+  | "collectDiagnostics"
+  | "collectConsumption"
+  | "ediscovery"
+  | "backupRestore"
+  | "dataExport"
   | "settings";
 
 interface NavItem {
@@ -48,6 +62,7 @@ const SECTIONS: NavSection[] = [
     items: [
       { key: "insights", label: "사용 인사이트", icon: BarChart3 },
       { key: "conversationsApi", label: "대화 탐색(API)", icon: MessageSquareText },
+      { key: "conversationsEdiscovery", label: "대화 탐색(e-Discovery)", icon: SearchCheck },
       { key: "agents", label: "에이전트", icon: Bot },
     ],
   },
@@ -56,16 +71,28 @@ const SECTIONS: NavSection[] = [
     icon: ShieldCheck,
     items: [
       { key: "security", label: "보안/감사", icon: ShieldCheck },
-      { key: "ediscovery", label: "eDiscovery 수집", icon: FileSearch },
-      { key: "conversationsEdiscovery", label: "대화 탐색(e-Discovery)", icon: SearchCheck },
       { key: "reports", label: "공식 보고서", icon: ClipboardList },
+      { key: "consumption", label: "비용/소비량", icon: Coins },
+    ],
+  },
+  {
+    title: "데이터 수집",
+    icon: Database,
+    items: [
+      { key: "collectConversation", label: "대화 수집", icon: MessageSquareText },
+      { key: "collectAudit", label: "감사 이벤트", icon: ShieldAlert },
+      { key: "collectUsage", label: "공식 사용량", icon: Activity },
+      { key: "collectDiagnostics", label: "에이전트", icon: Bot },
+      { key: "collectConsumption", label: "비용/소비량", icon: Coins },
+      { key: "ediscovery", label: "eDiscovery 수집", icon: FileSearch },
     ],
   },
   {
     title: "관리",
     icon: Settings,
     items: [
-      { key: "operations", label: "수집 운영", icon: ClipboardList },
+      { key: "backupRestore", label: "백업·복원", icon: DatabaseBackup },
+      { key: "dataExport", label: "내보내기", icon: Download },
       { key: "settings", label: "설정", icon: Settings },
     ],
   },
@@ -95,7 +122,7 @@ export function Sidebar({ active, onSelect, profileLabel, appName }: SidebarProp
     <aside className={`sidebar-shell${collapsed ? " is-collapsed" : ""}`}>
       <div className="sidebar-brand">
         <div className="sidebar-logo" title="CopilotWatchTower">
-          <ShieldCheck size={20} strokeWidth={2.4} />
+          <img src={appLogo} alt="CopilotWatchTower" />
         </div>
         <div className="sidebar-brand-text">
           <div className="sidebar-title">{appName}</div>

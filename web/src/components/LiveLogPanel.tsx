@@ -8,7 +8,8 @@ export const KIND_LABELS: Record<CollectionKind, string> = {
   conversation: "대화 수집",
   audit: "감사 이벤트",
   usage: "공식 사용량",
-  diagnostics: "관리 진단",
+  diagnostics: "에이전트",
+  consumption: "비용/소비량",
 };
 
 const KIND_COLOR: Record<string, string> = {
@@ -57,6 +58,7 @@ interface LiveLogPanelProps {
   onErrorsOnlyChange: (next: boolean) => void;
   totalCount: number;
   filteredCount: number;
+  hideKindFilter?: boolean;
 }
 
 interface NormalisedEvent {
@@ -89,6 +91,7 @@ export function LiveLogPanel(props: LiveLogPanelProps) {
     onErrorsOnlyChange,
     totalCount,
     filteredCount,
+    hideKindFilter,
   } = props;
 
   const normalised = useMemo(() => events.map(normaliseEvent), [events]);
@@ -118,13 +121,15 @@ export function LiveLogPanel(props: LiveLogPanelProps) {
     <div style={containerStyle}>
       <div style={toolbarStyle}>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-          <select value={kindFilter} onChange={(e) => onKindFilterChange(e.target.value as "" | CollectionKind | "system")} style={selectStyle}>
-            <option value="">(전체 종류)</option>
-            {(Object.entries(KIND_LABELS) as Array<[CollectionKind, string]>).map(([k, l]) => (
-              <option key={k} value={k}>{l}</option>
-            ))}
-            <option value="system">시스템</option>
-          </select>
+          {!hideKindFilter && (
+            <select value={kindFilter} onChange={(e) => onKindFilterChange(e.target.value as "" | CollectionKind | "system")} style={selectStyle}>
+              <option value="">(전체 종류)</option>
+              {(Object.entries(KIND_LABELS) as Array<[CollectionKind, string]>).map(([k, l]) => (
+                <option key={k} value={k}>{l}</option>
+              ))}
+              <option value="system">시스템</option>
+            </select>
+          )}
           <input
             type="search"
             placeholder="검색"

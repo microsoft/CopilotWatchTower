@@ -33,8 +33,7 @@ from ..services.audit_query import (
     collect_entra_signins,
     collect_purview,
 )
-from ..services.thread_audit_enrichment import build_grounding_text_map
-from ..services.threading_engine import TurnInput, compute_threads
+from ..services.threading_service import recompute_threads_for_user
 from ..services.usage_reports import USAGE_REPORT_PERIODS, collect_copilot_usage_reports
 from ..time_format import format_kst
 
@@ -47,9 +46,19 @@ log = logging.getLogger(__name__)
 # Microsoft 365 Copilot Service Plan IDs. We probe `subscribedSkus` and
 # pick SKUs that include any of these plans. Hard-coded list is the most
 # stable signal; new Copilot SKUs are added over time.
+#
+# These are *service plan* IDs (the inner plans of a SKU), not SKU IDs. The
+# shared M365 Copilot plans below appear across the commercial, EDU, Sales and
+# Service SKUs, so matching any of them flags a Copilot-licensed user. The EDU
+# SKU (Microsoft_365_Copilot_EDU, sku ad9c22b3-52d7-4e7e-973c-88121ea96436)
+# bundles M365_COPILOT_APPS / TEAMS / SHAREPOINT / INTELLIGENT_SEARCH and is
+# therefore covered by the shared plans without a dedicated entry.
 COPILOT_SERVICE_PLAN_IDS: set[str] = {
-    "3f30311c-6b1e-49a9-ab65-1c52d2bb8e80",  # Microsoft 365 Copilot (add-on)
-    "a62f8878-de10-42f3-b68f-6149a25ceb97",  # M365 Copilot for Sales
+    "3f30311c-6b1e-49a9-ab65-1c52d2bb8e80",  # M365_COPILOT_BUSINESS_CHAT
+    "a62f8878-de10-42f3-b68f-6149a25ceb97",  # M365_COPILOT_APPS (commercial/EDU/Sales)
+    "b95945de-b3bd-46db-8437-f2beb6ea2347",  # M365_COPILOT_TEAMS (commercial/EDU)
+    "931e4a88-a67f-48b5-814f-16a5f1e6028d",  # M365_COPILOT_INTELLIGENT_SEARCH (commercial/EDU)
+    "0aedf20c-091d-420b-aadf-30c042609612",  # M365_COPILOT_SHAREPOINT (commercial/EDU)
     "12d3a26a-c0b9-4cdd-9a5d-99ec6f1f5c75",  # M365 Copilot for Service (placeholder)
 }
 
@@ -321,36 +330,7 @@ class CollectorWorker(QObject):
         merges (where new interactions extend an older thread) stay
         consistent. The work is local — no Graph calls.
         """
-        interactions = self.repo.interactions_for_user(user.id, source_type="api")
-        grounding_map = build_grounding_text_map(
-            interactions, self.repo.audit_events_for_user(user.id, user.upn)
-        )
-        turns = [
-            TurnInput(
-                id=i.id,
-                user_id=i.user_id,
-                session_id=i.session_id,
-                request_id=i.request_id,
-                created_at=i.created_at,
-                interaction_type=i.interaction_type,
-                app=i.app,
-                body_text=i.body_text,
-                grounding_text=grounding_map.get(i.id),
-            )
-            for i in interactions
-        ]
-        threads = compute_threads(turns)
-        # Replace prior thread set: drop user's threads, insert fresh,
-        # then stamp interactions with their new thread_id.
-        self.repo.delete_user_threads(user.id, source_type="api")
-        if threads:
-            self.repo.upsert_threads(threads, source_type="api")
-            mapping: list[tuple[str, str]] = []
-            for t in threads:
-                for iid in t.interaction_ids:
-                    mapping.append((iid, t.id))
-            if mapping:
-                self.repo.assign_threads_to_interactions(mapping)
+        recompute_threads_for_user(self.repo, user, source_type="api")
 
 
 class AuditCollectorWorker(QObject):
@@ -586,7 +566,7 @@ class CollectorThread(QThread):
 
     def __init__(
         self,
-        worker: CollectorWorker | AuditCollectorWorker,
+        worker: QObject,
         parent: QObject | None = None,
     ) -> None:
         super().__init__(parent)
