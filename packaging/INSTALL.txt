@@ -1,0 +1,29 @@
+CopilotWatchTower v0.1.0 - Install Guide
+========================================
+
+This package is signed with a self-signed certificate, so you must trust
+the certificate before Windows will install the app.
+
+EASY INSTALL (recommended)
+--------------------------
+1. Right-click "Install-CopilotWatchTower.bat"
+2. Choose "Run as administrator"
+3. Follow the prompts. The app appears in the Start menu when done.
+
+MANUAL INSTALL
+--------------
+1. Double-click "CopilotWatchTower.cer" -> Install Certificate
+   -> Local Machine -> Place all certificates in: "Trusted People"
+2. Double-click "CopilotWatchTower.msix" -> Install
+
+UNINSTALL
+---------
+Run "Uninstall-CopilotWatchTower.bat", or remove "CopilotWatchTower"
+from Windows Settings > Apps.
+
+Files
+-----
+- CopilotWatchTower.msix   The application package (x64)
+- CopilotWatchTower.cer    Public key of the signing certificate
+- Install-CopilotWatchTower.bat
+- Uninstall-CopilotWatchTower.bat
