@@ -111,6 +111,41 @@ def test_fts_search(repo: Repository) -> None:
     no_match = repo.list_interactions(fts_query="invoices")
     assert no_match == []
 
+def test_list_threads_body_search_and_apps(repo: Repository) -> None:
+    repo.upsert_users([UserRow("u1", "a@x.com", "A", True, True, True)])
+    repo.upsert_interactions(
+        [
+            InteractionRow(
+                id="i1", user_id="u1", session_id="s1", request_id="r1",
+                created_at=_iso(), interaction_type="userPrompt", app="BizChat",
+                body_text="보안 정책 검토 부탁해", body_content_type="text",
+                attachments_json=None, raw_json="{}", fetched_at=_iso(),
+            ),
+            InteractionRow(
+                id="i2", user_id="u1", session_id="s2", request_id="r2",
+                created_at=_iso(hour=13), interaction_type="userPrompt", app="Word",
+                body_text="quarterly sales numbers", body_content_type="text",
+                attachments_json=None, raw_json="{}", fetched_at=_iso(),
+            ),
+        ]
+    )
+    thread_a = ThreadRow("thr-a", "u1", _iso(), _iso(), "BizChat", 1, 1, 0, ["s1"], [], "회의 준비", None, _iso())
+    thread_b = ThreadRow("thr-b", "u1", _iso(hour=13), _iso(hour=13), "Word", 1, 1, 0, ["s2"], [], "분기 매출", None, _iso())
+    repo.upsert_threads([thread_a, thread_b], source_type="api")
+    repo.assign_threads_to_interactions([("i1", "thr-a"), ("i2", "thr-b")])
+
+    # Title-only search misses bodies.
+    assert [t.id for t in repo.list_threads(search="보안", search_scope="title")] == []
+    # Body search finds the thread whose interaction mentions 보안 and carries a snippet.
+    body_hits = repo.list_threads(search="보안", search_scope="body")
+    assert [t.id for t in body_hits] == ["thr-a"]
+    assert body_hits[0].body_match is True
+    assert body_hits[0].match_snippet and "보안" in body_hits[0].match_snippet
+    # "all" scope unions title and body matches.
+    all_hits = {t.id for t in repo.list_threads(search="분기", search_scope="all")}
+    assert "thr-b" in all_hits
+    # App filter dropdown values.
+    assert repo.thread_apps(source_type="api") == ["BizChat", "Word"]
 
 def test_audit_events_for_thread_matches_user_and_expanded_time_window(repo: Repository) -> None:
     repo.upsert_audit_events(

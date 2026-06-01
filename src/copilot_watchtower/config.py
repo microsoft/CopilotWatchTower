@@ -22,6 +22,14 @@ MS_GRAPH_RESOURCE_ID = "00000003-0000-0000-c000-000000000000"
 MS_GRAPH_BASE_V1 = "https://graph.microsoft.com/v1.0"
 MS_GRAPH_BASE_BETA = "https://graph.microsoft.com/beta"
 
+# Update / release distribution. The desktop app checks the latest
+# published GitHub Release to surface new versions in Settings.
+GITHUB_REPO_SLUG = "microsoft/CopilotWatchTower"
+GITHUB_RELEASES_LATEST_URL = (
+    f"https://api.github.com/repos/{GITHUB_REPO_SLUG}/releases/latest"
+)
+GITHUB_RELEASES_PAGE_URL = f"https://github.com/{GITHUB_REPO_SLUG}/releases/latest"
+
 # Application permission GUIDs (app role IDs on the Microsoft Graph SP).
 GRAPH_APP_ROLE_AI_ENTERPRISE_INTERACTION_READ_ALL = "839c90ab-5771-41ee-aef8-a562e8487c1e"
 GRAPH_APP_ROLE_USER_READ_ALL = "df021288-bdef-4463-88db-98f22de89214"
@@ -100,6 +108,68 @@ DELEGATED_EDISCOVERY_SCOPES = [
 
 # Client-credentials scope (always /.default for app-only tokens).
 CLIENT_CREDENTIALS_SCOPE = "https://graph.microsoft.com/.default"
+
+# ---------------------------------------------------------------------------
+# Power Platform Licensing API (unofficial)
+# ---------------------------------------------------------------------------
+#
+# The Power Platform Admin Center (PPAC) downloads tenant consumption reports
+# (Copilot Studio messages, AI Builder credits, Power Platform requests) from
+# an *unofficial* licensing service. There is no published contract, so the
+# exact request paths are subject to change without notice — by design the
+# collector surfaces failures clearly rather than guessing silently.
+#
+# Auth model: a *delegated* token for the licensing audience. MSAL refresh
+# tokens are multi-resource, so the account seeded during onboarding can mint
+# a token for this audience silently (see DelegatedDeviceCodeTokenProvider).
+# The signed-in user must be Power Platform Admin or Global Admin or the
+# service returns 403.
+LICENSING_API_RESOURCE = "https://licensing.powerplatform.microsoft.com"
+LICENSING_API_BASE = f"{LICENSING_API_RESOURCE}/v1.0"
+LICENSING_API_SCOPE = f"{LICENSING_API_RESOURCE}/.default"
+DELEGATED_LICENSING_SCOPES = [LICENSING_API_SCOPE]
+
+# Host that the consumption reports are served from. Used to recognise the
+# bearer token the Power Platform Admin Center SPA mints for this audience.
+LICENSING_API_HOST = "licensing.powerplatform.microsoft.com"
+
+# Browser-driven collection (no standalone delegated token to expire).
+# ---------------------------------------------------------------------------
+# Rather than minting a separate MSAL delegated token for the licensing
+# audience (which expires independently and forces a re-login), consumption
+# collection drives a real Power Platform Admin Center sign-in with Playwright
+# and reuses the licensing bearer token that the admin-center SPA already
+# acquires. Collection therefore works whenever the stored admin can sign into
+# PPAC — there is no separate token cache to expire.
+PPAC_BASE_URL = "https://admin.powerplatform.microsoft.com"
+# Page whose load drives the SPA to request a licensing-audience token.
+PPAC_CONSUMPTION_URL = f"{PPAC_BASE_URL}/resources/capacity"
+
+# Report-type identifiers exposed by the licensing service. These map to the
+# consumption categories surfaced in PPAC. Stored verbatim in the
+# ``report_type`` column so the UI can pivot on them.
+LICENSING_REPORT_MCS_MESSAGES = "MCSMessages"            # Copilot Studio messages
+LICENSING_REPORT_AI_BUILDER = "AIByUserAndEnvironment"   # AI Builder credits
+LICENSING_REPORT_API_LICENSED = "ApiByLicensedUser"      # Power Platform requests (licensed)
+LICENSING_REPORT_API_NONLICENSED = "ApiByNonLicensedUser"
+LICENSING_REPORT_API_FLOW = "ApiByFlow"
+
+LICENSING_REPORT_TYPES = (
+    LICENSING_REPORT_MCS_MESSAGES,
+    LICENSING_REPORT_AI_BUILDER,
+    LICENSING_REPORT_API_LICENSED,
+    LICENSING_REPORT_API_NONLICENSED,
+    LICENSING_REPORT_API_FLOW,
+)
+
+# Unit each report measures (used for display and credit conversion).
+LICENSING_REPORT_UNITS = {
+    LICENSING_REPORT_MCS_MESSAGES: "messages",
+    LICENSING_REPORT_AI_BUILDER: "credits",
+    LICENSING_REPORT_API_LICENSED: "requests",
+    LICENSING_REPORT_API_NONLICENSED: "requests",
+    LICENSING_REPORT_API_FLOW: "requests",
+}
 
 # Candidate audiences for *backend* eDiscovery export downloads from the
 # eDiscovery proxy service (``*.proxyservice.ediscovery.svc.cloud.microsoft``).

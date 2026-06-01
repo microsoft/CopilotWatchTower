@@ -19,6 +19,12 @@ _SIMPLE_APP_LABELS = {
     "one note": "OneNote",
     "powerbi": "Power BI",
     "power bi": "Power BI",
+    "forms": "Forms",
+    "planner": "Planner",
+    "stream": "Stream",
+    "whiteboard": "Whiteboard",
+    "sharepoint": "SharePoint",
+    "share point": "SharePoint",
 }
 
 

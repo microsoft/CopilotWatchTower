@@ -78,6 +78,26 @@ export interface SystemInfo {
   profile_id: string | null;
 }
 
+export interface AppVersionInfo {
+  ok: boolean;
+  version: string;
+  app_name: string;
+}
+
+export interface UpdateCheckResult {
+  ok: boolean;
+  current_version: string;
+  latest_version?: string;
+  update_available?: boolean;
+  prerelease?: boolean;
+  release_name?: string;
+  release_url?: string;
+  download_url?: string | null;
+  notes?: string;
+  published_at?: string | null;
+  error?: string;
+}
+
 export interface ConversationThreadSummary {
   id: string;
   user_id: string;
@@ -94,6 +114,8 @@ export interface ConversationThreadSummary {
   topic_keywords: string[];
   session_ids: string[];
   source_type: "api" | "ediscovery";
+  match_snippet?: string | null;
+  body_match?: boolean;
 }
 
 export interface ConversationTurn {
@@ -132,8 +154,14 @@ export interface ConversationFilters {
   user_id?: string | null;
   app?: string | null;
   search?: string | null;
+  search_scope?: "title" | "body" | "all" | null;
   limit?: number | null;
   source_type?: "api" | "ediscovery" | null;
+}
+
+export interface ConversationAppOption {
+  value: string;
+  label: string;
 }
 
 export interface AgentFilters {
@@ -292,6 +320,26 @@ export interface OperationsSummary {
   threads: number;
 }
 
+export interface AdoptionSummary {
+  licensed_total: number;
+  active: number;
+  inactive: number;
+  adoption_rate: number;
+  days: number;
+}
+
+export interface MeaningfulInteractions {
+  sessions: number;
+  prompts: number;
+  users: number;
+  days: number;
+}
+
+export interface AdoptionInsights {
+  adoption: AdoptionSummary;
+  sessions: MeaningfulInteractions;
+}
+
 export interface ProfileSummary {
   id: string;
   name: string;
@@ -318,6 +366,9 @@ export interface SettingsSummary {
 
 interface RawBridge {
   system_info(cb: (raw: string) => void): void;
+  app_version(cb: (raw: string) => void): void;
+  check_for_updates(cb: (raw: string) => void): void;
+  open_external_url(url: string, cb: (raw: string) => void): void;
   analytics_user_activity_overview(filters: string, cb: (raw: string) => void): void;
   analytics_user_daily_activity(filters: string, cb: (raw: string) => void): void;
   analytics_user_daily_app_usage(filters: string, cb: (raw: string) => void): void;
@@ -325,6 +376,7 @@ interface RawBridge {
   users_in_scope(cb: (raw: string) => void): void;
   ediscovery_users(cb: (raw: string) => void): void;
   conversations_list(filters: string, cb: (raw: string) => void): void;
+  conversation_apps(source_type: string, cb: (raw: string) => void): void;
   conversations_detail(thread_id: string, cb: (raw: string) => void): void;
   agents_list(filters: string, cb: (raw: string) => void): void;
   audit_events_list(filters: string, cb: (raw: string) => void): void;
@@ -332,9 +384,14 @@ interface RawBridge {
   usage_snapshots_list(filters: string, cb: (raw: string) => void): void;
   usage_counts_list(filters: string, cb: (raw: string) => void): void;
   usage_periods_summary(cb: (raw: string) => void): void;
+  consumption_list(filters: string, cb: (raw: string) => void): void;
+  consumption_overview(filters: string, cb: (raw: string) => void): void;
+  consumption_collect_start(cb: (raw: string) => void): void;
+  consumption_collect_stop(cb: (raw: string) => void): void;
   operations_recent_runs(filters: string, cb: (raw: string) => void): void;
   operations_audit_state(cb: (raw: string) => void): void;
   operations_summary(cb: (raw: string) => void): void;
+  insights_adoption_summary(filters: string, cb: (raw: string) => void): void;
   profiles_list(cb: (raw: string) => void): void;
   settings_summary(cb: (raw: string) => void): void;
   collection_start(kind: string, cb: (raw: string) => void): void;
@@ -350,6 +407,14 @@ interface RawBridge {
   profile_remove(profile_id: string, delete_data_json: string, cb: (raw: string) => void): void;
   settings_update(payload: string, cb: (raw: string) => void): void;
   open_system_dialog(kind: string, cb: (raw: string) => void): void;
+  backup_create(cb: (raw: string) => void): void;
+  backup_pick_file(cb: (raw: string) => void): void;
+  backup_inspect(file_path: string, cb: (raw: string) => void): void;
+  backup_restore(file_path: string, cb: (raw: string) => void): void;
+  export_interactions(fmt: string, cb: (raw: string) => void): void;
+  export_threads_all(fmt: string, cb: (raw: string) => void): void;
+  export_thread(thread_id: string, fmt: string, cb: (raw: string) => void): void;
+  exports_open_folder(cb: (raw: string) => void): void;
   diagnostics_ping(cb: (raw: string) => void): void;
   bridge_event: BridgeSignal;
 }
@@ -411,6 +476,21 @@ export async function getSystemInfo(): Promise<SystemInfo> {
   return callJson<SystemInfo>((cb) => bridge.system_info(cb));
 }
 
+export async function getAppVersion(): Promise<AppVersionInfo> {
+  const bridge = await loadBridge();
+  return callJson<AppVersionInfo>((cb) => bridge.app_version(cb));
+}
+
+export async function checkForUpdates(): Promise<UpdateCheckResult> {
+  const bridge = await loadBridge();
+  return callJson<UpdateCheckResult>((cb) => bridge.check_for_updates(cb));
+}
+
+export async function openExternalUrl(url: string): Promise<ActionResult> {
+  const bridge = await loadBridge();
+  return callJson<ActionResult>((cb) => bridge.open_external_url(url, cb));
+}
+
 export async function getUsersInScope(): Promise<UserSummary[]> {
   const bridge = await loadBridge();
   return callJson<UserSummary[]>((cb) => bridge.users_in_scope(cb));
@@ -470,6 +550,13 @@ export async function getConversationDetail(threadId: string): Promise<Conversat
   return callJson<ConversationDetail>((cb) => bridge.conversations_detail(threadId, cb));
 }
 
+export async function listConversationApps(
+  sourceType: "api" | "ediscovery",
+): Promise<ConversationAppOption[]> {
+  const bridge = await loadBridge();
+  return callJson<ConversationAppOption[]>((cb) => bridge.conversation_apps(sourceType, cb));
+}
+
 export async function listAgents(filters: AgentFilters): Promise<AgentRow[]> {
   const bridge = await loadBridge();
   return callJson<AgentRow[]>((cb) => bridge.agents_list(JSON.stringify(filters), cb));
@@ -500,6 +587,94 @@ export async function getUsagePeriodsSummary(): Promise<UsagePeriodsSummary> {
   return callJson<UsagePeriodsSummary>((cb) => bridge.usage_periods_summary(cb));
 }
 
+// ---- Power Platform consumption (agent cost-credit) -----------------
+
+export type ConsumptionReportType =
+  | "MCSMessages"
+  | "MCSMessages:resource"
+  | "MCSMessages:environment"
+  | "AIByUserAndEnvironment"
+  | "ApiByLicensedUser"
+  | "ApiByNonLicensedUser"
+  | "ApiByFlow";
+
+export interface ConsumptionFilters {
+  report_type?: ConsumptionReportType | null;
+  date_from?: string | null;
+  date_to?: string | null;
+  user_id?: string | null;
+  search?: string | null;
+  limit?: number | null;
+}
+
+export interface ConsumptionRow {
+  report_type: string;
+  usage_date: string;
+  environment_id: string | null;
+  environment_name: string | null;
+  user_id: string | null;
+  display_name: string | null;
+  upn: string | null;
+  product: string | null;
+  quantity: number;
+  unit: string | null;
+  raw_json?: string | null;
+}
+
+export interface ConsumptionSummary {
+  report_type: string;
+  total: number;
+  users: number;
+  environments: number;
+  latest_date: string | null;
+  earliest_date: string | null;
+  unit: string | null;
+  projected_month: number;
+}
+
+export interface ConsumptionTrendPoint {
+  date: string;
+  total: number;
+}
+
+export interface ConsumptionTopUser {
+  user_id: string | null;
+  display_name: string | null;
+  upn: string | null;
+  total: number;
+}
+
+export interface ConsumptionOverview {
+  summary: ConsumptionSummary;
+  trend: ConsumptionTrendPoint[];
+  top_users: ConsumptionTopUser[];
+}
+
+export async function listConsumption(filters: ConsumptionFilters): Promise<ConsumptionRow[]> {
+  const bridge = await loadBridge();
+  return callJson<ConsumptionRow[]>((cb) => bridge.consumption_list(JSON.stringify(filters), cb));
+}
+
+export async function getConsumptionOverview(
+  reportType: ConsumptionReportType,
+  days = 30,
+): Promise<ConsumptionOverview> {
+  const bridge = await loadBridge();
+  return callJson<ConsumptionOverview>((cb) =>
+    bridge.consumption_overview(JSON.stringify({ report_type: reportType, days }), cb),
+  );
+}
+
+export async function startConsumptionCollection(): Promise<ActionResult> {
+  const bridge = await loadBridge();
+  return callJson<ActionResult>((cb) => bridge.consumption_collect_start(cb));
+}
+
+export async function stopConsumptionCollection(): Promise<ActionResult> {
+  const bridge = await loadBridge();
+  return callJson<ActionResult>((cb) => bridge.consumption_collect_stop(cb));
+}
+
 export async function listRecentRuns(limit = 50): Promise<CollectionRun[]> {
   const bridge = await loadBridge();
   return callJson<CollectionRun[]>((cb) => bridge.operations_recent_runs(JSON.stringify({ limit }), cb));
@@ -515,6 +690,11 @@ export async function getOperationsSummary(): Promise<OperationsSummary> {
   return callJson<OperationsSummary>((cb) => bridge.operations_summary(cb));
 }
 
+export async function getAdoptionInsights(days = 30): Promise<AdoptionInsights> {
+  const bridge = await loadBridge();
+  return callJson<AdoptionInsights>((cb) => bridge.insights_adoption_summary(JSON.stringify({ days }), cb));
+}
+
 export async function listProfiles(): Promise<ProfileSummary[]> {
   const bridge = await loadBridge();
   return callJson<ProfileSummary[]>((cb) => bridge.profiles_list(cb));
@@ -525,7 +705,7 @@ export async function getSettingsSummary(): Promise<SettingsSummary> {
   return callJson<SettingsSummary>((cb) => bridge.settings_summary(cb));
 }
 
-export type CollectionKind = "conversation" | "audit" | "usage" | "diagnostics";
+export type CollectionKind = "conversation" | "audit" | "usage" | "diagnostics" | "consumption";
 
 export interface ActionResult {
   ok: boolean;
@@ -649,6 +829,62 @@ export async function openSystemDialog(kind: SystemDialogKind): Promise<ActionRe
 export async function pingBridge(): Promise<ActionResult> {
   const bridge = await loadBridge();
   return callJson<ActionResult>((cb) => bridge.diagnostics_ping(cb));
+}
+
+// ---- backup / restore / export ----------------------------------
+
+export type InteractionExportFormat = "csv" | "json" | "xlsx";
+export type ThreadExportFormat = "md" | "html" | "json";
+
+export interface BackupManifest {
+  app_version?: string;
+  schema_version?: number;
+  created_at?: string;
+  profile?: { id?: string; name?: string } | null;
+  tables?: Record<string, number>;
+  row_total?: number;
+}
+
+export async function createBackup(): Promise<ActionResult> {
+  const bridge = await loadBridge();
+  return callJson<ActionResult>((cb) => bridge.backup_create(cb));
+}
+
+export async function pickBackupFile(): Promise<{ ok: boolean; path: string }> {
+  const bridge = await loadBridge();
+  return callJson<{ ok: boolean; path: string }>((cb) => bridge.backup_pick_file(cb));
+}
+
+export async function inspectBackup(filePath: string): Promise<ActionResult & { manifest?: BackupManifest }> {
+  const bridge = await loadBridge();
+  return callJson<ActionResult & { manifest?: BackupManifest }>((cb) =>
+    bridge.backup_inspect(filePath, cb),
+  );
+}
+
+export async function restoreBackup(filePath: string): Promise<ActionResult> {
+  const bridge = await loadBridge();
+  return callJson<ActionResult>((cb) => bridge.backup_restore(filePath, cb));
+}
+
+export async function exportInteractions(fmt: InteractionExportFormat): Promise<ActionResult> {
+  const bridge = await loadBridge();
+  return callJson<ActionResult>((cb) => bridge.export_interactions(fmt, cb));
+}
+
+export async function exportAllThreads(fmt: ThreadExportFormat): Promise<ActionResult> {
+  const bridge = await loadBridge();
+  return callJson<ActionResult>((cb) => bridge.export_threads_all(fmt, cb));
+}
+
+export async function exportThread(threadId: string, fmt: ThreadExportFormat): Promise<ActionResult> {
+  const bridge = await loadBridge();
+  return callJson<ActionResult>((cb) => bridge.export_thread(threadId, fmt, cb));
+}
+
+export async function openExportsFolder(): Promise<ActionResult> {
+  const bridge = await loadBridge();
+  return callJson<ActionResult>((cb) => bridge.exports_open_folder(cb));
 }
 
 export async function subscribeBridgeEvents(handler: (event: BridgeEvent) => void): Promise<() => void> {

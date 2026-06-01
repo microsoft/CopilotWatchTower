@@ -32,6 +32,7 @@ REGISTRY_FILENAME = "profiles.json"
 PROFILES_DIRNAME = "profiles"
 LEGACY_DB_FILENAME = "store.db"
 PROFILE_DB_FILENAME = "store.db"
+PROFILE_EXPORTS_DIRNAME = "exports"
 REGISTRY_VERSION = 1
 
 
@@ -216,6 +217,15 @@ class ProfileRegistry:
 
     def profile_db_path(self, profile_id: str) -> Path:
         return self.profile_dir(profile_id) / PROFILE_DB_FILENAME
+
+    def profile_exports_dir(self, profile_id: str) -> Path:
+        """Per-profile folder for backup bundles and data exports.
+
+        Created on demand so the explorer-open action always has a target.
+        """
+        d = self.profile_dir(profile_id) / PROFILE_EXPORTS_DIRNAME
+        d.mkdir(parents=True, exist_ok=True)
+        return d
 
     def purge_profile_directory(self, profile_id: str) -> None:
         """Delete the per-profile data directory (DB + WAL, etc.).

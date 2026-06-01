@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 import { Card } from "../components/Card";
 import { DataTable } from "../components/DataTable";
@@ -12,10 +13,14 @@ import { useToast } from "../components/Toast";
 import {
   type ProfileSummary,
   type SystemDialogKind,
+  type UpdateCheckResult,
   addProfile,
+  checkForUpdates,
+  getAppVersion,
   getSettingsSummary,
   isBridgeAvailable,
   listProfiles,
+  openExternalUrl,
   openSystemDialog,
   removeProfile,
   switchProfile,
@@ -40,6 +45,34 @@ export function SettingsPage() {
 
   const profiles = profilesQuery.data ?? [];
   const settings = settingsQuery.data;
+
+  const versionQuery = useQuery({
+    queryKey: ["app-version"],
+    queryFn: getAppVersion,
+    enabled: BRIDGE_AVAILABLE,
+  });
+
+  const [checking, setChecking] = useState(false);
+  const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(null);
+
+  async function handleCheckForUpdates() {
+    setChecking(true);
+    try {
+      const result = await checkForUpdates();
+      setUpdateResult(result);
+      if (!result.ok) {
+        toast.push(result.error ?? "최신 버전을 확인하지 못했습니다.", "danger");
+      } else if (result.update_available) {
+        toast.push(`새 버전이 있습니다: ${result.latest_version}`, "success");
+      } else {
+        toast.push("최신 버전을 사용 중입니다.", "success");
+      }
+    } catch (err) {
+      toast.push(`업데이트 확인 예외: ${(err as Error).message}`, "danger");
+    } finally {
+      setChecking(false);
+    }
+  }
 
   async function runAction(label: string, action: () => Promise<{ ok: boolean; error?: string }>) {
     try {
@@ -90,6 +123,76 @@ export function SettingsPage() {
             />
           </Card>
         </div>
+
+        <Card title="버전 · 업데이트">
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 13 }}>
+              현재 버전:{" "}
+              <strong>{versionQuery.data?.version ?? "—"}</strong>
+            </div>
+            <button
+              style={{ ...secondaryButtonStyle, opacity: checking ? 0.6 : 1 }}
+              disabled={checking || !BRIDGE_AVAILABLE}
+              onClick={handleCheckForUpdates}
+            >
+              {checking ? "확인 중…" : "최신 버전 확인"}
+            </button>
+          </div>
+
+          {updateResult?.ok && updateResult.update_available && (
+            <div
+              style={{
+                marginTop: 12,
+                padding: 12,
+                borderRadius: 8,
+                border: "1px solid var(--border)",
+                background: "var(--surface-2, rgba(0,0,0,0.03))",
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              <div style={{ fontSize: 13 }}>
+                새 버전 <strong>{updateResult.latest_version}</strong>
+                {updateResult.prerelease ? " (프리릴리스)" : ""} 이(가) 있습니다.
+              </div>
+              {updateResult.notes && (
+                <pre
+                  style={{
+                    margin: 0,
+                    maxHeight: 160,
+                    overflow: "auto",
+                    fontSize: 11,
+                    whiteSpace: "pre-wrap",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  {updateResult.notes}
+                </pre>
+              )}
+              {updateResult.release_url && (
+                <div>
+                  <button
+                    style={secondaryButtonStyle}
+                    onClick={() => openExternalUrl(updateResult.release_url!)}
+                  >
+                    다운로드 페이지 열기
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {updateResult?.ok && !updateResult.update_available && (
+            <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-muted)" }}>
+              최신 버전을 사용 중입니다.
+            </div>
+          )}
+
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>
+            GitHub의 최신 릴리스를 확인합니다. 업데이트는 다운로드 페이지에서 직접 설치하세요.
+          </div>
+        </Card>
 
         <Card title="고급 동작">
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

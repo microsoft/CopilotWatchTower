@@ -33,8 +33,7 @@ from ..security import unprotect
 from ..services import ediscovery_export
 from ..services.ediscovery_browser_download import BrowserDownloadError, download_with_playwright
 from ..services.ediscovery import EdiscoveryError, EdiscoveryOrchestrator, _human_size
-from ..services.thread_audit_enrichment import build_grounding_text_map
-from ..services.threading_engine import TurnInput, compute_threads
+from ..services.threading_service import recompute_threads_for_user
 
 log = logging.getLogger(__name__)
 
@@ -408,31 +407,4 @@ class EdiscoveryCollectorWorker(QObject):
         return row
 
     def _recompute_threads_for_user(self, user: UserRow) -> None:
-        interactions = self.repo.interactions_for_user(user.id, source_type="ediscovery")
-        grounding_map = build_grounding_text_map(
-            interactions, self.repo.audit_events_for_user(user.id, user.upn)
-        )
-        turns = [
-            TurnInput(
-                id=i.id,
-                user_id=i.user_id,
-                session_id=i.session_id,
-                request_id=i.request_id,
-                created_at=i.created_at,
-                interaction_type=i.interaction_type,
-                app=i.app,
-                body_text=i.body_text,
-                grounding_text=grounding_map.get(i.id),
-            )
-            for i in interactions
-        ]
-        threads = compute_threads(turns)
-        self.repo.delete_user_threads(user.id, source_type="ediscovery")
-        if threads:
-            self.repo.upsert_threads(threads, source_type="ediscovery")
-            mapping: list[tuple[str, str]] = []
-            for t in threads:
-                for iid in t.interaction_ids:
-                    mapping.append((iid, t.id))
-            if mapping:
-                self.repo.assign_threads_to_interactions(mapping)
+        recompute_threads_for_user(self.repo, user, source_type="ediscovery")

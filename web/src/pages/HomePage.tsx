@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Activity, AlertTriangle, Bot, Database, MessageSquareText, Users } from "lucide-react";
+import { Activity, AlertTriangle, Bot, Database, Info, MessageSquareText, UserMinus, Users } from "lucide-react";
 import {
   CartesianGrid,
   Legend,
@@ -17,6 +17,7 @@ import {
   type CollectionRun,
   type OperationsSummary,
   type UsageCountRow,
+  getAdoptionInsights,
   getOperationsSummary,
   getUserDailyActivity,
   getUserActivityOverview,
@@ -63,6 +64,11 @@ export function HomePage() {
     queryFn: () => listAuditEvents({ date_from: range.date_from, date_to: range.date_to, search: null, limit: 1000 }),
     enabled: BRIDGE_AVAILABLE,
   });
+  const adoptionQuery = useQuery({
+    queryKey: ["home-adoption"],
+    queryFn: () => getAdoptionInsights(30),
+    enabled: BRIDGE_AVAILABLE,
+  });
 
   const overview = overviewQuery.data ?? [];
   const daily = dailyQuery.data ?? [];
@@ -84,11 +90,23 @@ export function HomePage() {
   const trend = buildTrend(daily);
   const recentActivity = runs.slice(0, 6);
 
+  const adoption = adoptionQuery.data?.adoption;
+  const sessions = adoptionQuery.data?.sessions;
+  const adoptionRatePct = adoption ? Math.round(adoption.adoption_rate * 100) : null;
+
   return (
     <div className="dashboard-page">
       <div className="dashboard-kpis">
         <KpiCard label="활성 사용자" value={formatNumber(activeUsers)} hint={`대상 ${formatNumber(summary?.users.total)}명`} tone="positive" icon={<Users size={21} />} />
         <KpiCard label="총 턴" value={formatNumber(totalMessages)} hint={`스레드 ${formatNumber(totalThreads)}건`} icon={<MessageSquareText size={21} />} />
+        <KpiCard label="의미있는 상호작용" value={formatNumber(sessions?.sessions)} hint={`세션 기준 · 프롬프트 ${formatNumber(sessions?.prompts)}건`} tone="positive" icon={<Activity size={21} />} />
+        <KpiCard
+          label="라이선스 미활성"
+          value={formatNumber(adoption?.inactive)}
+          hint={adoptionRatePct === null ? "라이선스 보유 · 최근 30일" : `채택률 ${adoptionRatePct}% · 라이선스 ${formatNumber(adoption?.licensed_total)}명`}
+          tone={adoption && adoption.inactive > 0 ? "danger" : "neutral"}
+          icon={<UserMinus size={21} />}
+        />
         <KpiCard label="API 대화" value={formatNumber(summary?.interactions)} hint={`스레드 ${formatNumber(summary?.threads)}`} icon={<Database size={21} />} />
         <KpiCard label="위험 신호" value={formatNumber(blocked.length)} tone={blocked.length ? "danger" : "neutral"} hint="차단/거부/실패" icon={<AlertTriangle size={21} />} />
       </div>
@@ -160,6 +178,13 @@ export function HomePage() {
       </Card>
 
       {!BRIDGE_AVAILABLE && <div className="empty-state">브리지 미연결 상태입니다. 데스크톱 앱에서 --web 으로 실행하세요.</div>}
+
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 14px", fontSize: 11, color: "var(--text-muted)" }}>
+        <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+        <span>
+          세션 기반 "의미있는 상호작용"과 채택 지표는 수집된 Copilot 상호작용을 기반으로 합니다. Teams 보존 정책(기본 30일)에 따라 일부 과거 Copilot 상호작용이 삭제될 수 있어, 오래된 기간의 수치는 실제보다 낮게 보일 수 있습니다.
+        </span>
+      </div>
     </div>
   );
 }

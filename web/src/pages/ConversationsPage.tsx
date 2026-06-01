@@ -3,16 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Card } from "../components/Card";
 import { Column, DataTable } from "../components/DataTable";
+import { useToast } from "../components/Toast";
 import {
   type ConversationAuditEvent,
   type ConversationDetail,
   type ConversationFilters,
   type ConversationThreadSummary,
   type ConversationTurn,
+  type ThreadExportFormat,
   type UserSummary,
+  exportThread,
   getConversationDetail,
   getUsersInScope,
   isBridgeAvailable,
+  listConversationApps,
   listEdiscoveryUsers,
   listConversations,
 } from "../lib/bridge";
@@ -20,10 +24,26 @@ import { defaultDateRange, formatKstDateTime, formatNumber } from "../lib/format
 
 const BRIDGE_AVAILABLE = isBridgeAvailable();
 
+type SearchScope = "title" | "body" | "all";
+
+const SCOPE_OPTIONS: { value: SearchScope; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "title", label: "제목" },
+  { value: "body", label: "본문" },
+];
+
 export function ConversationsPage({ sourceType = "api" }: { sourceType?: "api" | "ediscovery" }) {
   const initialFilters: ConversationFilters = useMemo(() => {
     const range = defaultDateRange();
-    return { ...range, search: null, user_id: null, app: null, source_type: sourceType, limit: 200 };
+    return {
+      ...range,
+      search: null,
+      search_scope: "all",
+      user_id: null,
+      app: null,
+      source_type: sourceType,
+      limit: 200,
+    };
   }, [sourceType]);
   const [draft, setDraft] = useState<ConversationFilters>(initialFilters);
   const [applied, setApplied] = useState<ConversationFilters>(initialFilters);
@@ -37,6 +57,11 @@ export function ConversationsPage({ sourceType = "api" }: { sourceType?: "api" |
   const usersQuery = useQuery({
     queryKey: ["conversation-users", sourceType],
     queryFn: () => (sourceType === "ediscovery" ? listEdiscoveryUsers() : getUsersInScope()),
+    enabled: BRIDGE_AVAILABLE,
+  });
+  const appsQuery = useQuery({
+    queryKey: ["conversation-apps", sourceType],
+    queryFn: () => listConversationApps(sourceType),
     enabled: BRIDGE_AVAILABLE,
   });
 
@@ -90,18 +115,27 @@ export function ConversationsPage({ sourceType = "api" }: { sourceType?: "api" |
         />
         <input
           type="search"
-          placeholder={sourceType === "ediscovery" ? "복원 대화 제목 검색" : "제목 검색"}
+          placeholder={searchPlaceholder(sourceType, draft.search_scope ?? "all")}
           value={draft.search ?? ""}
           onChange={(e) => setDraft({ ...draft, search: e.target.value || null })}
           style={{ ...fieldStyle, flex: 1, minWidth: 240 }}
+          title={'본문 검색은 전문 검색(FTS)을 사용합니다. 예) 보안 정책,  "분기 보고서",  예산 OR 비용'}
         />
-        {sourceType === "ediscovery" && (
-          <UserSelect
-            users={usersQuery.data ?? []}
-            value={draft.user_id ?? ""}
-            onChange={(userId) => setDraft({ ...draft, user_id: userId || null })}
-          />
-        )}
+        <ScopeToggle
+          value={(draft.search_scope as SearchScope) ?? "all"}
+          onChange={(scope) => setDraft({ ...draft, search_scope: scope })}
+        />
+        <UserSelect
+          users={usersQuery.data ?? []}
+          value={draft.user_id ?? ""}
+          onChange={(userId) => setDraft({ ...draft, user_id: userId || null })}
+          allLabel={sourceType === "ediscovery" ? "모든 eDiscovery 사용자" : "모든 사용자"}
+        />
+        <AppSelect
+          apps={appsQuery.data ?? []}
+          value={draft.app ?? ""}
+          onChange={(app) => setDraft({ ...draft, app: app || null })}
+        />
         <button
           type="submit"
           style={{ padding: "6px 14px", borderRadius: 8, background: "var(--accent)", color: "white", border: 0, fontWeight: 600 }}
@@ -134,10 +168,18 @@ export function ConversationsPage({ sourceType = "api" }: { sourceType?: "api" |
             columns={threadColumns(setSelectedThread, selectedThread)}
             onRowClick={(row) => setSelectedThread(row.id)}
             selectedRowKey={selectedThread}
-            maxHeight="60vh"
+            fill
+            resizable
           />
         </Card>
-        <Card title={selectedThread ? "대화 상세" : "선택된 스레드 없음"}>
+        <Card
+          title={selectedThread ? "대화 상세" : "선택된 스레드 없음"}
+          actions={
+            selectedThread && detailQuery.data?.thread ? (
+              <ThreadExportControl threadId={selectedThread} />
+            ) : undefined
+          }
+        >
           {detailQuery.isLoading && <div className="empty-state">불러오는 중…</div>}
           {!detailQuery.isLoading && (!selectedThread || !detailQuery.data?.thread) && (
             <div className="empty-state">왼쪽 목록에서 스레드를 선택하세요.</div>
@@ -164,19 +206,21 @@ function UserSelect({
   users,
   value,
   onChange,
+  allLabel,
 }: {
   users: UserSummary[];
   value: string;
   onChange: (userId: string) => void;
+  allLabel: string;
 }) {
   return (
     <select
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      style={{ ...fieldStyle, minWidth: 220 }}
-      title="eDiscovery 사용자"
+      style={{ ...fieldStyle, minWidth: 200 }}
+      title="사용자 필터"
     >
-      <option value="">모든 eDiscovery 사용자</option>
+      <option value="">{allLabel}</option>
       {users.map((user) => (
         <option key={user.id} value={user.id}>
           {user.display_name || user.upn || user.id}
@@ -186,65 +230,259 @@ function UserSelect({
   );
 }
 
+function AppSelect({
+  apps,
+  value,
+  onChange,
+}: {
+  apps: { value: string; label: string }[];
+  value: string;
+  onChange: (app: string) => void;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      style={{ ...fieldStyle, minWidth: 140 }}
+      title="앱 필터"
+    >
+      <option value="">모든 앱</option>
+      {apps.map((app) => (
+        <option key={app.value} value={app.value}>
+          {app.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function ScopeToggle({ value, onChange }: { value: SearchScope; onChange: (scope: SearchScope) => void }) {
+  return (
+    <div
+      role="group"
+      aria-label="검색 범위"
+      style={{
+        display: "inline-flex",
+        border: "1px solid var(--border)",
+        borderRadius: 8,
+        overflow: "hidden",
+        background: "var(--surface)",
+      }}
+    >
+      {SCOPE_OPTIONS.map((option) => {
+        const active = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            style={{
+              padding: "6px 12px",
+              border: 0,
+              background: active ? "var(--accent)" : "transparent",
+              color: active ? "white" : "var(--text)",
+              fontWeight: active ? 600 : 400,
+              fontSize: 12,
+              cursor: "pointer",
+            }}
+            title={`검색 범위: ${option.label}`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function searchPlaceholder(sourceType: "api" | "ediscovery", scope: SearchScope): string {
+  const where = scope === "title" ? "제목" : scope === "body" ? "대화 본문" : "제목·본문";
+  const prefix = sourceType === "ediscovery" ? "복원 대화 " : "";
+  return `${prefix}${where} 검색`;
+}
+
+// Renders an FTS snippet, turning the 【…】 match markers into highlights.
+function SnippetText({ snippet }: { snippet: string }) {
+  const parts = snippet.split(/【|】/);
+  return (
+    <span
+      style={{
+        fontSize: 11,
+        color: "var(--text-muted)",
+        lineHeight: 1.4,
+        display: "-webkit-box",
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical",
+        overflow: "hidden",
+      }}
+      title={snippet.replace(/【|】/g, "")}
+    >
+      {parts.map((part, index) =>
+        index % 2 === 1 ? (
+          <mark
+            key={index}
+            style={{ background: "var(--accent-soft)", color: "var(--accent-strong)", padding: "0 1px", borderRadius: 2 }}
+          >
+            {part}
+          </mark>
+        ) : (
+          <span key={index}>{part}</span>
+        ),
+      )}
+    </span>
+  );
+}
+
 function threadColumns(
   onSelect: (id: string) => void,
   selectedId: string | null,
 ): Column<ConversationThreadSummary>[] {
   return [
     {
-      key: "title",
-      header: "제목",
-      cell: (r) => (
-        <button
-          onClick={() => onSelect(r.id)}
-          style={{
-            background: "transparent",
-            border: 0,
-            padding: 0,
-            color: r.id === selectedId ? "var(--accent-strong)" : "var(--text)",
-            fontWeight: r.id === selectedId ? 600 : 400,
-            cursor: "pointer",
-            textAlign: "left",
-            maxWidth: 280,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-          title={r.title}
-        >
-          {r.title || "(제목 없음)"}
-        </button>
-      ),
-      sortValue: (r) => r.title.toLowerCase(),
+      key: "started_at",
+      header: "시작",
+      width: 150,
+      cell: (r) => formatKstDateTime(r.started_at),
+      sortValue: (r) => r.started_at,
     },
     {
       key: "user",
       header: "사용자",
+      width: 160,
       cell: (r) => r.display_name || r.upn || r.user_id,
       sortValue: (r) => (r.display_name || r.upn || r.user_id).toLowerCase(),
     },
     {
+      key: "title",
+      header: "제목",
+      width: 320,
+      cell: (r) => (
+        <div style={{ display: "flex", flexDirection: "column", gap: 3, maxWidth: 320 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <button
+              onClick={() => onSelect(r.id)}
+              style={{
+                background: "transparent",
+                border: 0,
+                padding: 0,
+                color: r.id === selectedId ? "var(--accent-strong)" : "var(--text)",
+                fontWeight: r.id === selectedId ? 600 : 400,
+                cursor: "pointer",
+                textAlign: "left",
+                maxWidth: 250,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              title={r.title}
+            >
+              {r.title || "(제목 없음)"}
+            </button>
+            {r.body_match && (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  padding: "1px 6px",
+                  borderRadius: 999,
+                  background: "var(--accent-soft)",
+                  color: "var(--accent-strong)",
+                  whiteSpace: "nowrap",
+                }}
+                title="대화 본문에서 검색어가 발견되었습니다."
+              >
+                본문
+              </span>
+            )}
+          </span>
+          {r.match_snippet && <SnippetText snippet={r.match_snippet} />}
+        </div>
+      ),
+      sortValue: (r) => r.title.toLowerCase(),
+    },
+    {
       key: "app",
       header: "앱",
+      width: 150,
       cell: (r) => r.app || "—",
       sortValue: (r) => (r.app ?? "").toLowerCase(),
       title: (r) => r.app_raw,
     },
-    { key: "turns", header: "Turn", align: "right", cell: (r) => formatNumber(r.turn_count), sortValue: (r) => r.turn_count },
-    { key: "prompts", header: "프롬프트", align: "right", cell: (r) => formatNumber(r.prompt_count), sortValue: (r) => r.prompt_count },
-    {
-      key: "started_at",
-      header: "시작",
-      cell: (r) => formatKstDateTime(r.started_at),
-      sortValue: (r) => r.started_at,
-    },
+    { key: "turns", header: "Turn", align: "right", width: 80, cell: (r) => formatNumber(r.turn_count), sortValue: (r) => r.turn_count },
+    { key: "prompts", header: "프롬프트", align: "right", width: 90, cell: (r) => formatNumber(r.prompt_count), sortValue: (r) => r.prompt_count },
   ];
+}
+
+const THREAD_EXPORT_FORMATS: ThreadExportFormat[] = ["md", "html", "json"];
+
+function ThreadExportControl({ threadId }: { threadId: string }) {
+  const toast = useToast();
+  const [fmt, setFmt] = useState<ThreadExportFormat>("md");
+  const [busy, setBusy] = useState(false);
+
+  async function onExport() {
+    setBusy(true);
+    try {
+      const result = await exportThread(threadId, fmt);
+      if (result.ok) {
+        toast.push(`스레드 내보내기 완료: ${result.filename ?? ""}`, "success");
+      } else {
+        toast.push(`내보내기 실패: ${result.error ?? "알 수 없는 오류"}`, "danger");
+      }
+    } catch (err) {
+      toast.push(`내보내기 예외: ${(err as Error).message}`, "danger");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <select
+        title="스레드 내보내기 형식"
+        value={fmt}
+        onChange={(e) => setFmt(e.target.value as ThreadExportFormat)}
+        style={{
+          padding: "4px 8px",
+          borderRadius: 6,
+          border: "1px solid var(--border)",
+          background: "var(--surface)",
+          color: "var(--text)",
+          fontSize: 12,
+        }}
+      >
+        {THREAD_EXPORT_FORMATS.map((f) => (
+          <option key={f} value={f}>
+            {f.toUpperCase()}
+          </option>
+        ))}
+      </select>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={onExport}
+        style={{
+          padding: "4px 10px",
+          borderRadius: 6,
+          border: "1px solid var(--border)",
+          background: "var(--surface)",
+          color: "var(--text)",
+          fontSize: 12,
+          fontWeight: 500,
+          cursor: busy ? "default" : "pointer",
+        }}
+      >
+        {busy ? "내보내는 중…" : "내보내기"}
+      </button>
+    </div>
+  );
 }
 
 function ConversationDetailPanel({ detail }: { detail: ConversationDetail }) {
   const [auditOpen, setAuditOpen] = useState(false);
   if (!detail.thread) return null;
   const thread = detail.thread;
+  const userLabel = thread.display_name || thread.upn || thread.user_id;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
       <header style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -285,11 +523,12 @@ function ConversationDetailPanel({ detail }: { detail: ConversationDetail }) {
             flexDirection: "column",
             gap: 10,
             overflowY: "auto",
-            maxHeight: auditOpen ? "42vh" : "58vh",
+            flex: 1,
+            minHeight: 0,
           }}
         >
           {detail.turns.map((turn) => (
-            <TurnBubble key={turn.id} turn={turn} />
+            <TurnBubble key={turn.id} turn={turn} userLabel={userLabel} />
           ))}
           {detail.turns.length === 0 && <div className="empty-state">표시할 turn이 없습니다.</div>}
         </div>
@@ -339,8 +578,9 @@ function ConversationDetailPanel({ detail }: { detail: ConversationDetail }) {
   );
 }
 
-function TurnBubble({ turn }: { turn: ConversationTurn }) {
+function TurnBubble({ turn, userLabel }: { turn: ConversationTurn; userLabel: string }) {
   const isUser = turn.interaction_type === "userPrompt";
+  const speaker = isUser ? userLabel : "Copilot";
   return (
     <article
       style={{
@@ -353,7 +593,7 @@ function TurnBubble({ turn }: { turn: ConversationTurn }) {
       }}
     >
       <header style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>
-        <strong style={{ color: "var(--text)" }}>{turn.interaction_type || "interaction"}</strong>
+        <strong style={{ color: "var(--text)" }}>{speaker}</strong>
         {" · "}
         <span title={turn.app_raw}>{turn.app}</span>
         {" · "}

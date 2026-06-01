@@ -15,11 +15,20 @@ import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 
 from PySide6.QtCore import QObject, Qt, Signal, Slot
 
 from ..config import DELEGATED_BOOTSTRAP_SCOPES, RuntimeOptions
 from ..db import Repository
+from ..export import export as export_interactions_to_path
+from ..export import export_threads as export_threads_to_path
+from ..export.backup import (
+    BackupError,
+    build_backup_bundle,
+    read_backup_manifest,
+    restore_backup_bundle,
+)
 from ..profiles import ProfileRegistry
 from ..security import unprotect
 from ..services import (
@@ -35,7 +44,9 @@ from ..workers import (
     AuditCollectorWorker,
     CollectorThread,
     CollectorWorker,
+    ConsumptionCollectorWorker,
     EdiscoveryCollectorWorker,
+    MaintenanceWorker,
     new_job_id,
 )
 
@@ -43,6 +54,7 @@ log = logging.getLogger(__name__)
 
 CONVERSATION_KIND = "conversation"
 EDISCOVERY_KIND = "ediscovery"
+CONSUMPTION_KIND = "consumption"
 _AUDIT_KINDS = ("audit", "usage", "diagnostics")
 _ALL_KINDS = (CONVERSATION_KIND, *_AUDIT_KINDS)
 
@@ -79,6 +91,9 @@ class OperationsController(QObject):
         self.registry = registry
         self.profile_id = profile_id
         self._jobs: dict[str, _RunningJob] = {}
+        # Backup/restore/export run on their own short-lived threads; keep a
+        # reference so they are not garbage-collected mid-run.
+        self._maint_threads: dict[str, CollectorThread] = {}
         # Worker-thread callbacks (Python lambdas) can not target a QObject
         # slot, so PySide6 ignores QueuedConnection and runs them in the
         # worker thread. We route every event through a QueuedConnection
@@ -101,6 +116,8 @@ class OperationsController(QObject):
     # ---- collection -------------------------------------------------
 
     def start_collection(self, kind: str, *, trigger: str = "manual") -> dict:
+        if kind == CONSUMPTION_KIND:
+            return self.start_consumption_collection(trigger=trigger)
         if kind not in _ALL_KINDS:
             raise ValueError(f"Unknown collection kind: {kind}")
         if kind in self._jobs:
@@ -210,6 +227,62 @@ class OperationsController(QObject):
     def stop_ediscovery_collection(self, job_id: str) -> dict:
         job_key = f"{EDISCOVERY_KIND}:{(job_id or '').strip()}"
         return self.stop_collection(job_key)
+
+    # ---- Power Platform consumption (delegated licensing API) -------
+
+    def start_consumption_collection(
+        self, *, window_days: int = 180, trigger: str = "manual"
+    ) -> dict:
+        if CONSUMPTION_KIND in self._jobs:
+            return {"ok": False, "error": "이미 진행 중입니다: 소비량 수집"}
+        worker = ConsumptionCollectorWorker(
+            self.repo, window_days=window_days, trigger=trigger
+        )
+        self._connect_consumption_worker(worker)
+
+        thread = CollectorThread(worker, parent=self)
+        thread.finished.connect(thread.deleteLater)
+        thread.finished.connect(lambda k=CONSUMPTION_KIND: self._on_job_finished(k))
+
+        self._jobs[CONSUMPTION_KIND] = _RunningJob(
+            kind=CONSUMPTION_KIND, thread=thread, graph=None, started_at=_now_iso()
+        )
+        self.state_changed.emit()
+        self._emit_event("collection.started", {"kind": CONSUMPTION_KIND, "trigger": trigger})
+        thread.start()
+        return {"ok": True, "kind": CONSUMPTION_KIND}
+
+    def stop_consumption_collection(self) -> dict:
+        return self.stop_collection(CONSUMPTION_KIND)
+
+    def _connect_consumption_worker(self, worker: ConsumptionCollectorWorker) -> None:
+        worker.log_line.connect(
+            lambda line: self._emit_event("log", {"kind": CONSUMPTION_KIND, "line": line})
+        )
+        worker.error.connect(
+            lambda line: self._emit_event("error", {"kind": CONSUMPTION_KIND, "line": line})
+        )
+        worker.progress.connect(
+            lambda status, message: self._emit_event(
+                "consumption_progress",
+                {"kind": CONSUMPTION_KIND, "status": status, "message": message},
+            )
+        )
+        worker.cycle_started.connect(
+            lambda trigger: self._emit_event(
+                "cycle_started", {"kind": CONSUMPTION_KIND, "trigger": trigger}
+            )
+        )
+        worker.cycle_finished.connect(
+            lambda rows_added, errors: self._emit_event(
+                "cycle_finished",
+                {
+                    "kind": CONSUMPTION_KIND,
+                    "rows_added": int(rows_added),
+                    "errors": int(errors),
+                },
+            )
+        )
 
     def ediscovery_status(self) -> dict:
         jobs = self.repo.list_ediscovery_jobs(limit=50)
@@ -476,6 +549,180 @@ class OperationsController(QObject):
         worker.cycle_started.connect(self._on_conv_cycle_started, Qt.QueuedConnection)
         worker.cycle_finished.connect(self._on_conv_cycle_finished, Qt.QueuedConnection)
 
+    # ---- backup / restore / export ---------------------------------
+
+    def _exports_dir(self) -> Path:
+        if self.registry is None or not self.profile_id:
+            raise BackupError("활성 프로필이 없어 작업을 수행할 수 없습니다.")
+        return self.registry.profile_exports_dir(self.profile_id)
+
+    def _active_profile(self):
+        if self.registry is None or not self.profile_id:
+            return None
+        return self.registry.get(self.profile_id)
+
+    def _run_maintenance(self, name: str, task) -> dict:
+        """Start a maintenance task on a background thread.
+
+        Emits ``{name}.progress`` / ``{name}.finished`` / ``{name}.failed``
+        events. Returns immediately with ``{"ok": True, "started": True}``.
+        """
+        if name in self._maint_threads:
+            return {"ok": False, "error": "이미 진행 중인 작업이 있습니다."}
+
+        worker = MaintenanceWorker(task)
+        worker.progress.connect(
+            lambda label, current, total, n=name: self._emit_event(
+                f"{n}.progress",
+                {"label": label, "current": int(current), "total": int(total)},
+            )
+        )
+
+        def _finish(payload: dict, n: str = name) -> None:
+            self._emit_event(f"{n}.finished", payload)
+
+        def _fail(message: str, n: str = name) -> None:
+            self._emit_event(f"{n}.failed", {"error": message})
+
+        worker.done.connect(_finish)
+        worker.failed.connect(_fail)
+
+        thread = CollectorThread(worker, parent=self)
+        thread.finished.connect(thread.deleteLater)
+        thread.finished.connect(lambda n=name: self._maint_threads.pop(n, None))
+        self._maint_threads[name] = thread
+        self.state_changed.emit()
+        self._emit_event(f"{name}.started", {})
+        thread.start()
+        return {"ok": True, "started": True}
+
+    def create_backup(self) -> dict:
+        """Back up the active profile's data into a portable bundle."""
+        try:
+            dest_dir = self._exports_dir()
+        except BackupError as exc:
+            return {"ok": False, "error": str(exc)}
+        source_db = self.repo.db_path
+        profile = self._active_profile()
+
+        def _task(progress):
+            path = build_backup_bundle(
+                source_db, dest_dir, profile=profile, progress=progress
+            )
+            manifest = read_backup_manifest(path)
+            return {
+                "path": str(path),
+                "filename": path.name,
+                "row_total": manifest.get("row_total", 0),
+                "tables": manifest.get("tables", {}),
+                "created_at": manifest.get("created_at"),
+            }
+
+        return self._run_maintenance("backup", _task)
+
+    def restore_backup(self, file_path: str) -> dict:
+        """Import a portable bundle into the active profile (skip duplicates)."""
+        file_path = (file_path or "").strip()
+        if not file_path:
+            return {"ok": False, "error": "가져올 백업 파일을 선택하세요."}
+        bundle = Path(file_path)
+        if not bundle.is_file():
+            return {"ok": False, "error": "백업 파일을 찾을 수 없습니다."}
+        repo = self.repo
+
+        def _task(progress):
+            return restore_backup_bundle(repo, bundle, progress=progress)
+
+        return self._run_maintenance("restore", _task)
+
+    def export_interactions(self, fmt: str) -> dict:
+        """Export every interaction in the active profile to a single file."""
+        fmt = (fmt or "").strip().lower().lstrip(".")
+        if fmt not in {"csv", "json", "xlsx"}:
+            return {"ok": False, "error": f"지원하지 않는 형식입니다: {fmt}"}
+        try:
+            dest_dir = self._exports_dir()
+        except BackupError as exc:
+            return {"ok": False, "error": str(exc)}
+        repo = self.repo
+        path = dest_dir / f"interactions-{_file_stamp()}.{fmt}"
+
+        def _task(progress):
+            progress("내보내기 준비 중", 0, 0)
+            rows = repo.list_interactions(source_type=None, limit=1_000_000)
+            count = export_interactions_to_path(rows, path)
+            progress("완료", count, count)
+            return {"path": str(path), "filename": path.name, "count": int(count)}
+
+        return self._run_maintenance("export", _task)
+
+    def export_all_threads(self, fmt: str) -> dict:
+        """Export every thread in the active profile to a single file."""
+        fmt = (fmt or "").strip().lower().lstrip(".")
+        if fmt not in {"md", "html", "json"}:
+            return {"ok": False, "error": f"지원하지 않는 형식입니다: {fmt}"}
+        try:
+            dest_dir = self._exports_dir()
+        except BackupError as exc:
+            return {"ok": False, "error": str(exc)}
+        repo = self.repo
+        suffix = "md" if fmt == "md" else fmt
+        path = dest_dir / f"threads-{_file_stamp()}.{suffix}"
+
+        def _task(progress):
+            progress("내보내기 준비 중", 0, 0)
+            threads = repo.list_threads(source_type=None, limit=1_000_000)
+            count = export_threads_to_path(repo, threads, path)
+            progress("완료", count, count)
+            return {"path": str(path), "filename": path.name, "count": int(count)}
+
+        return self._run_maintenance("export", _task)
+
+    def export_thread(self, thread_id: str, fmt: str) -> dict:
+        """Export a single thread to a file."""
+        thread_id = (thread_id or "").strip()
+        if not thread_id:
+            return {"ok": False, "error": "스레드를 선택하세요."}
+        fmt = (fmt or "").strip().lower().lstrip(".")
+        if fmt not in {"md", "html", "json"}:
+            return {"ok": False, "error": f"지원하지 않는 형식입니다: {fmt}"}
+        thread = self.repo.get_thread(thread_id)
+        if thread is None:
+            return {"ok": False, "error": "스레드를 찾을 수 없습니다."}
+        try:
+            dest_dir = self._exports_dir()
+        except BackupError as exc:
+            return {"ok": False, "error": str(exc)}
+        repo = self.repo
+        suffix = "md" if fmt == "md" else fmt
+        path = dest_dir / f"thread-{thread_id[:12]}-{_file_stamp()}.{suffix}"
+
+        def _task(progress):
+            count = export_threads_to_path(repo, [thread], path)
+            progress("완료", count, count)
+            return {"path": str(path), "filename": path.name, "count": int(count)}
+
+        return self._run_maintenance("export", _task)
+
+    def exports_dir_path(self) -> dict:
+        """Return the active profile's exports folder path."""
+        try:
+            return {"ok": True, "path": str(self._exports_dir())}
+        except BackupError as exc:
+            return {"ok": False, "error": str(exc)}
+
+    def inspect_backup(self, file_path: str) -> dict:
+        """Read a bundle's manifest without importing it (for the confirm UI)."""
+        file_path = (file_path or "").strip()
+        bundle = Path(file_path)
+        if not file_path or not bundle.is_file():
+            return {"ok": False, "error": "백업 파일을 찾을 수 없습니다."}
+        try:
+            manifest = read_backup_manifest(bundle)
+        except Exception as exc:  # noqa: BLE001 — invalid/corrupt bundle
+            return {"ok": False, "error": f"백업 파일을 읽을 수 없습니다: {exc}"}
+        return {"ok": True, "manifest": manifest}
+
     def _connect_audit_worker(self, worker: AuditCollectorWorker, *, kind: str) -> None:
         worker.log_line.connect(
             lambda line, k=kind: self._emit_event("log", {"kind": k, "line": line})
@@ -615,3 +862,7 @@ class OperationsController(QObject):
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _file_stamp() -> str:
+    return datetime.now().strftime("%Y%m%d-%H%M%S")

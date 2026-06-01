@@ -46,7 +46,11 @@ def download_with_playwright(
     target_dir.mkdir(parents=True, exist_ok=True)
 
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
+        # Use the lightweight headless-shell build (the only Chromium variant
+        # bundled in the packaged app) instead of the full Chromium binary.
+        browser = playwright.chromium.launch(
+            headless=True, channel="chromium-headless-shell"
+        )
         context = browser.new_context(accept_downloads=True)
         page = context.new_page()
         try:

@@ -16,10 +16,11 @@ from typing import Any
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from .. import __app_name__
+from .. import __app_name__, __version__
 from ..app_labels import display_app_name
 from ..config import RuntimeOptions
 from ..db import Repository
+from ..export.backup import BUNDLE_SUFFIX
 from ..profiles import ProfileRegistry
 from .actions import OperationsController
 
@@ -74,10 +75,54 @@ class Bridge(QObject):
         return _dumps(
             {
                 "app": __app_name__,
+                "version": __version__,
                 "profile": profile_name,
                 "profile_id": self._context.profile_id,
             }
         )
+
+    @Slot(result=str)
+    def app_version(self) -> str:
+        """Return the installed application version."""
+        return _dumps(
+            {
+                "ok": True,
+                "version": __version__,
+                "app_name": __app_name__,
+            }
+        )
+
+    @Slot(result=str)
+    def check_for_updates(self) -> str:
+        """Compare the installed version with the latest GitHub release."""
+        from ..services.version_check import check_for_update
+
+        try:
+            result = check_for_update(__version__)
+        except Exception as exc:  # defensive: never crash the shell
+            log.exception("Version check failed")
+            return _dumps(
+                {
+                    "ok": False,
+                    "current_version": __version__,
+                    "error": f"업데이트 확인 중 오류가 발생했습니다: {exc}",
+                }
+            )
+        return _dumps(result)
+
+    @Slot(str, result=str)
+    def open_external_url(self, url: str) -> str:
+        """Open an http(s) URL in the system browser."""
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+
+        target = (url or "").strip()
+        scheme = QUrl(target).scheme().lower()
+        if scheme not in ("http", "https"):
+            return _dumps({"ok": False, "error": "허용되지 않은 URL입니다."})
+        opened = QDesktopServices.openUrl(QUrl(target))
+        return _dumps({"ok": bool(opened)})
+
 
     # ---- analytics: user-focused -----------------------------------
 
@@ -190,10 +235,18 @@ class Bridge(QObject):
             date_to=filters.get("date_to"),
             app=filters.get("app"),
             search=filters.get("search"),
+            search_scope=filters.get("search_scope") or "title",
             source_type=filters.get("source_type") or "api",
             limit=int(filters.get("limit") or 200),
         )
         return _dumps([_thread_summary(thread) for thread in threads])
+
+    @Slot(str, result=str)
+    def conversation_apps(self, source_type: str) -> str:
+        apps = self._context.repo.thread_apps(source_type=source_type or "api")
+        return _dumps(
+            [{"value": app, "label": display_app_name(app)} for app in apps]
+        )
 
     @Slot(str, result=str)
     def conversations_detail(self, thread_id: str) -> str:
@@ -286,6 +339,51 @@ class Bridge(QObject):
         latest = {period: repo.latest_usage_snapshot_date(period) for period in ("D7", "D30", "D90", "D180")}
         return _dumps({"latest_snapshot_dates": latest})
 
+    # ---- Power Platform consumption (agent cost-credit) ------------
+
+    @Slot(str, result=str)
+    def consumption_list(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        rows = self._context.repo.list_consumption_rows(
+            report_type=filters.get("report_type"),
+            date_from=filters.get("date_from"),
+            date_to=filters.get("date_to"),
+            user_id=filters.get("user_id"),
+            search=filters.get("search"),
+            limit=int(filters.get("limit") or 500),
+        )
+        return _dumps([_consumption_row(row) for row in rows])
+
+    @Slot(str, result=str)
+    def consumption_overview(self, filters_json: str) -> str:
+        """Per-report-type KPIs + daily trend + heaviest users for the window."""
+        filters = _parse_filters(filters_json)
+        repo = self._context.repo
+        report_type = filters.get("report_type") or "MCSMessages"
+        days = int(filters.get("days") or 30)
+        summary = repo.consumption_summary(report_type=report_type, days=days)
+        trend = repo.consumption_daily_totals(report_type=report_type, days=days)
+        top_users = repo.consumption_top_users(report_type=report_type, days=days, limit=20)
+        return _dumps(
+            {
+                "summary": summary,
+                "trend": [{"date": d, "total": total} for d, total in trend],
+                "top_users": top_users,
+            }
+        )
+
+    @Slot(result=str)
+    def consumption_collect_start(self) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.start_consumption_collection())
+
+    @Slot(result=str)
+    def consumption_collect_stop(self) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.stop_consumption_collection())
+
     # ---- operations / system --------------------------------------
 
     @Slot(str, result=str)
@@ -339,6 +437,18 @@ class Bridge(QObject):
                 },
                 "interactions": repo.total_interactions(),
                 "threads": repo.thread_count(),
+            }
+        )
+
+    @Slot(str, result=str)
+    def insights_adoption_summary(self, filters_json: str) -> str:
+        filters = _parse_filters(filters_json)
+        days = int(filters.get("days") or 30)
+        repo = self._context.repo
+        return _dumps(
+            {
+                "adoption": repo.adoption_summary(days=days),
+                "sessions": repo.meaningful_interaction_count(days=days),
             }
         )
 
@@ -501,6 +611,76 @@ class Bridge(QObject):
         if self._controller is None:
             return _dumps({"ok": False, "error": "controller not wired"})
         return _dumps(self._controller.open_system_dialog(kind))
+
+    # ---- backup / restore / export --------------------------------
+
+    @Slot(result=str)
+    def backup_create(self) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.create_backup())
+
+    @Slot(result=str)
+    def backup_pick_file(self) -> str:
+        """Open a native file-open dialog (GUI thread) and return the path."""
+        from PySide6.QtWidgets import QFileDialog
+
+        start_dir = ""
+        if self._controller is not None:
+            info = self._controller.exports_dir_path()
+            if info.get("ok"):
+                start_dir = info.get("path") or ""
+        path, _ = QFileDialog.getOpenFileName(
+            None,
+            "백업 파일 선택",
+            start_dir,
+            f"CopilotWatchTower 백업 (*{BUNDLE_SUFFIX});;모든 파일 (*.*)",
+        )
+        return _dumps({"ok": bool(path), "path": path or ""})
+
+    @Slot(str, result=str)
+    def backup_inspect(self, file_path: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.inspect_backup(file_path))
+
+    @Slot(str, result=str)
+    def backup_restore(self, file_path: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.restore_backup(file_path))
+
+    @Slot(str, result=str)
+    def export_interactions(self, fmt: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.export_interactions(fmt))
+
+    @Slot(str, result=str)
+    def export_threads_all(self, fmt: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.export_all_threads(fmt))
+
+    @Slot(str, str, result=str)
+    def export_thread(self, thread_id: str, fmt: str) -> str:
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        return _dumps(self._controller.export_thread(thread_id, fmt))
+
+    @Slot(result=str)
+    def exports_open_folder(self) -> str:
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+
+        if self._controller is None:
+            return _dumps({"ok": False, "error": "controller not wired"})
+        info = self._controller.exports_dir_path()
+        if not info.get("ok"):
+            return _dumps(info)
+        QDesktopServices.openUrl(QUrl.fromLocalFile(info["path"]))
+        return _dumps({"ok": True, "path": info["path"]})
+
     @Slot(result=str)
     def diagnostics_ping(self) -> str:
         """Round-trip diagnostic. Pushes a bridge_event so the UI can verify the live channel works."""
@@ -547,6 +727,8 @@ def _thread_summary(thread: Any) -> dict[str, Any]:
         "topic_keywords": list(thread.topic_keywords or []),
         "session_ids": list(thread.session_ids or []),
         "source_type": getattr(thread, "source_type", "api"),
+        "match_snippet": getattr(thread, "match_snippet", None),
+        "body_match": bool(getattr(thread, "body_match", False)),
     }
 
 
@@ -593,6 +775,22 @@ def _audit_event_full(event: Any) -> dict[str, Any]:
         }
     )
     return base
+
+
+def _consumption_row(row: Any) -> dict[str, Any]:
+    return {
+        "report_type": row.report_type,
+        "usage_date": row.usage_date,
+        "environment_id": row.environment_id,
+        "environment_name": row.environment_name,
+        "user_id": row.user_id,
+        "display_name": row.display_name,
+        "upn": row.upn,
+        "product": row.product,
+        "quantity": row.quantity,
+        "unit": row.unit,
+        "raw_json": row.raw_json,
+    }
 
 
 def _usage_snapshot_row(row: Any) -> dict[str, Any]:

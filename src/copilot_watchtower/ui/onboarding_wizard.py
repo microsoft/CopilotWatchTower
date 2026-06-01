@@ -476,13 +476,20 @@ class EdiscoveryBrowserCredentialPage(QWizardPage):
 
     def __init__(self, device_page: DeviceCodePage) -> None:
         super().__init__()
-        self.setTitle("eDiscovery 자동 다운로드 로그인")
-        self.setSubTitle("Direct Download Proxy URL을 headless 브라우저로 받을 때 사용할 계정입니다.")
+        self.setTitle("자동 다운로드 로그인 계정")
+        self.setSubTitle(
+            "헤드리스 브라우저가 다운로드 페이지에 자동 로그인할 때 사용할 계정입니다. "
+            "다음 두 가지 수집에 공통으로 사용됩니다."
+        )
         self.device_page = device_page
 
         self.info = QLabel(
-            "Microsoft eDiscovery 다운로드 프록시가 브라우저 id_token 세션을 요구할 수 있습니다. "
-            "이 계정/암호는 Windows DPAPI로 보호되어 현재 Windows 사용자 프로필에만 저장됩니다."
+            "이 계정/암호는 아래 두 작업에서 헤드리스 브라우저 자동 로그인에 사용됩니다.\n"
+            "① eDiscovery 내보내기 패키지 다운로드(Direct Download Proxy URL이 브라우저 "
+            "id_token 세션을 요구함)\n"
+            "② 비용/소비량 리포트 다운로드(PPAC 라이선싱 토큰 캡처)\n"
+            "입력한 계정/암호는 Windows DPAPI로 보호되어 현재 Windows 사용자 프로필에만 "
+            "저장되며, 다른 곳으로 전송되지 않습니다."
         )
         self.info.setWordWrap(True)
         self.user_edit = QLineEdit()
@@ -508,7 +515,10 @@ class EdiscoveryBrowserCredentialPage(QWizardPage):
     def initializePage(self) -> None:
         if not self.user_edit.text().strip():
             self.user_edit.setText(self.device_page.signed_in_upn_or_none() or "")
-        self.status.setText("이 값은 eDiscovery proxy 다운로드 자동 로그인에만 사용됩니다.")
+        self.status.setText(
+            "이 값은 eDiscovery 패키지·비용/소비량 리포트 다운로드 시 헤드리스 브라우저 "
+            "자동 로그인에만 사용됩니다."
+        )
         self.completeChanged.emit()
 
     def _on_credentials_changed(self, *_args: object) -> None:
