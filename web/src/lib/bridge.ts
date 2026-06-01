@@ -356,7 +356,6 @@ export interface SettingsSummary {
   tenant_id: string | null;
   client_id: string | null;
   secret_expires_at: string | null;
-  language: string | null;
   poll_interval_minutes: number | null;
   scope_mode: string | null;
   scope_group_id: string | null;
@@ -722,7 +721,6 @@ export interface SettingsUpdatePayload {
   scope_mode?: string;
   scope_group_id?: string | null;
   scope_upns?: string[];
-  language?: string;
 }
 
 export interface BridgeEvent {

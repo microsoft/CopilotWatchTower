@@ -144,7 +144,6 @@ export function SettingsForm({
   const [scopeMode, setScopeMode] = useState<string>(settings?.scope_mode ?? "LICENSED");
   const [scopeGroup, setScopeGroup] = useState<string>(settings?.scope_group_id ?? "");
   const [scopeUpns, setScopeUpns] = useState<string>((settings?.scope_upns ?? []).join("\n"));
-  const [language, setLanguage] = useState<string>(settings?.language ?? "ko_KR");
 
   useEffect(() => {
     if (!settings) return;
@@ -152,7 +151,6 @@ export function SettingsForm({
     setScopeMode(settings.scope_mode ?? "LICENSED");
     setScopeGroup(settings.scope_group_id ?? "");
     setScopeUpns((settings.scope_upns ?? []).join("\n"));
-    setLanguage(settings.language ?? "ko_KR");
   }, [settings]);
 
   if (!settings) return <div className="empty-state">설정을 불러오는 중…</div>;
@@ -166,7 +164,6 @@ export function SettingsForm({
           scope_mode: scopeMode,
           scope_group_id: scopeMode === "GROUP" ? scopeGroup.trim() || null : null,
           scope_upns: scopeMode === "CUSTOM" ? scopeUpns.split(/\r?\n/).map((s) => s.trim()).filter(Boolean) : [],
-          language,
         });
       }}
       style={{ display: "flex", flexDirection: "column", gap: 8 }}
@@ -199,12 +196,6 @@ export function SettingsForm({
           <textarea value={scopeUpns} onChange={(e) => setScopeUpns(e.target.value)} rows={4} style={inputStyle} />
         </Field>
       )}
-      <Field label="언어">
-        <select value={language} onChange={(e) => setLanguage(e.target.value)} style={inputStyle}>
-          <option value="ko_KR">한국어</option>
-          <option value="en_US">English</option>
-        </select>
-      </Field>
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
         <button type="submit" style={primaryButtonStyle}>저장</button>
       </div>
