@@ -44,3 +44,5 @@ release/
 # OS
 Thumbs.db
 .DS_Store
+
+build-msix.log
