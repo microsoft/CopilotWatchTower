@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from copilot_watchtower.db import Repository, initialize
+from copilot_watchtower.services.auth import DelegatedAuthExpiredError
 from copilot_watchtower.services.admin_diagnostics import collect_copilot_admin_diagnostics
 from copilot_watchtower.services.graph import GraphError
 
@@ -49,6 +50,16 @@ class _FakeDelegatedCatalog:
             {"id": "pkg-agent", "displayName": "Delegated Agent", "elementTypes": ["CustomEngineCopilots"]},
             {"id": "pkg-mail", "displayName": "Delegated Mail Add-in", "elementTypes": ["ExchangeAddIns"]},
         ]
+
+
+class _FakeDelegatedCatalogExpired:
+    def list_copilot_admin_catalog_packages(self):
+        raise DelegatedAuthExpiredError("silent delegated token missing")
+
+
+class _FakeDelegatedCatalogUnexpected:
+    def list_copilot_admin_catalog_packages(self):
+        raise RuntimeError("catalog probe transport failure")
 
 
 @pytest.fixture()
@@ -96,3 +107,35 @@ def test_collect_copilot_admin_diagnostics_uses_delegated_catalog_graph(repo: Re
     assert agents["pkg-agent"].display_name == "Delegated Agent"
     assert agents["pkg-agent"].source == "catalog_packages"
     assert "pkg-mail" not in agents
+
+
+def test_collect_copilot_admin_diagnostics_surfaces_delegated_token_expired(repo: Repository) -> None:
+    assert (
+        collect_copilot_admin_diagnostics(
+            repo,
+            _FakeGraph(),  # type: ignore[arg-type]
+            catalog_graph=_FakeDelegatedCatalogExpired(),  # type: ignore[arg-type]
+        )
+        == 4
+    )
+
+    rows = {row.key: row for row in repo.list_copilot_admin_diagnostics()}
+    assert rows["catalog_packages"].status == "error"
+    assert rows["catalog_packages"].status_code == 401
+    assert "권한 재등록" in (rows["catalog_packages"].summary or "")
+
+
+def test_collect_copilot_admin_diagnostics_includes_unexpected_error_message(repo: Repository) -> None:
+    assert (
+        collect_copilot_admin_diagnostics(
+            repo,
+            _FakeGraph(),  # type: ignore[arg-type]
+            catalog_graph=_FakeDelegatedCatalogUnexpected(),  # type: ignore[arg-type]
+        )
+        == 4
+    )
+
+    rows = {row.key: row for row in repo.list_copilot_admin_diagnostics()}
+    assert rows["catalog_packages"].status == "error"
+    assert rows["catalog_packages"].status_code is None
+    assert "catalog probe transport failure" in (rows["catalog_packages"].summary or "")

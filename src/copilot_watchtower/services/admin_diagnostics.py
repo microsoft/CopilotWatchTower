@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from ..db import CopilotAdminDiagnosticRow, CopilotAgentRow, Repository
+from .auth import DelegatedAuthExpiredError
 from .graph import GraphClient, GraphError
 
 ProbeFn = Callable[[], Any]
@@ -85,6 +86,18 @@ def _probe(
     captured_at = _now_iso()
     try:
         payload = fn()
+    except DelegatedAuthExpiredError as exc:
+        return CopilotAdminDiagnosticRow(
+            key=key,
+            label=label,
+            endpoint=endpoint,
+            status="error",
+            status_code=401,
+            summary="위임 로그인 만료 (설정 > 권한 재등록 필요)",
+            payload_json=None,
+            error=str(exc),
+            captured_at=captured_at,
+        )
     except GraphError as ge:
         status = _status_from_graph_error(ge)
         return CopilotAdminDiagnosticRow(
@@ -105,7 +118,7 @@ def _probe(
             endpoint=endpoint,
             status="error",
             status_code=None,
-            summary="진단 호출 중 오류",
+            summary=_unexpected_error_summary(exc),
             payload_json=None,
             error=str(exc),
             captured_at=captured_at,
@@ -163,6 +176,13 @@ def _error_text(detail: object) -> str:
         return json.dumps(detail, ensure_ascii=False)
     except TypeError:
         return str(detail)
+
+
+def _unexpected_error_summary(exc: Exception) -> str:
+    message = str(exc).strip()
+    if not message:
+        return "진단 호출 중 오류"
+    return f"진단 호출 중 오류: {message}"
 
 
 def _now_iso() -> str:
