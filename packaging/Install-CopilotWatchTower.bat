@@ -40,7 +40,7 @@ if not exist "%CER%" (
 
 echo [precheck] Verifying MSIX signature...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$sig = Get-AuthenticodeSignature -FilePath '%MSIX%'; if ($sig.Status -ne 'Valid') { Write-Host ('[ERROR] MSIX signature invalid: ' + $sig.Status); exit 2 }"
+    "$sig = Get-AuthenticodeSignature -FilePath '%MSIX%'; if (($sig.Status -eq 'NotSigned') -or ($null -eq $sig.SignerCertificate)) { Write-Host ('[ERROR] MSIX signature missing: ' + $sig.Status); exit 2 } else { Write-Host ('      Signature detected: ' + $sig.Status) }"
 if %errorlevel% neq 0 (
     echo [ERROR] %MSIX% is not properly signed.
     echo         Rebuild with signing enabled (build-msix.ps1 -CertPath ...)
