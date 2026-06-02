@@ -96,6 +96,7 @@ $ManifestSrc  = Join-Path $PackagingDir "AppxManifest.xml"
 $StagingDir   = Join-Path $RepoRoot "build\msix-staging"
 $OutputMsix   = Join-Path $RepoRoot "dist\CopilotWatchTower.msix"
 $SpecFile     = Join-Path $PackagingDir "copilot-watchtower.spec"
+$VenvPyInstaller = Join-Path $RepoRoot ".venv\Scripts\pyinstaller.exe"
 
 function Get-SdkBuildTools {
     <#
@@ -208,7 +209,8 @@ if ($WebOnly) {
 }
 elseif (-not $SkipBuild) {
     Write-Host "==> Running PyInstaller..." -ForegroundColor Cyan
-    pyinstaller $SpecFile --clean --noconfirm
+    $pyinstallerExe = if (Test-Path $VenvPyInstaller) { $VenvPyInstaller } else { "pyinstaller" }
+    & $pyinstallerExe $SpecFile --clean --noconfirm
     if ($LASTEXITCODE -ne 0) { throw "PyInstaller build failed (exit $LASTEXITCODE)." }
 }
 
