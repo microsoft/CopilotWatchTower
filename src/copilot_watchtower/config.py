@@ -6,6 +6,7 @@ constants used by the rest of the package.
 """
 from __future__ import annotations
 
+import ctypes
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -264,6 +265,34 @@ WATERMARK_SAFETY_MARGIN_SECONDS = 300
 MAX_CONCURRENT_USER_REQUESTS = 8
 
 
+def _current_package_family_name() -> str | None:
+    """Return the MSIX package family name when running packaged on Windows."""
+    if os.name != "nt":
+        return None
+    kernel32 = getattr(ctypes, "windll", None)
+    if kernel32 is None:
+        return None
+    get_family = getattr(kernel32.kernel32, "GetCurrentPackageFamilyName", None)
+    if get_family is None:
+        return None
+
+    appmodel_error_no_package = 15700
+    error_insufficient_buffer = 122
+    length = ctypes.c_uint32(0)
+    rc = get_family(ctypes.byref(length), None)
+    if rc == appmodel_error_no_package:
+        return None
+    if rc not in {0, error_insufficient_buffer} or length.value <= 0:
+        return None
+
+    buffer = ctypes.create_unicode_buffer(length.value)
+    rc = get_family(ctypes.byref(length), buffer)
+    if rc != 0:
+        return None
+    value = buffer.value.strip()
+    return value or None
+
+
 @dataclass(frozen=True)
 class AppPaths:
     """Resolved filesystem locations for user data, logs, and i18n.
@@ -285,7 +314,11 @@ class AppPaths:
     def resolve(cls) -> "AppPaths":
         local_app = os.environ.get("LOCALAPPDATA")
         if local_app:
-            root = Path(local_app) / __app_name__
+            package_family = _current_package_family_name()
+            if package_family:
+                root = Path(local_app) / "Packages" / package_family / "LocalCache" / "Local" / __app_name__
+            else:
+                root = Path(local_app) / __app_name__
         else:  # Linux/macOS dev environments
             root = Path.home() / ".local" / "share" / __app_name__
         data_dir = root
