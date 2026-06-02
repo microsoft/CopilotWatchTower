@@ -38,9 +38,19 @@ if not exist "%CER%" (
     exit /b 1
 )
 
+echo [precheck] Verifying MSIX signature...
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "$sig = Get-AuthenticodeSignature -FilePath '%MSIX%'; if ($sig.Status -ne 'Valid') { Write-Host ('[ERROR] MSIX signature invalid: ' + $sig.Status); exit 2 }"
+if %errorlevel% neq 0 (
+    echo [ERROR] %MSIX% is not properly signed.
+    echo         Rebuild with signing enabled (build-msix.ps1 -CertPath ...)
+    pause
+    exit /b 1
+)
+
 echo [1/2] Trusting the signing certificate (LocalMachine\TrustedPeople)...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "Import-Certificate -FilePath '%CER%' -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople' | Out-Null; Write-Host '      Certificate trusted.'"
+    "$ErrorActionPreference='Stop'; Import-Certificate -FilePath '%CER%' -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople' | Out-Null; Write-Host '      Certificate trusted.'"
 if %errorlevel% neq 0 (
     echo [ERROR] Failed to import certificate.
     pause
@@ -49,7 +59,7 @@ if %errorlevel% neq 0 (
 
 echo [2/2] Installing the MSIX package...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "Add-AppxPackage -Path '%MSIX%'; Write-Host '      Package installed.'"
+    "$ErrorActionPreference='Stop'; Add-AppxPackage -Path '%MSIX%' -ErrorAction Stop; Write-Host '      Package installed.'"
 if %errorlevel% neq 0 (
     echo [ERROR] Failed to install the MSIX package.
     pause
