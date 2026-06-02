@@ -154,6 +154,40 @@
   .feature h3 { font-size: 17.5px; font-weight: 700; margin-bottom: 8px; }
   .feature p { color: var(--muted); font-size: 14.5px; }
 
+  /* ---------- Sources ---------- */
+  .src-grid { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); margin-top: 48px; text-align: left; }
+  @media (max-width: 880px) { .src-grid { grid-template-columns: 1fr; } }
+  .src-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px 22px; transition: transform .18s ease, border-color .18s ease;
+  }
+  .src-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .src-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .src-head .ic {
+    width: 40px; height: 40px; flex: 0 0 auto; border-radius: 11px; display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(91,140,255,.18), rgba(124,92,255,.18));
+    border: 1px solid var(--border); font-size: 20px;
+  }
+  .src-head h3 { font-size: 16.5px; font-weight: 700; }
+  .src-summary { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .src-block { margin-top: 12px; }
+  .src-block .lbl {
+    display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .3px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 5px;
+  }
+  .src-block .tech { color: var(--text); font-size: 13.5px; }
+  .src-block ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .src-block li { position: relative; padding-left: 16px; color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+  .src-block li::before { content: "›"; position: absolute; left: 2px; color: var(--accent); font-weight: 700; }
+  .src-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .src-chip {
+    font-size: 12px; padding: 3px 9px; border-radius: 999px;
+    background: var(--card-2); border: 1px solid var(--border); color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .src-view { margin-top: 14px; font-size: 12.5px; color: var(--muted); }
+  .src-view strong { color: var(--text); }
+
   /* ---------- Screens ---------- */
   .screen { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; margin-top: 64px; }
   .screen:first-of-type { margin-top: 52px; }
@@ -233,6 +267,7 @@
     </div>
     <nav class="nav-links">
       <a href="#features">기능</a>
+      <a href="#sources">데이터 출처</a>
       <a href="#screens">주요 화면</a>
       <a href="#download">다운로드</a>
       <a href="#community">커뮤니티</a>
@@ -262,7 +297,7 @@
         ⭐ GitHub에서 보기
       </a>
     </div>
-    <p class="hero-meta">최신 릴리스 <strong>v0.1.0</strong> · MIT 라이선스 · Windows 10/11 (x64)</p>
+    <p class="hero-meta">최신 릴리스 <strong>v0.2.0</strong> · MIT 라이선스 · Windows 10/11 (x64)</p>
 
     <div class="hero-shot">
       <img src="screenshots/01-dashboard.png" alt="CopilotWatchTower 대시보드 화면" loading="lazy" />
@@ -323,6 +358,167 @@
         <div class="ic">📊</div>
         <h3>현대적인 Qt UI</h3>
         <p>대시보드(KPI + 차트), 대화 탐색, 실시간 수집 로그 모니터링, CSV/JSON/XLSX 내보내기를 제공합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOURCES -->
+<section id="sources">
+  <div class="wrap center">
+    <span class="eyebrow">데이터 출처</span>
+    <h2 class="sec">무엇을, 어떤 기술로, 어떤 권한으로 수집하나요?</h2>
+    <p class="sec-lead">출처마다 <strong>수집 데이터·사용 기술·필요 권한·제약</strong>이 다릅니다. 앱의 <strong>데이터 수집 → 개요</strong> 화면에서도 동일한 내용을 확인할 수 있습니다.</p>
+
+    <div class="src-grid">
+      <!-- 대화 수집(API) -->
+      <div class="src-card">
+        <div class="src-head"><div class="ic">💬</div><h3>대화 수집 (API)</h3></div>
+        <p class="src-summary">Microsoft Graph API로 사용자별 Copilot 대화 본문을 직접 수집합니다.</p>
+        <div class="src-block"><span class="lbl">기술</span><div class="tech">Microsoft Graph(beta) · getAllEnterpriseInteractions · 앱 전용(client credentials) 토큰</div></div>
+        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
+          <li>프롬프트/응답 본문 텍스트</li>
+          <li>앱 출처(BizChat, Word, Teams, Excel, PowerPoint, Outlook, Loop 등)</li>
+          <li>첨부·링크·멘션 메타데이터, 원본 JSON</li>
+        </ul></div>
+        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+          <span class="src-chip">AiEnterpriseInteraction.Read.All</span>
+          <span class="src-chip">User.Read.All</span>
+          <span class="src-chip">Organization.Read.All</span>
+        </div></div>
+        <div class="src-block"><span class="lbl">제약·범위</span><ul>
+          <li>Copilot 라이선스 보유자 대상(전체/라이선스/그룹/사용자 지정 범위 선택)</li>
+          <li>beta 엔드포인트 · 사용자·기간 단위 페이징</li>
+          <li>라이선스 없는 사용자 본문은 eDiscovery 경로로 별도 수집</li>
+        </ul></div>
+        <p class="src-view">앱에서 보기 · <strong>대화 탐색(API)</strong></p>
+      </div>
+
+      <!-- 대화 수집(e-Discovery) -->
+      <div class="src-card">
+        <div class="src-head"><div class="ic">🔎</div><h3>대화 수집 (e-Discovery)</h3></div>
+        <p class="src-summary">라이선스 없는 사용자까지 포함해 Purview eDiscovery로 Copilot 본문을 복원합니다.</p>
+        <div class="src-block"><span class="lbl">기술</span><div class="tech">Purview eDiscovery(Graph) · 위임(delegated) 인증</div></div>
+        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
+          <li>라이선스 미보유 사용자를 포함한 Copilot 대화 본문</li>
+          <li>케이스·검색·내보내기 산출물에서 복원한 메시지</li>
+        </ul></div>
+        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+          <span class="src-chip">eDiscovery.ReadWrite.All (위임)</span>
+          <span class="src-chip">eDiscovery Manager 역할</span>
+        </div></div>
+        <div class="src-block"><span class="lbl">제약·범위</span><ul>
+          <li>앱 전용 인증은 Premium 전용이라 위임 인증 사용</li>
+          <li>케이스 생성 → 검색 → 추정 → 내보내기 → 다운로드 → 해석의 비동기 단계</li>
+          <li>단계별 재개(이어받기) 지원 — 중단 후 다시 시작 가능</li>
+        </ul></div>
+        <p class="src-view">앱에서 보기 · <strong>대화 탐색(e-Discovery)</strong></p>
+      </div>
+
+      <!-- 대화 수집(Teams) -->
+      <div class="src-card">
+        <div class="src-head"><div class="ic">🤝</div><h3>대화 수집 (Teams)</h3></div>
+        <p class="src-summary">Copilot Studio 커스텀 에이전트의 Teams 대화 트랜스크립트를 Dataverse에서 수집합니다.</p>
+        <div class="src-block"><span class="lbl">기술</span><div class="tech">Dataverse 자동 로그인(웹 자동화) · 트랜스크립트 테이블</div></div>
+        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
+          <li>Copilot Studio 커스텀 에이전트의 Teams 대화 기록(트랜스크립트)</li>
+          <li>에이전트·환경별 대화 세션</li>
+        </ul></div>
+        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+          <span class="src-chip">Dataverse 시스템 관리자(환경별)</span>
+          <span class="src-chip">PPAC 자동 로그인 계정</span>
+        </div></div>
+        <div class="src-block"><span class="lbl">제약·범위</span><ul>
+          <li>환경별 접근 권한 필요 — 없는 환경은 '나를 시스템 관리자로 자동 추가' 옵션 사용</li>
+          <li>브라우저 자동 로그인 기반이라 MFA·세션 정책의 영향을 받음</li>
+        </ul></div>
+        <p class="src-view">앱에서 보기 · <strong>대화 탐색(Teams)</strong></p>
+      </div>
+
+      <!-- 에이전트 -->
+      <div class="src-card">
+        <div class="src-head"><div class="ic">🤖</div><h3>에이전트</h3></div>
+        <p class="src-summary">Copilot 관리 API와 감사 로그에서 에이전트 인벤토리와 실제 사용 신호를 수집합니다.</p>
+        <div class="src-block"><span class="lbl">기술</span><div class="tech">Microsoft Graph Copilot 관리 API(에이전트 등록·카탈로그) + 감사 로그</div></div>
+        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
+          <li>에이전트 인벤토리(등록 정보·카탈로그 패키지)</li>
+          <li>정책 설정 신호</li>
+          <li>감사 로그 기반 실제 사용 신호</li>
+        </ul></div>
+        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+          <span class="src-chip">AgentRegistration.Read.All</span>
+          <span class="src-chip">CopilotPackages.Read.All</span>
+          <span class="src-chip">CopilotPolicySettings.Read</span>
+        </div></div>
+        <div class="src-block"><span class="lbl">제약·범위</span><ul>
+          <li>사용 신호는 감사 로그 기반 — 감사 이벤트를 먼저 수집할수록 정확</li>
+          <li>관리 API 가용 범위(테넌트 구성)에 따라 일부 항목이 비어 있을 수 있음</li>
+        </ul></div>
+        <p class="src-view">앱에서 보기 · <strong>에이전트</strong></p>
+      </div>
+
+      <!-- 파워플랫폼 크레딧 -->
+      <div class="src-card">
+        <div class="src-head"><div class="ic">🪙</div><h3>파워플랫폼 크레딧</h3></div>
+        <p class="src-summary">PPAC 소비량 리포트를 내려받아 메시지·AI Builder·API 요청 사용량을 추적합니다.</p>
+        <div class="src-block"><span class="lbl">기술</span><div class="tech">Power Platform 관리 센터(PPAC) 자동 로그인 · 소비량 리포트 다운로드</div></div>
+        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
+          <li>Copilot Studio 메시지 소비량</li>
+          <li>AI Builder 크레딧 소비량</li>
+          <li>Power Platform 요청(API) 소비량</li>
+        </ul></div>
+        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+          <span class="src-chip">Power Platform 관리자</span>
+          <span class="src-chip">PPAC 자동 로그인 계정</span>
+        </div></div>
+        <div class="src-block"><span class="lbl">제약·범위</span><ul>
+          <li>웹 자동화 기반 — PPAC UI/리포트 가용성에 의존</li>
+          <li>리포트가 제공하는 집계 기간·단위 범위 내에서만 수집</li>
+        </ul></div>
+        <p class="src-view">앱에서 보기 · <strong>파워플랫폼 크레딧</strong></p>
+      </div>
+
+      <!-- 감사 이벤트 -->
+      <div class="src-card">
+        <div class="src-head"><div class="ic">🛡️</div><h3>감사 이벤트</h3></div>
+        <p class="src-summary">Purview 통합 감사 로그와 Entra 감사/로그인에서 보안·접근 이벤트를 수집합니다.</p>
+        <div class="src-block"><span class="lbl">기술</span><div class="tech">Graph security.auditLog.queries(비동기 Purview 통합 로그) + Entra 감사/sign-in</div></div>
+        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
+          <li>차단/거부 등 보안 이벤트</li>
+          <li>민감 자료 접근 기록</li>
+          <li>접근·정책 관련 감사 이벤트</li>
+        </ul></div>
+        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+          <span class="src-chip">AuditLog.Read.All</span>
+          <span class="src-chip">AuditLogsQuery.Read.All</span>
+          <span class="src-chip">Purview/Exchange roleManagement</span>
+        </div></div>
+        <div class="src-block"><span class="lbl">제약·범위</span><ul>
+          <li>Purview 감사 로그 보존 기간 내 데이터만 조회 가능</li>
+          <li>통합 로그 쿼리는 비동기(제출→폴링→결과) 방식</li>
+          <li>auditLog 404 응답 시 Purview 경로는 자동 비활성화되고 Entra 경로만 사용</li>
+        </ul></div>
+        <p class="src-view">앱에서 보기 · <strong>보안/감사</strong></p>
+      </div>
+
+      <!-- 공식 사용량 -->
+      <div class="src-card">
+        <div class="src-head"><div class="ic">📈</div><h3>공식 사용량</h3></div>
+        <p class="src-summary">Microsoft 365 Copilot 공식 사용량 보고서 스냅샷을 수집합니다.</p>
+        <div class="src-block"><span class="lbl">기술</span><div class="tech">Microsoft Graph Reports API(Copilot 사용량 CSV)</div></div>
+        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
+          <li>M365 Copilot 공식 사용량 보고서 스냅샷</li>
+          <li>기간별(D7/D30/D90/D180) 사용 집계</li>
+        </ul></div>
+        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+          <span class="src-chip">Reports.Read.All</span>
+          <span class="src-chip">ReportSettings.ReadWrite.All</span>
+        </div></div>
+        <div class="src-block"><span class="lbl">제약·범위</span><ul>
+          <li>Microsoft 보고서 익명화 설정 영향 — 식별이 필요하면 ReportSettings로 비익명화</li>
+          <li>Microsoft가 제공하는 보고 기간 단위로만 수집</li>
+        </ul></div>
+        <p class="src-view">앱에서 보기 · <strong>공식 보고서</strong></p>
       </div>
     </div>
   </div>
