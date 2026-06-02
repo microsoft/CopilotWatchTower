@@ -86,6 +86,7 @@ class ConsumptionCollectorWorker(QObject):
                 ("스토리지 용량", client.fetch_capacity_rows),
                 ("에이전트(리소스)별 메시지", client.fetch_mcs_resource_rows),
                 ("환경별 메시지", client.fetch_mcs_environment_rows),
+                ("사용자별 메시지", client.fetch_mcs_user_rows),
             )
             for label, fetch in sources:
                 if self._should_stop:

@@ -116,6 +116,33 @@ def test_manifest_counts(tmp_path: Path) -> None:
     assert manifest["row_total"] >= 3
 
 
+def test_build_backup_bundle_overwrites_explicit_path(tmp_path: Path) -> None:
+    source = _make_repo(tmp_path / "src" / "store.db")
+    bundle_path = tmp_path / "exports" / "cwt-backup-profile-latest.cwtbackup"
+
+    first = build_backup_bundle(source.db_path, tmp_path / "exports", bundle_path=bundle_path)
+    assert first == bundle_path
+    first_size = bundle_path.stat().st_size
+
+    source.upsert_interactions(
+        [
+            InteractionRow(
+                id="i3", user_id="u1", session_id="s2", request_id="r3",
+                created_at=_iso(22), interaction_type="userPrompt", app="BizChat",
+                body_text="추가 데이터", body_content_type="text",
+                attachments_json=None, raw_json="{}", fetched_at=_iso(22),
+            )
+        ]
+    )
+    second = build_backup_bundle(source.db_path, tmp_path / "exports", bundle_path=bundle_path)
+    assert second == bundle_path
+    manifest = read_backup_manifest(bundle_path)
+
+    assert manifest["tables"]["interactions"] == 3
+    assert bundle_path.stat().st_size != 0
+    assert bundle_path.stat().st_size != first_size or manifest["row_total"] >= 4
+
+
 def test_restore_rejects_newer_bundle(tmp_path: Path) -> None:
     import json
     import zipfile

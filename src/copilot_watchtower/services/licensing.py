@@ -313,6 +313,69 @@ def parse_mcs_resource_rows(
     return rows
 
 
+def parse_mcs_user_rows(
+    data: Any,
+    *,
+    snapshot_date: str,
+    window_start: str | None = None,
+    window_end: str | None = None,
+) -> list[ConsumptionRow]:
+    """Parse the per-user Copilot Studio message consumption.
+
+    Backs the PPAC "Download report → User-Level Credit Consumption" export.
+    Endpoint: ``GET /v2.0/tenants/{tid}/entitlements/MCSMessages/users?
+    fromDate=YYYY-MM-DD&toDate=YYYY-MM-DD``. The response groups users under a
+    ``value`` array; each group carries a ``users`` array breaking consumption
+    down **per user** for the requested window::
+
+        {"value": [{"users": [
+            {"tenantId": "e8db…", "userId": "abf5d800-…",
+             "consumed": 0.0, "unit": "Messages",
+             "metadata": {"Resources": 2, "NonBillableQuantity": 16.0},
+             "asOfDate": "2026-06-01T00:00:00"}]}]}
+
+    Each user becomes one ``report_type="MCSMessages:user"`` row whose
+    ``user_id`` is the AAD object id and ``quantity`` the billable message
+    count. The non-billable quantity and resource count are kept in
+    ``raw_json``.
+    """
+    groups = (
+        data.get("value")
+        if isinstance(data, dict)
+        else (data if isinstance(data, list) else None)
+    )
+    if not isinstance(groups, list):
+        return []
+    rows: list[ConsumptionRow] = []
+    for group in groups:
+        users = group.get("users") if isinstance(group, dict) else None
+        if not isinstance(users, list):
+            continue
+        for user in users:
+            if not isinstance(user, dict):
+                continue
+            uid_raw = user.get("userId")
+            user_id = (str(uid_raw).strip() or None) if uid_raw else None
+            unit = str(user.get("unit") or "").strip().lower() or "messages"
+            usage_date = _date_part(user.get("asOfDate")) or snapshot_date
+            rows.append(
+                ConsumptionRow(
+                    report_type="MCSMessages:user",
+                    usage_date=usage_date,
+                    environment_id=None,
+                    environment_name=None,
+                    user_id=user_id,
+                    product=None,
+                    quantity=_to_float(user.get("consumed")),
+                    unit=unit,
+                    window_start=window_start,
+                    window_end=window_end,
+                    raw_json=json.dumps(user, ensure_ascii=False),
+                )
+            )
+    return rows
+
+
 def parse_mcs_environment_rows(
     data: Any,
     *,
@@ -557,6 +620,33 @@ class LicensingClient:
             data, snapshot_date=snap, window_start=window_start, window_end=window_end
         )
 
+    def fetch_mcs_user_rows(
+        self,
+        window_start: str | None = None,
+        window_end: str | None = None,
+        *,
+        snapshot_date: str | None = None,
+    ) -> list[ConsumptionRow]:
+        """Fetch per-user Copilot Studio message consumption for the window.
+
+        Backs the PPAC "Download report → User-Level Credit Consumption" export.
+        The endpoint requires an explicit ``fromDate``/``toDate`` window; we
+        pass the collection window (defaulting to today when unset) so the
+        longest configured look-back is honoured.
+        """
+        snap = snapshot_date or _today()
+        params = {
+            "fromDate": window_start or snap,
+            "toDate": window_end or snap,
+        }
+        data = self._get_json(
+            f"/v2.0/tenants/{self.tenant_id}/entitlements/MCSMessages/users",
+            params=params,
+        )
+        return parse_mcs_user_rows(
+            data, snapshot_date=snap, window_start=window_start, window_end=window_end
+        )
+
     def fetch_all_rows(
         self, window_start: str | None = None, window_end: str | None = None
     ) -> list[ConsumptionRow]:
@@ -570,6 +660,7 @@ class LicensingClient:
         rows.extend(self.fetch_capacity_rows(window_start, window_end))
         rows.extend(self.fetch_mcs_resource_rows(window_start, window_end))
         rows.extend(self.fetch_mcs_environment_rows(window_start, window_end))
+        rows.extend(self.fetch_mcs_user_rows(window_start, window_end))
         return rows
 
 

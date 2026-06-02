@@ -223,3 +223,22 @@ def test_copilot_admin_probe_methods_use_expected_paths() -> None:
     assert any("/beta/copilot/admin/policySettings" in url for url in seen)
     assert any("/beta/copilot/admin/catalog/packages" in url for url in seen)
     assert any("/beta/copilot/agentRegistrations" in url for url in seen)
+
+
+def test_catalog_packages_accepts_top_level_list_payload() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert "/beta/copilot/admin/catalog/packages" in str(request.url)
+        return httpx.Response(
+            200,
+            json=[
+                {"id": "pkg-1", "displayName": "Sales Agent", "elementTypes": ["DeclarativeCopilots"]},
+                {"id": "pkg-2", "displayName": "Service Agent", "elementTypes": ["CustomEngineCopilots"]},
+            ],
+        )
+
+    client = _build_client(handler)
+
+    assert client.list_copilot_admin_catalog_packages() == [
+        {"id": "pkg-1", "displayName": "Sales Agent", "elementTypes": ["DeclarativeCopilots"]},
+        {"id": "pkg-2", "displayName": "Service Agent", "elementTypes": ["CustomEngineCopilots"]},
+    ]

@@ -91,12 +91,16 @@ def _load_options(repo: Repository) -> RuntimeOptions:
         except json.JSONDecodeError:
             upns = []
     language = repo.get_text_setting("language") or "ko_KR"
+    auto_backup_enabled = (repo.get_text_setting("auto_backup_enabled") or "0") in {"1", "true", "True"}
+    auto_backup_mode = (repo.get_text_setting("auto_backup_mode") or "new").strip().lower() or "new"
     return RuntimeOptions(
         poll_interval_minutes=poll,
         scope_mode=scope,
         scope_group_id=group_id,
         scope_upns=upns,
         language=language,
+        auto_backup_enabled=auto_backup_enabled,
+        auto_backup_mode=auto_backup_mode,
     )
 
 

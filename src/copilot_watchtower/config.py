@@ -329,3 +329,5 @@ class RuntimeOptions:
     scope_upns: list[str] = field(default_factory=list)
     backfill_done_initial: bool = False
     language: str = "ko_KR"  # ko_KR | en_US
+    auto_backup_enabled: bool = False
+    auto_backup_mode: str = "new"  # new | overwrite

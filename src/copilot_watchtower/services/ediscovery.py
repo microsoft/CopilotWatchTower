@@ -489,7 +489,7 @@ class EdiscoveryOrchestrator:
         # Playwright download capture path. Blob/SAS and other programmatic
         # URLs still use the HTTP downloader below.
         if _is_direct_download_proxy(job.export_url):
-            rows = self._browser_download_fallback(job)
+            rows = self._browser_download_fallback(job, reason="direct_proxy")
             if rows is not None:
                 return rows
             raise EdiscoveryError("Direct Download Proxy 자동 브라우저 다운로드가 실패했습니다.")
@@ -528,7 +528,7 @@ class EdiscoveryOrchestrator:
             )
         except GraphError as exc:
             if getattr(exc, "auth_redirect", False):
-                rows = self._browser_download_fallback(job)
+                rows = self._browser_download_fallback(job, reason="auth_redirect")
                 if rows is not None:
                     return rows
                 raise EdiscoveryError(
@@ -548,7 +548,7 @@ class EdiscoveryOrchestrator:
             # Re-exporting just mints another identical proxy link, so we must
             # NOT loop — stop with a clear, actionable error instead.
             if _is_direct_download_proxy(job.export_url):
-                rows = self._browser_download_fallback(job)
+                rows = self._browser_download_fallback(job, reason="auth_redirect")
                 if rows is not None:
                     return rows
                 raise EdiscoveryError(
@@ -579,12 +579,21 @@ class EdiscoveryOrchestrator:
         )
         return self._parse_package(job, data)
 
-    def _browser_download_fallback(self, job: EdiscoveryJob) -> list[InteractionRow] | None:
+    def _browser_download_fallback(
+        self,
+        job: EdiscoveryJob,
+        *,
+        reason: str,
+    ) -> list[InteractionRow] | None:
         if self._browser_downloader is None or not job.export_url:
             return None
+        if reason == "direct_proxy":
+            message = "다운로드 링크가 브라우저 전용 프록시라 headless 브라우저 자동 로그인으로 바로 진행합니다"
+        else:
+            message = "백엔드 토큰 다운로드가 거부되어 headless 브라우저 자동 로그인으로 다시 시도합니다"
         self._progress(
             "downloading",
-            "백엔드 토큰 다운로드가 거부되어 headless 브라우저 자동 로그인으로 다시 시도합니다",
+            message,
         )
         data = self._browser_downloader(job.export_url)
         if not data:

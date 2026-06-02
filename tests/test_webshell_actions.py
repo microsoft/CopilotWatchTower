@@ -28,6 +28,8 @@ def options() -> RuntimeOptions:
         scope_group_id=None,
         scope_upns=[],
         language="ko_KR",
+        auto_backup_enabled=False,
+        auto_backup_mode="new",
     )
 
 
@@ -62,6 +64,8 @@ def test_update_settings_validates_inputs(controller: OperationsController, repo
             "scope_mode": "custom",
             "scope_upns": ["a@x", "b@x", " "],
             "language": "en_US",
+            "auto_backup_enabled": True,
+            "auto_backup_mode": "overwrite",
         }
     )
     assert ok == {"ok": True}
@@ -69,11 +73,95 @@ def test_update_settings_validates_inputs(controller: OperationsController, repo
     assert controller.options.scope_mode == "CUSTOM"
     assert controller.options.scope_upns == ["a@x", "b@x"]
     assert controller.options.language == "en_US"
+    assert controller.options.auto_backup_enabled is True
+    assert controller.options.auto_backup_mode == "overwrite"
     # Persisted to repo as well.
     assert repo.get_text_setting("poll_interval_minutes") == "30"
     assert repo.get_text_setting("scope_mode") == "CUSTOM"
     assert repo.get_text_setting("language") == "en_US"
     assert json.loads(repo.get_text_setting("scope_upns")) == ["a@x", "b@x"]
+    assert repo.get_text_setting("auto_backup_enabled") == "1"
+    assert repo.get_text_setting("auto_backup_mode") == "overwrite"
+
+
+def test_auto_backup_starts_on_collection_finish_when_enabled(
+    monkeypatch,
+    qtbot,
+    tmp_path: Path,
+    repo: Repository,
+    options: RuntimeOptions,
+) -> None:
+    del qtbot
+    registry = ProfileRegistry.load(tmp_path / "profiles-root")
+    profile = registry.add("Tenant A")
+    registry.set_active(profile.id)
+
+    controller = OperationsController(
+        repo=repo,
+        options=RuntimeOptions(
+            poll_interval_minutes=options.poll_interval_minutes,
+            scope_mode=options.scope_mode,
+            scope_group_id=options.scope_group_id,
+            scope_upns=list(options.scope_upns),
+            language=options.language,
+            auto_backup_enabled=True,
+            auto_backup_mode="overwrite",
+        ),
+        registry=registry,
+        profile_id=profile.id,
+    )
+
+    seen: dict[str, object] = {}
+
+    def fake_build_backup_bundle(source_db_path, dest_dir, profile=None, **kwargs):
+        seen["bundle_path"] = kwargs.get("bundle_path")
+        bundle_path = kwargs.get("bundle_path") or (dest_dir / "generated.cwtbackup")
+        Path(bundle_path).parent.mkdir(parents=True, exist_ok=True)
+        Path(bundle_path).write_bytes(b"zip")
+        return Path(bundle_path)
+
+    monkeypatch.setattr("copilot_watchtower.webshell.actions.build_backup_bundle", fake_build_backup_bundle)
+    monkeypatch.setattr(
+        "copilot_watchtower.webshell.actions.read_backup_manifest",
+        lambda path: {"row_total": 3, "tables": {"users": 1}, "created_at": "2026-06-02T00:00:00Z"},
+    )
+    monkeypatch.setattr(
+        controller,
+        "_run_maintenance",
+        lambda name, task: seen.setdefault("result", task(lambda *_args: None)) or {"ok": True, "started": True},
+    )
+
+    controller._on_job_finished("audit")
+
+    assert isinstance(seen["bundle_path"], Path)
+    assert str(seen["bundle_path"]).endswith("-latest.cwtbackup")
+
+
+def test_auto_backup_is_skipped_when_disabled(
+    monkeypatch,
+    qtbot,
+    tmp_path: Path,
+    repo: Repository,
+    options: RuntimeOptions,
+) -> None:
+    del qtbot
+    registry = ProfileRegistry.load(tmp_path / "profiles-root")
+    profile = registry.add("Tenant A")
+    registry.set_active(profile.id)
+
+    controller = OperationsController(
+        repo=repo,
+        options=options,
+        registry=registry,
+        profile_id=profile.id,
+    )
+
+    called = {"value": False}
+    monkeypatch.setattr(controller, "_run_maintenance", lambda *_args, **_kwargs: called.update(value=True))
+
+    controller._on_job_finished("audit")
+
+    assert called["value"] is False
 
 
 def test_profile_actions_require_registry(controller: OperationsController) -> None:

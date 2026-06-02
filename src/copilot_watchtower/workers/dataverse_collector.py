@@ -324,11 +324,17 @@ class DataverseCollectorWorker(QObject):
         the license-based ``users`` table; we add a lightweight row (out of
         scope, no license) keyed on the parser-assigned ``dataverse:`` id.
         """
+        bare_ids = [
+            user_id.split("dataverse:", 1)[1]
+            for user_id, name in participants.items()
+            if user_id.startswith("dataverse:") and (not name or name == user_id)
+        ]
+        resolved = self.repo.display_names_for_ids(bare_ids)
         rows = [
             UserRow(
                 id=user_id,
                 upn=None,
-                display_name=name or None,
+                display_name=(resolved.get(user_id.split("dataverse:", 1)[1]) if user_id.startswith("dataverse:") else None) or name or None,
                 enabled=True,
                 has_copilot_license=False,
                 in_scope=False,

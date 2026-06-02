@@ -66,6 +66,7 @@ _RUN_LOG_KINDS = frozenset(
     (CONVERSATION_KIND, *_AUDIT_KINDS, CONSUMPTION_KIND, DATAVERSE_KIND)
 )
 _RUN_LOG_KEEP = 30
+_AUTO_BACKUP_MODES = {"new", "overwrite"}
 
 
 def _run_log_line(event_type: str, payload: dict) -> str:
@@ -106,6 +107,18 @@ def _run_log_summary(kind: str, payload: dict) -> str:
     if kind in (CONSUMPTION_KIND, DATAVERSE_KIND):
         return f"추가 {n(payload.get('rows_added'))} · 오류 {n(payload.get('errors'))}"
     return f"오류 {n(payload.get('errors'))}"
+
+
+def _normalise_collection_kind(kind: str) -> str:
+    if kind.startswith(f"{EDISCOVERY_KIND}:"):
+        return EDISCOVERY_KIND
+    return kind
+
+
+def _backup_stem(name: str | None) -> str:
+    cleaned = "".join(c if c.isalnum() or c in ("-", "_") else "-" for c in (name or "").strip())
+    cleaned = cleaned.strip("-") or "profile"
+    return cleaned[:48]
 
 
 @dataclass
@@ -644,6 +657,10 @@ class OperationsController(QObject):
         else:
             return {"ok": False, "error": "scope_upns는 문자열 리스트여야 합니다."}
         language = str(payload.get("language") or self.options.language)
+        auto_backup_enabled = bool(payload.get("auto_backup_enabled", self.options.auto_backup_enabled))
+        auto_backup_mode = str(payload.get("auto_backup_mode") or self.options.auto_backup_mode or "new").strip().lower()
+        if auto_backup_mode not in _AUTO_BACKUP_MODES:
+            return {"ok": False, "error": "auto_backup_mode는 new 또는 overwrite 여야 합니다."}
 
         self.options = RuntimeOptions(
             poll_interval_minutes=poll,
@@ -651,6 +668,8 @@ class OperationsController(QObject):
             scope_group_id=scope_group_id,
             scope_upns=scope_upns,
             language=language,
+            auto_backup_enabled=auto_backup_enabled,
+            auto_backup_mode=auto_backup_mode,
         )
         self.repo.set_text_setting("poll_interval_minutes", str(poll))
         self.repo.set_text_setting("scope_mode", scope_mode)
@@ -658,7 +677,17 @@ class OperationsController(QObject):
             self.repo.set_text_setting("scope_group_id", scope_group_id)
         self.repo.set_text_setting("scope_upns", json.dumps(scope_upns))
         self.repo.set_text_setting("language", language)
-        self._emit_event("settings.updated", {"poll_interval_minutes": poll, "scope_mode": scope_mode})
+        self.repo.set_text_setting("auto_backup_enabled", "1" if auto_backup_enabled else "0")
+        self.repo.set_text_setting("auto_backup_mode", auto_backup_mode)
+        self._emit_event(
+            "settings.updated",
+            {
+                "poll_interval_minutes": poll,
+                "scope_mode": scope_mode,
+                "auto_backup_enabled": auto_backup_enabled,
+                "auto_backup_mode": auto_backup_mode,
+            },
+        )
         return {"ok": True}
 
     # ---- system dialogs --------------------------------------------
@@ -753,6 +782,78 @@ class OperationsController(QObject):
             }
 
         return self._run_maintenance("backup", _task)
+
+    def _run_auto_backup(self, completed_kind: str) -> None:
+        normalized_kind = _normalise_collection_kind(completed_kind)
+        if normalized_kind not in {
+            CONVERSATION_KIND,
+            *_AUDIT_KINDS,
+            CONSUMPTION_KIND,
+            DATAVERSE_KIND,
+            EDISCOVERY_KIND,
+        }:
+            return
+        if not self.options.auto_backup_enabled:
+            return
+        if "backup" in self._maint_threads:
+            self._emit_event(
+                "log",
+                {"kind": normalized_kind, "line": "자동 백업 건너뜀: 이미 백업 작업이 진행 중입니다."},
+            )
+            return
+        try:
+            dest_dir = self._exports_dir()
+        except BackupError as exc:
+            self._emit_event(
+                "error",
+                {"kind": normalized_kind, "line": f"자동 백업 시작 실패: {exc}"},
+            )
+            return
+
+        source_db = self.repo.db_path
+        profile = self._active_profile()
+        auto_mode = (self.options.auto_backup_mode or "new").strip().lower()
+        bundle_path = None
+        if auto_mode == "overwrite":
+            bundle_path = dest_dir / f"cwt-backup-{_backup_stem(profile.name if profile else 'profile')}-latest.cwtbackup"
+
+        def _task(progress):
+            path = build_backup_bundle(
+                source_db,
+                dest_dir,
+                profile=profile,
+                progress=progress,
+                bundle_path=bundle_path,
+            )
+            manifest = read_backup_manifest(path)
+            return {
+                "path": str(path),
+                "filename": path.name,
+                "row_total": manifest.get("row_total", 0),
+                "tables": manifest.get("tables", {}),
+                "created_at": manifest.get("created_at"),
+                "automatic": True,
+                "mode": auto_mode,
+                "source_kind": normalized_kind,
+            }
+
+        self._emit_event(
+            "log",
+            {
+                "kind": normalized_kind,
+                "line": (
+                    "자동 백업 시작: 기존 자동 백업 파일 덮어쓰기"
+                    if auto_mode == "overwrite"
+                    else "자동 백업 시작: 새 백업 파일 생성"
+                ),
+            },
+        )
+        result = self._run_maintenance("backup", _task)
+        if not result.get("ok"):
+            self._emit_event(
+                "error",
+                {"kind": normalized_kind, "line": f"자동 백업 시작 실패: {result.get('error') or '알 수 없는 오류'}"},
+            )
 
     def restore_backup(self, file_path: str) -> dict:
         """Import a portable bundle into the active profile (skip duplicates)."""
@@ -974,6 +1075,7 @@ class OperationsController(QObject):
         self._jobs.pop(kind, None)
         self.state_changed.emit()
         self._emit_event("collection.finished", {"kind": kind})
+        self._run_auto_backup(kind)
 
     def _build_token_provider(self) -> AppOnlyTokenProvider | None:
         tenant_id = self.repo.get_text_setting("tenant_id")

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Coins, CreditCard, Cpu, Network } from "lucide-react";
+import { Coins, CreditCard, Cpu, Network, Users } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -25,12 +25,13 @@ import { formatNumber } from "../lib/format";
 
 const BRIDGE_AVAILABLE = isBridgeAvailable();
 
-type TabKey = "overview" | "messages" | "environments" | "credits";
+type TabKey = "overview" | "messages" | "environments" | "users" | "credits";
 
 const TABS: Array<{ key: TabKey; label: string; icon: typeof Coins }> = [
   { key: "overview", label: "개요", icon: Coins },
   { key: "messages", label: "에이전트(리소스)별", icon: CreditCard },
   { key: "environments", label: "환경별", icon: Network },
+  { key: "users", label: "사용자별", icon: Users },
   { key: "credits", label: "AI Builder / API", icon: Cpu },
 ];
 
@@ -68,6 +69,12 @@ export function ConsumptionPage() {
     queryKey: ["consumption-list", "MCSMessages:environment"],
     queryFn: () => listConsumption({ report_type: "MCSMessages:environment", limit: 500 }),
     enabled: BRIDGE_AVAILABLE && tab === "environments",
+  });
+
+  const usersQuery = useQuery({
+    queryKey: ["consumption-list", "MCSMessages:user"],
+    queryFn: () => listConsumption({ report_type: "MCSMessages:user", limit: 500 }),
+    enabled: BRIDGE_AVAILABLE && tab === "users",
   });
 
   const creditsQuery = useQuery({
@@ -215,6 +222,21 @@ export function ConsumptionPage() {
           </Card>
         )}
 
+        {tab === "users" && (
+          <Card
+            title="사용자별 메시지 소비"
+            actions={<span style={{ fontSize: 11, color: "var(--text-muted)" }}>{(usersQuery.data ?? []).length}건</span>}
+          >
+            <DataTable<ConsumptionRow>
+              rows={usersQuery.data ?? []}
+              rowKey={(row) => `${row.usage_date}-${row.user_id ?? ""}`}
+              initialSort={{ key: "quantity", direction: "desc" }}
+              columns={userColumns}
+              maxHeight="60vh"
+            />
+          </Card>
+        )}
+
         {tab === "credits" && (
           <>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -296,5 +318,13 @@ const environmentColumns: Column<ConsumptionRow>[] = [
   { key: "environment_name", header: "환경", cell: (r) => r.environment_name || r.environment_id || "—", sortValue: (r) => (r.environment_name ?? r.environment_id ?? "").toLowerCase() },
   { key: "product", header: "항목", cell: (r) => ENV_PRODUCT_LABELS[r.product ?? ""] ?? (r.product || "—"), sortValue: (r) => r.product ?? "" },
   { key: "quantity", header: "메시지", align: "right", cell: (r) => formatNumber(r.quantity), sortValue: (r) => r.quantity },
+  { key: "usage_date", header: "기준일", cell: (r) => r.usage_date, sortValue: (r) => r.usage_date },
+];
+
+const userColumns: Column<ConsumptionRow>[] = [
+  { key: "display_name", header: "사용자", cell: (r) => r.display_name || r.user_id || "—", sortValue: (r) => (r.display_name ?? r.user_id ?? "").toLowerCase() },
+  { key: "upn", header: "UPN", cell: (r) => r.upn || "—", sortValue: (r) => (r.upn ?? "").toLowerCase() },
+  { key: "quantity", header: "청구 메시지", align: "right", cell: (r) => formatNumber(r.quantity), sortValue: (r) => r.quantity },
+  { key: "nonbillable", header: "비청구", align: "right", cell: (r) => formatNumber(nonBillableQuantity(r)), sortValue: (r) => nonBillableQuantity(r) },
   { key: "usage_date", header: "기준일", cell: (r) => r.usage_date, sortValue: (r) => r.usage_date },
 ];

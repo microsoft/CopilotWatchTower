@@ -37,6 +37,7 @@ from copilot_watchtower.services.dataverse_browser_download import (
     try_self_add_as_admin,
 )
 from copilot_watchtower.services.threading_service import recompute_threads_for_user
+from copilot_watchtower.workers.dataverse_collector import DataverseCollectorWorker
 
 
 # --------------------------------------------------------------------------
@@ -287,6 +288,20 @@ def test_parse_conversation_transcript_teams_only_filters_other_channels() -> No
         content, transcript_id="t", environment_id="e", teams_only=True
     )
     assert [r.app for r in teams_rows.rows] == ["msteams"]
+
+
+def test_dataverse_worker_ensure_users_resolves_bare_guid_name(tmp_path: Path) -> None:
+    db = tmp_path / "worker-users.db"
+    initialize(db)
+    repo = Repository(db)
+    bare_id = "6cc1a6af-e4b7-12a7-56b9-a39bd37f242c"
+    repo.upsert_users([UserRow(bare_id, None, "Resolved Dataverse User", True, False, False)])
+
+    worker = DataverseCollectorWorker(repo)
+    worker._ensure_users({f"dataverse:{bare_id}": f"dataverse:{bare_id}"})
+
+    users = {user.id: user for user in repo.list_all_users()}
+    assert users[f"dataverse:{bare_id}"].display_name == "Resolved Dataverse User"
 
 
 def test_parse_conversation_transcript_empty_and_invalid() -> None:

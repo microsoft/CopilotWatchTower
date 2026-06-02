@@ -222,6 +222,53 @@ def test_parse_mcs_environment_rows_handles_empty() -> None:
     assert parse_mcs_environment_rows(None, snapshot_date="2026-06-01") == []
 
 
+def test_parse_mcs_user_rows_breaks_down_per_user() -> None:
+    from copilot_watchtower.services.licensing import parse_mcs_user_rows
+
+    # Real shape from /v2.0/.../entitlements/MCSMessages/users?fromDate&toDate
+    data = {
+        "value": [
+            {
+                "users": [
+                    {
+                        "tenantId": "tid",
+                        "userId": "abf5d800-b694-4ab3-ac82-ec256c020c88",
+                        "consumed": 42.0,
+                        "unit": "Messages",
+                        "metadata": {"Resources": 2, "NonBillableQuantity": 16.0},
+                        "asOfDate": "2026-06-01T00:00:00",
+                    },
+                    "junk",  # non-dict -> skipped
+                ]
+            },
+            "junk",  # non-dict group -> skipped
+        ]
+    }
+    rows = parse_mcs_user_rows(
+        data, snapshot_date="2026-06-02", window_start="2025-12-05", window_end="2026-06-02"
+    )
+    assert len(rows) == 1
+    row = rows[0]
+    assert row.report_type == "MCSMessages:user"
+    assert row.user_id == "abf5d800-b694-4ab3-ac82-ec256c020c88"
+    assert row.quantity == 42.0
+    assert row.unit == "messages"
+    assert row.usage_date == "2026-06-01"  # from asOfDate
+    assert row.window_start == "2025-12-05"
+    # Non-billable quantity + resource count preserved for the UI.
+    raw = json.loads(row.raw_json)
+    assert raw["metadata"]["NonBillableQuantity"] == 16.0
+    assert raw["metadata"]["Resources"] == 2
+
+
+def test_parse_mcs_user_rows_handles_empty() -> None:
+    from copilot_watchtower.services.licensing import parse_mcs_user_rows
+
+    assert parse_mcs_user_rows({}, snapshot_date="2026-06-01") == []
+    assert parse_mcs_user_rows(None, snapshot_date="2026-06-01") == []
+    assert parse_mcs_user_rows({"value": [{"users": "x"}]}, snapshot_date="2026-06-01") == []
+
+
 
 # --------------------------------------------------------------------------
 # Browser-driven licensing token capture (no live browser/network)

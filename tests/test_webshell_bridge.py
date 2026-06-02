@@ -191,6 +191,116 @@ def test_bridge_conversations_list_and_detail(qtbot, tmp_path: Path) -> None:
     assert all(turn["app"] == "Teams: Copilot Chat" for turn in detail["turns"])
 
 
+def test_bridge_conversations_api_falls_back_to_raw_identity_name(qtbot, tmp_path: Path) -> None:
+    del qtbot
+    db = tmp_path / "threads-api-fallback.db"
+    initialize(db)
+    repo = Repository(db)
+    repo.upsert_users(
+        [
+            UserRow("u-real", "user@x", "Real User", True, True, True),
+            UserRow("8:orgid:70af7a57-7cd5-43aa-b96a-c93eb3dafe79", None, "Microsoft365 Copilot", True, False, False),
+        ]
+    )
+    raw = json.dumps(
+        {
+            "user": {
+                "@odata.type": "#microsoft.graph.teamworkUserIdentity",
+                "id": "u-real",
+                "displayName": "8:orgid:70af7a57-7cd5-43aa-b96a-c93eb3dafe79",
+                "userIdentityType": "aadUser",
+            }
+        }
+    )
+    repo.upsert_interactions(
+        [
+            InteractionRow(
+                id="i1", user_id="8:orgid:70af7a57-7cd5-43aa-b96a-c93eb3dafe79", session_id="sess", request_id=None,
+                created_at="2026-05-22T12:00:00Z", interaction_type="userPrompt",
+                app="ThirdPartyCopilot", body_text="hello", body_content_type="text",
+                attachments_json=None, raw_json=raw, fetched_at="2026-05-22T12:00:00Z", thread_id=None,
+            )
+        ]
+    )
+    from copilot_watchtower.services.threading_engine import TurnInput, compute_threads
+
+    interactions = repo.interactions_for_user("8:orgid:70af7a57-7cd5-43aa-b96a-c93eb3dafe79")
+    threads = compute_threads([
+        TurnInput(
+            id=i.id,
+            user_id=i.user_id,
+            session_id=i.session_id,
+            request_id=i.request_id,
+            created_at=i.created_at,
+            interaction_type=i.interaction_type,
+            app=i.app,
+            body_text=i.body_text,
+            grounding_text=None,
+        )
+        for i in interactions
+    ])
+    repo.upsert_threads(threads)
+    bridge = Bridge(BridgeContext(repo=repo))
+
+    summaries = json.loads(bridge.conversations_list(json.dumps({"source_type": "api"})))
+    assert summaries[0]["display_name"] == "Real User"
+
+
+def test_bridge_conversations_dataverse_falls_back_to_graph_name(qtbot, tmp_path: Path) -> None:
+    del qtbot
+    db = tmp_path / "threads-dataverse-fallback.db"
+    initialize(db)
+    repo = Repository(db)
+    bare_id = "6cc1a6af-e4b7-12a7-56b9-a39bd37f242c"
+    repo.upsert_users(
+        [
+            UserRow(bare_id, None, "Dataverse User", True, False, False),
+            UserRow(f"dataverse:{bare_id}", None, None, True, False, False),
+        ]
+    )
+    raw = json.dumps(
+        {
+            "source": "dataverse",
+            "activity": {
+                "from": {"id": bare_id, "role": 1}
+            },
+        }
+    )
+    repo.upsert_interactions(
+        [
+            InteractionRow(
+                id="i1", user_id=f"dataverse:{bare_id}", session_id="sess", request_id=None,
+                created_at="2026-05-28T00:49:00Z", interaction_type="userPrompt",
+                app="web", body_text="hello", body_content_type="text",
+                attachments_json=None, raw_json=raw, fetched_at="2026-05-28T00:49:00Z", thread_id=None,
+                source_type="dataverse",
+            )
+        ]
+    )
+    from copilot_watchtower.services.threading_engine import TurnInput, compute_threads
+
+    interactions = repo.interactions_for_user(f"dataverse:{bare_id}", source_type="dataverse")
+    threads = compute_threads([
+        TurnInput(
+            id=i.id,
+            user_id=i.user_id,
+            session_id=i.session_id,
+            request_id=i.request_id,
+            created_at=i.created_at,
+            interaction_type=i.interaction_type,
+            app=i.app,
+            body_text=i.body_text,
+            grounding_text=None,
+        )
+        for i in interactions
+    ])
+    repo.upsert_threads(threads, source_type="dataverse")
+    bridge = Bridge(BridgeContext(repo=repo))
+
+    summaries = json.loads(bridge.conversations_list(json.dumps({"source_type": "dataverse"})))
+    assert summaries[0]["display_name"] == "Dataverse User"
+
+
 def test_bridge_agents_list_marks_state_and_threshold(qtbot, tmp_path: Path) -> None:
     del qtbot
     db = tmp_path / "agents.db"
@@ -369,3 +479,5 @@ def test_bridge_operations_summary_and_runs(qtbot, tmp_path: Path) -> None:
 
     settings = json.loads(bridge.settings_summary())
     assert settings["bootstrap_complete"] is False
+    assert settings["auto_backup_enabled"] is False
+    assert settings["auto_backup_mode"] == "new"

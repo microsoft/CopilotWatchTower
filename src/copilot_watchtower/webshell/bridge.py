@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -27,6 +28,8 @@ from .actions import OperationsController
 log = logging.getLogger(__name__)
 
 _THREAD_TURN_BODY_LIMIT = 2000
+_GUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", re.IGNORECASE)
+_NON_HUMAN_LABELS = {"microsoft365 copilot", "microsoft 365 copilot"}
 
 
 @dataclass(frozen=True)
@@ -239,7 +242,7 @@ class Bridge(QObject):
             source_type=filters.get("source_type") or "api",
             limit=int(filters.get("limit") or 200),
         )
-        return _dumps([_thread_summary(thread) for thread in threads])
+        return _dumps([_thread_summary_with_user_fallback(self._context.repo, thread) for thread in threads])
 
     @Slot(str, result=str)
     def conversation_apps(self, source_type: str) -> str:
@@ -257,7 +260,7 @@ class Bridge(QObject):
         audit_events = self._context.repo.audit_events_for_thread(thread)
         return _dumps(
             {
-                "thread": _thread_summary(thread),
+                "thread": _thread_summary_with_user_fallback(self._context.repo, thread, turns=turns),
                 "turns": [_thread_turn(turn) for turn in turns],
                 "audit": [_audit_event_row(event) for event in audit_events],
             }
@@ -499,6 +502,8 @@ class Bridge(QObject):
                 "scope_mode": options.scope_mode if options else None,
                 "scope_group_id": options.scope_group_id if options else None,
                 "scope_upns": list(options.scope_upns) if options else [],
+                "auto_backup_enabled": options.auto_backup_enabled if options else False,
+                "auto_backup_mode": options.auto_backup_mode if options else "new",
                 "bootstrap_complete": repo.get_text_setting("bootstrap_complete") == "1",
             }
         )
@@ -745,6 +750,88 @@ def _thread_summary(thread: Any) -> dict[str, Any]:
     }
 
 
+def _looks_synthetic_identity(value: str | None) -> bool:
+    text = (value or "").strip()
+    if not text:
+        return True
+    lowered = text.lower()
+    return (
+        lowered.startswith("dataverse:")
+        or lowered.startswith("8:orgid:")
+        or lowered in _NON_HUMAN_LABELS
+    )
+
+
+def _friendly_raw_name(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text or _looks_synthetic_identity(text):
+        return None
+    return text
+
+
+def _resolve_identity_name_from_raw(repo: Repository, raw_json: str | None, *, source_type: str) -> str | None:
+    if not raw_json:
+        return None
+    try:
+        raw = json.loads(raw_json)
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(raw, dict):
+        return None
+
+    if source_type == "api":
+        identity = raw.get("user")
+        if isinstance(identity, dict):
+            name = _friendly_raw_name(identity.get("displayName"))
+            if name:
+                return name
+            identity_id = str(identity.get("id") or "").strip()
+            if identity_id and _GUID_RE.match(identity_id):
+                return repo.display_names_for_ids([identity_id]).get(identity_id)
+        return None
+
+    if source_type == "dataverse":
+        activity = raw.get("activity")
+        sender = activity.get("from") if isinstance(activity, dict) else None
+        if isinstance(sender, dict):
+            name = _friendly_raw_name(sender.get("name"))
+            if name:
+                return name
+            candidate = str(
+                sender.get("aadObjectId") or sender.get("aadobjectid") or sender.get("id") or ""
+            ).strip()
+            if candidate and _GUID_RE.match(candidate):
+                return repo.display_names_for_ids([candidate]).get(candidate)
+        return None
+
+    return None
+
+
+def _thread_summary_with_user_fallback(
+    repo: Repository,
+    thread: Any,
+    *,
+    turns: list[Any] | None = None,
+) -> dict[str, Any]:
+    summary = _thread_summary(thread)
+    current_label = summary.get("display_name") or summary.get("upn") or summary.get("user_id")
+    if not _looks_synthetic_identity(str(current_label or "")):
+        return summary
+
+    source_type = str(getattr(thread, "source_type", "api") or "api")
+    candidate_turns = turns if turns is not None else repo.thread_turns(thread.id, source_type=source_type)
+    user_turns = [turn for turn in candidate_turns if (turn.interaction_type or "").lower() == "userprompt"]
+    ordered_turns = user_turns + [turn for turn in candidate_turns if turn not in user_turns]
+    for turn in ordered_turns:
+        resolved = _resolve_identity_name_from_raw(repo, getattr(turn, "raw_json", None), source_type=source_type)
+        if resolved:
+            summary["display_name"] = resolved
+            return summary
+    return summary
+
+
 def _thread_turn(turn: Any) -> dict[str, Any]:
     body = turn.body_text or ""
     if len(body) > _THREAD_TURN_BODY_LIMIT:
@@ -864,6 +951,9 @@ def _agent_row(row: Any) -> dict[str, Any]:
         "add_on_guid": agent.add_on_guid,
         "source": agent.source,
         "status": agent.status,
+        "created_at": agent.created_at,
+        "updated_at": agent.updated_at,
+        "raw_json": agent.raw_json,
         "last_activity_at": agent.last_activity_at,
         "last_activity_source": agent.last_activity_source,
         "usage_event_count": int(agent.usage_event_count or 0),

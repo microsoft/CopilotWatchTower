@@ -19,6 +19,7 @@ interface RawJsonModalProps {
 
 export function RawJsonModal({ title, raw, onClose }: RawJsonModalProps) {
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
   const pretty = prettify(raw);
 
   useEffect(() => {
@@ -29,12 +30,47 @@ export function RawJsonModal({ title, raw, onClose }: RawJsonModalProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!pretty) return;
-    void navigator.clipboard.writeText(pretty).then(() => {
+    setCopyError(null);
+
+    const copyWithExecCommand = (text: string): boolean => {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "true");
+      ta.style.position = "fixed";
+      ta.style.top = "-1000px";
+      ta.style.left = "-1000px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      let ok = false;
+      try {
+        ok = document.execCommand("copy");
+      } finally {
+        document.body.removeChild(ta);
+      }
+      return ok;
+    };
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(pretty);
+      } else if (!copyWithExecCommand(pretty)) {
+        throw new Error("fallback copy failed");
+      }
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
-    });
+      return;
+    } catch {
+      if (copyWithExecCommand(pretty)) {
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1500);
+        return;
+      }
+    }
+
+    setCopyError("복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.");
   };
 
   return createPortal(
@@ -138,6 +174,20 @@ export function RawJsonModal({ title, raw, onClose }: RawJsonModalProps) {
         >
           {pretty || "(원본 데이터 없음)"}
         </pre>
+        {copyError ? (
+          <div
+            role="status"
+            style={{
+              padding: "8px 16px 12px",
+              fontSize: 12,
+              color: "var(--danger, #d14343)",
+              borderTop: "1px solid var(--border)",
+              background: "var(--surface-muted)",
+            }}
+          >
+            {copyError}
+          </div>
+        ) : null}
       </div>
     </div>,
     document.body,

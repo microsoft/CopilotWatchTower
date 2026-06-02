@@ -131,9 +131,18 @@ class GraphClient:
         while next_url:
             r = self._request("GET", next_url, params=next_params)
             payload = r.json()
-            for item in payload.get("value", []):
+            if isinstance(payload, list):
+                items = payload
+                next_url = None
+            elif isinstance(payload, dict):
+                raw_items = payload.get("value", [])
+                items = raw_items if isinstance(raw_items, list) else []
+                next_url = payload.get("@odata.nextLink")
+            else:
+                items = []
+                next_url = None
+            for item in items:
                 yield item
-            next_url = payload.get("@odata.nextLink")
             # nextLink already encodes the query string.
             next_params = None
 

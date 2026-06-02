@@ -180,6 +180,9 @@ export interface AgentRow {
   add_on_guid: string | null;
   source: string;
   status: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  raw_json: string | null;
   last_activity_at: string | null;
   last_activity_source: string | null;
   usage_event_count: number;
@@ -376,10 +379,13 @@ export interface SettingsSummary {
   tenant_id: string | null;
   client_id: string | null;
   secret_expires_at: string | null;
+  language?: string | null;
   poll_interval_minutes: number | null;
   scope_mode: string | null;
   scope_group_id: string | null;
   scope_upns: string[];
+  auto_backup_enabled: boolean;
+  auto_backup_mode: "new" | "overwrite";
   bootstrap_complete: boolean;
 }
 
@@ -613,6 +619,7 @@ export type ConsumptionReportType =
   | "MCSMessages"
   | "MCSMessages:resource"
   | "MCSMessages:environment"
+  | "MCSMessages:user"
   | "AIByUserAndEnvironment"
   | "ApiByLicensedUser"
   | "ApiByNonLicensedUser"
@@ -747,6 +754,8 @@ export interface SettingsUpdatePayload {
   scope_mode?: string;
   scope_group_id?: string | null;
   scope_upns?: string[];
+  auto_backup_enabled?: boolean;
+  auto_backup_mode?: "new" | "overwrite";
 }
 
 export interface BridgeEvent {

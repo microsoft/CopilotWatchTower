@@ -483,6 +483,46 @@ def test_proxy_url_uses_browser_downloader_immediately(repo: Repository) -> None
     assert len(rows) == 2
 
 
+def test_proxy_url_reports_direct_browser_fallback_without_backend_token_message(repo: Repository) -> None:
+    proxy_url = (
+        "https://nam.proxyservice.ediscovery.svc.cloud.microsoft/"
+        "ediscovery/api/proxy/exportaedblobFileResult(abc123)"
+    )
+    package = _zip_with(
+        [
+            {
+                "id": "i1",
+                "conversationId": "conv1",
+                "createdDateTime": "2026-05-02T10:00:00Z",
+                "prompt": "p",
+                "response": "r",
+            }
+        ]
+    )
+    export_payload = {
+        "status": "succeeded",
+        "exportFileMetadata": [{"downloadUrl": proxy_url}],
+    }
+    graph = _FakeGraph(export_payload, package)
+    job = _job(job_id="job-proxy-message")
+    repo.upsert_ediscovery_job(job)
+    progress: list[tuple[str, str]] = []
+
+    orch = EdiscoveryOrchestrator(
+        graph,
+        repo,
+        on_progress=lambda status, message: progress.append((status, message)),
+        browser_downloader=lambda url: package,
+        poll_seconds=0,
+        max_poll_seconds=5,
+    )
+
+    orch.run(job)
+
+    assert any("브라우저 전용 프록시" in message for _, message in progress)
+    assert not any("백엔드 토큰 다운로드가 거부" in message for _, message in progress)
+
+
 def test_auth_redirect_uses_automatic_browser_fallback(repo: Repository) -> None:
     """When token download is rejected (auth redirect), the orchestrator uses
     the automatic headless browser downloader and parses its result."""

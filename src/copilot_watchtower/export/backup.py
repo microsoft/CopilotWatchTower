@@ -80,15 +80,19 @@ def build_backup_bundle(
     profile: "Profile | None" = None,
     *,
     progress: ProgressFn | None = None,
+    bundle_path: Path | None = None,
 ) -> Path:
     """Create a ``*.cwtbackup`` archive from ``source_db_path``.
 
     Returns the path to the written bundle inside ``dest_dir``.
     """
     dest_dir.mkdir(parents=True, exist_ok=True)
-    stem = _safe_stem(profile.name if profile else "profile")
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    bundle_path = dest_dir / f"cwt-backup-{stem}-{stamp}{BUNDLE_SUFFIX}"
+    if bundle_path is None:
+        stem = _safe_stem(profile.name if profile else "profile")
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        bundle_path = dest_dir / f"cwt-backup-{stem}-{stamp}{BUNDLE_SUFFIX}"
+    else:
+        bundle_path.parent.mkdir(parents=True, exist_ok=True)
 
     with tempfile.TemporaryDirectory(prefix="cwt-backup-") as tmp:
         tmp_dir = Path(tmp)
