@@ -31,6 +31,8 @@ from ..config import (
     GRAPH_APP_ROLE_REPORT_SETTINGS_READWRITE_ALL,
     GRAPH_APP_ROLE_REPORTS_READ_ALL,
     GRAPH_APP_ROLE_USER_READ_ALL,
+    GRAPH_DELEGATED_SCOPE_APP_CATALOG_READ_ALL,
+    GRAPH_DELEGATED_SCOPE_COPILOT_PACKAGES_READ_ALL,
     GRAPH_DELEGATED_SCOPE_EDISCOVERY_READWRITE_ALL,
     MS_GRAPH_BASE_V1,
     MS_GRAPH_RESOURCE_ID,
@@ -84,6 +86,13 @@ REQUIRED_GRAPH_PERMISSIONS: list[tuple[str, str, str]] = [
     # non-admin eDiscovery Manager can run collection without a blocked
     # per-user consent prompt.
     ("eDiscovery.ReadWrite.All (Delegated)", GRAPH_DELEGATED_SCOPE_EDISCOVERY_READWRITE_ALL, "Scope"),
+    # Delegated scopes (type "Scope") for the Copilot package / agent catalog
+    # sync. The catalog probe (/copilot/admin/catalog/packages) runs with a
+    # delegated token, so declaring these here lets the bootstrap admin's
+    # tenant-wide consent at profile creation cover them — otherwise a newly
+    # onboarded profile fails the catalog step with a 401 and saves no agents.
+    ("CopilotPackages.Read.All (Delegated)", GRAPH_DELEGATED_SCOPE_COPILOT_PACKAGES_READ_ALL, "Scope"),
+    ("AppCatalog.Read.All (Delegated)", GRAPH_DELEGATED_SCOPE_APP_CATALOG_READ_ALL, "Scope"),
 ]
 
 # Human-readable permission names, in announce order, for UI surfaces.

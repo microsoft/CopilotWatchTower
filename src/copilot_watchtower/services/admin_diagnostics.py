@@ -100,15 +100,16 @@ def _probe(
         )
     except GraphError as ge:
         status = _status_from_graph_error(ge)
+        detail_text = _error_text(ge.detail)
         return CopilotAdminDiagnosticRow(
             key=key,
             label=label,
             endpoint=endpoint,
             status=status,
             status_code=ge.status,
-            summary=_error_summary(status),
+            summary=_error_summary(status, detail_text),
             payload_json=None,
-            error=_error_text(ge.detail),
+            error=detail_text,
             captured_at=captured_at,
         )
     except Exception as exc:  # noqa: BLE001
@@ -162,11 +163,19 @@ def _status_from_graph_error(error: GraphError) -> str:
     return "error"
 
 
-def _error_summary(status: str) -> str:
+def _error_summary(status: str, detail: str | None = None) -> str:
+    if status == "forbidden" and detail and _is_agent365_license_error(detail):
+        return "Agent 365 라이선스 미보유 테넌트 (에이전트 카탈로그 사용 불가)"
     return {
-        "forbidden": "권한 또는 관리자 정책으로 접근 거부",
-        "not_found": "API 미배포 또는 리소스 없음",
+        "forbidden": "권한 또는 관리자 정책으로 접근 거부 (동의 대기 가능)",
+        "not_found": "API 미배포 또는 리소스 없음 (테넌트 미지원)",
     }.get(status, "진단 호출 실패")
+
+
+def _is_agent365_license_error(detail: str) -> bool:
+    lowered = detail.lower()
+    return "agent 365" in lowered or "agent365" in lowered
+
 
 
 def _error_text(detail: object) -> str:

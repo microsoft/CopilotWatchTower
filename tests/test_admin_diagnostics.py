@@ -62,6 +62,23 @@ class _FakeDelegatedCatalogUnexpected:
         raise RuntimeError("catalog probe transport failure")
 
 
+class _FakeDelegatedCatalogUnlicensed:
+    def list_copilot_admin_catalog_packages(self):
+        raise GraphError(
+            403,
+            {
+                "error": {
+                    "code": "Forbidden",
+                    "message": (
+                        "Customer must be a licensed for Agent 365 in order to "
+                        "use Agent 365 Graph APIs"
+                    ),
+                }
+            },
+        )
+
+
+
 @pytest.fixture()
 def repo(tmp_path: Path) -> Repository:
     db = tmp_path / "store.db"
@@ -107,6 +124,23 @@ def test_collect_copilot_admin_diagnostics_uses_delegated_catalog_graph(repo: Re
     assert agents["pkg-agent"].display_name == "Delegated Agent"
     assert agents["pkg-agent"].source == "catalog_packages"
     assert "pkg-mail" not in agents
+
+
+def test_collect_copilot_admin_diagnostics_surfaces_agent365_license_missing(repo: Repository) -> None:
+    assert (
+        collect_copilot_admin_diagnostics(
+            repo,
+            _FakeGraphForbiddenCatalog(),  # type: ignore[arg-type]
+            catalog_graph=_FakeDelegatedCatalogUnlicensed(),  # type: ignore[arg-type]
+        )
+        == 4
+    )
+
+    rows = {row.key: row for row in repo.list_copilot_admin_diagnostics()}
+    catalog = rows["catalog_packages"]
+    assert catalog.status == "forbidden"
+    assert catalog.status_code == 403
+    assert "Agent 365 라이선스 미보유" in (catalog.summary or "")
 
 
 def test_collect_copilot_admin_diagnostics_surfaces_delegated_token_expired(repo: Repository) -> None:

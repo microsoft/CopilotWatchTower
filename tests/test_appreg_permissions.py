@@ -8,6 +8,8 @@ from copilot_watchtower.config import (
     GRAPH_APP_ROLE_COPILOT_PACKAGES_READ_ALL,
     GRAPH_APP_ROLE_COPILOT_POLICY_SETTINGS_READ,
     GRAPH_APP_ROLE_REPORT_SETTINGS_READWRITE_ALL,
+    GRAPH_DELEGATED_SCOPE_APP_CATALOG_READ_ALL,
+    GRAPH_DELEGATED_SCOPE_COPILOT_PACKAGES_READ_ALL,
     GRAPH_DELEGATED_SCOPE_EDISCOVERY_READWRITE_ALL,
 )
 from copilot_watchtower.services.appreg import (
@@ -54,6 +56,24 @@ def test_copilot_package_sync_uses_delegated_scopes() -> None:
         "CopilotPackages.Read.All",
         "AppCatalog.Read.All",
     ]
+
+
+def test_copilot_catalog_delegated_scopes_are_declared_for_admin_consent() -> None:
+    # The delegated (oauth2PermissionScope) ids, not the application role ids.
+    assert GRAPH_DELEGATED_SCOPE_COPILOT_PACKAGES_READ_ALL == "a2dcfcb9-cbe8-4d42-812d-952e55cf7f3f"
+    assert GRAPH_DELEGATED_SCOPE_APP_CATALOG_READ_ALL == "88e58d74-d3df-44f3-ad47-e89edf4472e4"
+    by_id = {
+        item["id"]: item
+        for item in REQUIRED_RESOURCE_ACCESS["resourceAccess"]
+    }
+    # Both must be declared as delegated Scopes so tenant-wide admin consent at
+    # profile creation seeds a refresh token covering the catalog sync — a new
+    # profile must not fail the catalog step with a 401 and save zero agents.
+    assert by_id[GRAPH_DELEGATED_SCOPE_COPILOT_PACKAGES_READ_ALL]["type"] == "Scope"
+    assert by_id[GRAPH_DELEGATED_SCOPE_APP_CATALOG_READ_ALL]["type"] == "Scope"
+    # And onboarding must request them so the device-code login consents inline.
+    assert "CopilotPackages.Read.All" in DELEGATED_BOOTSTRAP_SCOPES
+    assert "AppCatalog.Read.All" in DELEGATED_BOOTSTRAP_SCOPES
 
 
 def test_ediscovery_delegated_scope_is_declared_for_admin_consent() -> None:

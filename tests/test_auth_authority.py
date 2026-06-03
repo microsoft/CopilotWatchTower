@@ -51,6 +51,15 @@ def test_onboarding_requests_ediscovery_scope() -> None:
     assert "eDiscovery.ReadWrite.All" in DELEGATED_BOOTSTRAP_SCOPES
 
 
+def test_onboarding_requests_copilot_catalog_scopes() -> None:
+    # Onboarding must also request the delegated Copilot catalog scopes so the
+    # seeded refresh token covers the background catalog sync. Without these a
+    # newly onboarded profile fails the catalog step with a 401 and saves zero
+    # agents until the admin manually re-registers permissions.
+    assert "CopilotPackages.Read.All" in DELEGATED_BOOTSTRAP_SCOPES
+    assert "AppCatalog.Read.All" in DELEGATED_BOOTSTRAP_SCOPES
+
+
 def test_delegated_token_cache_path_is_tenant_scoped(tmp_path) -> None:
     tenant = "11111111-2222-3333-4444-555555555555"
     path = delegated_token_cache_path(tmp_path, tenant)

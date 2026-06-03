@@ -16,6 +16,7 @@ import {
 } from "../lib/bridge";
 import { formatKstDateTime, formatNumber } from "../lib/format";
 import { useBridgeEvents } from "../lib/useBridgeEvents";
+import { copyText } from "../lib/clipboard";
 
 const BRIDGE_AVAILABLE = isBridgeAvailable();
 
@@ -122,11 +123,10 @@ export function EdiscoveryPage() {
 
   async function copyLog() {
     const text = filteredEvents.map((e) => `[${e.at}] ${e.type} ${JSON.stringify(e.payload ?? {})}`).join("\n");
-    try {
-      await navigator.clipboard.writeText(text);
+    if (await copyText(text)) {
       toast.push("로그를 복사했습니다.", "success");
-    } catch (err) {
-      toast.push(`복사 실패: ${(err as Error).message}`, "danger");
+    } else {
+      toast.push("복사 실패: 클립보드에 접근할 수 없습니다.", "danger");
     }
   }
 

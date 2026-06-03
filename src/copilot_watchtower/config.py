@@ -47,6 +47,17 @@ GRAPH_APP_ROLE_AGENT_REGISTRATION_READ_ALL = "d3acceb6-4673-47c0-aeac-582f2c7cf7
 GRAPH_APP_ROLE_COPILOT_PACKAGES_READ_ALL = "72f0655d-6228-4ddc-8e1b-164973b9213b"
 GRAPH_APP_ROLE_COPILOT_POLICY_SETTINGS_READ = "556d5e2e-1081-4452-8147-26c3a1b06f58"
 
+# Delegated permission (oauth2PermissionScope) GUIDs for the Copilot package /
+# agent catalog sync. These are *delegated* scope ids and are distinct from
+# the application role ids above (e.g. CopilotPackages.Read.All app role is
+# 72f0655d-..., its delegated scope is a2dcfcb9-...). The Copilot admin
+# catalog endpoint (/copilot/admin/catalog/packages) is consumed with a
+# delegated token, so these scopes are declared in the app registration and
+# requested during onboarding to seed the bootstrap admin's refresh-token
+# cache. Without them, background catalog sync fails silently with a 401.
+GRAPH_DELEGATED_SCOPE_COPILOT_PACKAGES_READ_ALL = "a2dcfcb9-cbe8-4d42-812d-952e55cf7f3f"
+GRAPH_DELEGATED_SCOPE_APP_CATALOG_READ_ALL = "88e58d74-d3df-44f3-ad47-e89edf4472e4"
+
 # MicrosoftPurviewEDiscovery resource. Kept as a token-audience candidate for
 # non-proxy export URLs; direct-download proxy URLs go through Playwright.
 PURVIEW_EDISCOVERY_RESOURCE_ID = "b26e684c-5068-4120-a679-64a5d2c909d9"
@@ -79,6 +90,13 @@ DELEGATED_BOOTSTRAP_SCOPES = [
     # the same sign-in. The cached refresh token then lets eDiscovery
     # collection acquire tokens silently — no second device-code login.
     "eDiscovery.ReadWrite.All",
+    # Requested during onboarding so the seeded refresh token covers the
+    # delegated Copilot package / agent catalog sync. The background catalog
+    # probe (/copilot/admin/catalog/packages) acquires these silently; if they
+    # are not consented here, a newly onboarded profile fails the catalog step
+    # with a 401 "위임 로그인 만료" and saves zero agents.
+    "CopilotPackages.Read.All",
+    "AppCatalog.Read.All",
 ]
 
 DELEGATED_COPILOT_AGENT_SYNC_SCOPES = [

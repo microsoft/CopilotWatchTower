@@ -467,12 +467,28 @@ class AuditCollectorWorker(QObject):
         self.log_line.emit(f"Copilot 관리 진단: {rows}개 항목 갱신")
         diagnostics = self.repo.list_copilot_admin_diagnostics()
         errors = 0
+        agent_source_failed = False
+        agent_source_ok = False
         for row in diagnostics:
             self.log_line.emit(f"  · {row.label}: {row.summary or row.status} ({row.status_code or '-'})")
             if row.key == "catalog_packages" and row.status in {"forbidden", "error"}:
                 errors += 1
+            if row.key in {"catalog_packages", "agent_registrations"}:
+                if row.status == "ok":
+                    agent_source_ok = True
+                else:
+                    agent_source_failed = True
         agent_count = len(self.repo.list_copilot_agents(limit=10000))
-        self.log_line.emit(f"  · 에이전트 목록: {agent_count:,}개 저장")
+        if agent_source_failed and not agent_source_ok and agent_count:
+            # Every agent source failed, so the merge skipped them entirely
+            # (replace_copilot_agents_for_source only runs for ok sources). The
+            # previously collected agent list is kept intact rather than being
+            # wiped to zero — surface that so the count isn't misread as loss.
+            self.log_line.emit(
+                f"  · 에이전트 목록: 모든 소스 실패 → 기존 {agent_count:,}개 유지"
+            )
+        else:
+            self.log_line.emit(f"  · 에이전트 목록: {agent_count:,}개 저장")
         self.audit_progress.emit("관리 진단", 100)
         return rows, errors
 

@@ -705,7 +705,7 @@ def test_admin_diagnostics_logs_catalog_success_without_optional_error_count(rep
     assert rows == 4
     assert errors == 0
     assert any("Copilot 패키지/Agent 카탈로그: 패키지 1건 조회 (200)" in line for line in logs)
-    assert any("Copilot 제한 모드: 권한 또는 관리자 정책으로 접근 거부 (403)" in line for line in logs)
+    assert any("Copilot 제한 모드: 권한 또는 관리자 정책으로 접근 거부 (동의 대기 가능) (403)" in line for line in logs)
     assert any("에이전트 목록: 1개 저장" in line for line in logs)
 
 
