@@ -1,0 +1,87 @@
+{
+  "filters": {
+    "thresholdLabel": "Inactive threshold",
+    "days": "{{n}} days",
+    "staleOnly": "Show inactive/unused only",
+    "searchPlaceholder": "Search name / identifier",
+    "submit": "Search"
+  },
+  "kpi": {
+    "total": "Total agents",
+    "totalHint": "{{n}} usage events",
+    "active": "Active",
+    "activeHint": "Based on {{n}} days",
+    "stale": "Inactive",
+    "staleHint": "Past {{n}}-day threshold",
+    "neverUsed": "Unused",
+    "neverUsedHint": "No activity record"
+  },
+  "table": {
+    "title": "Agent activity",
+    "agentCount": "{{n}} agents"
+  },
+  "bridgeOffline": "Bridge is not connected. Run the desktop app with --web.",
+  "openInAdminCenter": "Open in M365 admin center",
+  "columns": {
+    "name": "Agent",
+    "source": "Source",
+    "state": "Status",
+    "usage": "Usage events",
+    "daysInactive": "Days inactive",
+    "lastActivity": "Last activity"
+  },
+  "status": {
+    "active": "Active",
+    "stale": "Inactive",
+    "never_used": "Unused"
+  },
+  "confidence": {
+    "ok": "Confirmed by audit data",
+    "limited_audit_window": "Judgment deferred: audit window too short",
+    "no_audit_data": "Cannot determine: no audit events"
+  },
+  "rawFields": {
+    "publisher": "Publisher",
+    "description": "Description",
+    "version": "Version",
+    "distributionMethod": "Distribution method",
+    "categories": "Categories"
+  },
+  "detail": {
+    "usageEvents": "Usage events",
+    "daysInactive": "Days inactive",
+    "daysValue": "{{n}} days",
+    "lastActivity": "Last activity",
+    "activitySource": "Activity source",
+    "statusValue": "Status value",
+    "confidenceBasis": "Determination basis",
+    "catalogInfo": "Catalog info",
+    "identifiers": "Identifiers",
+    "internalId": "Internal ID",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "auditStart": "Audit coverage start",
+    "auditEnd": "Audit coverage end"
+  },
+  "identityEvents": {
+    "title": "Agent identity events",
+    "subtitle": "Copilot agent service-principal create/delete history derived from directory audits",
+    "count": "{{n}}",
+    "empty": "No agent identity events.",
+    "columns": {
+      "time": "Time",
+      "action": "Action",
+      "agent": "Agent",
+      "actor": "Actor",
+      "result": "Result"
+    },
+    "action": {
+      "created": "Created",
+      "deleted": "Deleted",
+      "updated": "Updated",
+      "other": "Other"
+    },
+    "known": "Matched inventory",
+    "unknown": "Unmatched"
+  }
+}

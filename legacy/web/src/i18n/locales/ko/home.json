@@ -1,0 +1,49 @@
+{
+  "kpi": {
+    "activeUsers": "활성 사용자",
+    "activeUsersHint": "대상 {{n}}명",
+    "totalTurns": "총 턴",
+    "totalTurnsHint": "스레드 {{n}}건",
+    "meaningfulInteractions": "의미있는 상호작용",
+    "meaningfulInteractionsHint": "세션 기준 · 프롬프트 {{n}}건",
+    "licenseInactive": "라이선스 미활성",
+    "licenseInactiveHintBase": "라이선스 보유 · 최근 30일",
+    "licenseInactiveHintRate": "채택률 {{rate}}% · 라이선스 {{n}}명",
+    "apiConversations": "API 대화",
+    "apiConversationsHint": "스레드 {{n}}",
+    "riskSignals": "위험 신호",
+    "riskSignalsHint": "차단/거부/실패"
+  },
+  "charts": {
+    "usageTrendTitle": "Copilot 사용 추이",
+    "last30Days": "최근 30일",
+    "legend": {
+      "turns": "턴",
+      "threads": "스레드",
+      "prompts": "프롬프트"
+    }
+  },
+  "topUsers": {
+    "title": "상위 사용자 TOP 5",
+    "empty": "표시할 사용자가 없습니다."
+  },
+  "appUsage": {
+    "title": "앱별 사용 분포",
+    "subtitle": "최근 30일 · 턴 기준",
+    "empty": "표시할 앱 활동이 없습니다.",
+    "otherApp": "기타"
+  },
+  "report": {
+    "title": "공식 보고서 (D30)",
+    "empty": "집계 결과가 없습니다.",
+    "activeUsersLabel": "활성 사용자",
+    "enabledCount": "활성화 {{n}}",
+    "snapshot": "스냅샷: D7 {{d7}} · D30 {{d30}} · D90 {{d90}}"
+  },
+  "bridge": {
+    "notConnected": "브리지 미연결 상태입니다. 데스크톱 앱에서 --web 으로 실행하세요."
+  },
+  "footer": {
+    "note": "세션 기반 \"의미있는 상호작용\"과 채택 지표는 수집된 Copilot 상호작용을 기반으로 합니다. Teams 보존 정책(기본 30일)에 따라 일부 과거 Copilot 상호작용이 삭제될 수 있어, 오래된 기간의 수치는 실제보다 낮게 보일 수 있습니다."
+  }
+}

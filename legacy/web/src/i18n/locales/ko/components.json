@@ -1,0 +1,24 @@
+{
+  "dataTable": {
+    "sortHint": "클릭하여 정렬",
+    "resizeHint": "드래그하여 너비 조정",
+    "empty": "표시할 데이터가 없습니다."
+  },
+  "filterBar": {
+    "period": "기간",
+    "allOption": "(전체)",
+    "user": "사용자",
+    "app": "앱",
+    "searchPlaceholder": "이름 / UPN 검색",
+    "submit": "조회",
+    "reset": "초기화"
+  },
+  "rawJsonModal": {
+    "copy": "복사",
+    "copied": "복사됨",
+    "copyFailed": "복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.",
+    "emptyBody": "(원본 데이터 없음)",
+    "noRawData": "원본 데이터 없음",
+    "viewRawData": "원본 데이터 보기"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "kinds": {
+    "conversation": "Collect conversations (API)",
+    "audit": "Audit events",
+    "usage": "Official usage",
+    "diagnostics": "Agents",
+    "consumption": "Power Platform credits",
+    "transcripts": "Collect conversations (Teams)",
+    "flow_runs": "Agent runs (flows)",
+    "agent_definitions": "Agent risk analysis"
+  },
+  "ediscoveryStatus": {
+    "pending": "Pending",
+    "case": "Case",
+    "searching": "Search",
+    "estimating": "Estimate",
+    "exporting": "Export",
+    "downloading": "Download",
+    "parsing": "Parse",
+    "done": "Done",
+    "error": "Error"
+  },
+  "toolbar": {
+    "allKinds": "(All kinds)",
+    "system": "System",
+    "search": "Search",
+    "errorsOnly": "Errors only",
+    "group": "Group",
+    "resume": "Resume",
+    "pause": "Pause",
+    "copy": "Copy",
+    "save": "Save",
+    "clear": "Clear"
+  },
+  "counts": {
+    "events": "Events",
+    "warnings": "Warnings",
+    "errors": "Errors",
+    "done": "Done",
+    "paused": "Paused"
+  },
+  "systemKind": "System",
+  "empty": "No events. Start a collection job.",
+  "rowTitle": "Click to view the raw payload",
+  "event": {
+    "errorFallback": "Error",
+    "progress": "Progress: {{message}}",
+    "ediscovery": "[eDiscovery] {{status}}: {{message}}",
+    "user": "User: {{display}}",
+    "fetchedCount": "+{{n}}",
+    "started": "Started: {{kind}}",
+    "finished": "Done: {{kind}}",
+    "convDetail": "Users {{users}} · Conversations {{interactions}} · Errors {{errors}}",
+    "genericDetail": "{{label}} · Errors {{errors}}",
+    "reqStart": "Requested: start {{kind}}",
+    "reqStop": "Requested: stop {{kind}}",
+    "ended": "Ended: {{kind}}",
+    "settingsUpdated": "Settings updated",
+    "settingsDetail": "interval={{interval}}min · scope={{scope}}",
+    "dialog": "Dialog: {{kind}}",
+    "saved": "Saved",
+    "profileRemoved": "Profile deleted"
+  }
+}

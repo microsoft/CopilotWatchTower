@@ -1,0 +1,40 @@
+{
+  "bridge": {
+    "offlineBefore": "Python 브리지에 연결되어 있지 않습니다. 데스크톱 앱에서 ",
+    "offlineMiddle": " 옵션으로 실행하거나, 개발 시 ",
+    "offlineAfter": "을 설정하세요."
+  },
+  "kpi": {
+    "activeUsers": "활성 사용자",
+    "activeUsersHint": "대상 {{n}}명",
+    "threads": "스레드",
+    "threadsHint": "선택 범위",
+    "messages": "메시지",
+    "messagesHint": "프롬프트 {{n}}건",
+    "topApp": "상위 앱"
+  },
+  "charts": {
+    "dailyTitle": "날짜별 스레드 / 메시지",
+    "messagesSeries": "메시지",
+    "threadsSeries": "스레드",
+    "appMessagesTitle": "앱별 메시지"
+  },
+  "tables": {
+    "userSummaryTitle": "사용자 요약",
+    "userCount": "{{n}}명",
+    "dailyDetailTitle": "일자별 상세",
+    "rowCount": "{{n}}행"
+  },
+  "columns": {
+    "user": "사용자",
+    "activeDays": "활성일",
+    "threads": "스레드",
+    "messages": "메시지",
+    "prompts": "프롬프트",
+    "responses": "응답",
+    "apps": "앱",
+    "topApp": "상위 앱",
+    "lastActivity": "마지막 활동",
+    "date": "날짜"
+  }
+}

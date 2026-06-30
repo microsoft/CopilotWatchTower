@@ -1,0 +1,62 @@
+{
+  "filters": {
+    "submit": "조회",
+    "reset": "초기화",
+    "userFilter": "사용자 필터",
+    "appFilter": "앱 필터",
+    "allUsers": "모든 사용자",
+    "allEdiscoveryUsers": "모든 eDiscovery 사용자",
+    "allApps": "모든 앱"
+  },
+  "search": {
+    "scopeLabel": "검색 범위",
+    "scopeTooltip": "검색 범위: {{label}}",
+    "optionTitle": "제목",
+    "optionBody": "본문",
+    "placeholderAll": "제목·본문 검색",
+    "placeholderTitle": "제목 검색",
+    "placeholderBody": "대화 본문 검색",
+    "placeholderRestoredAll": "복원 대화 제목·본문 검색",
+    "placeholderRestoredTitle": "복원 대화 제목 검색",
+    "placeholderRestoredBody": "복원 대화 대화 본문 검색",
+    "ftsHint": "본문 검색은 전문 검색(FTS)을 사용합니다. 예) 보안 정책,  \"분기 보고서\",  예산 OR 비용"
+  },
+  "threads": {
+    "cardTitle": "스레드",
+    "count": "{{n}}개"
+  },
+  "columns": {
+    "started": "시작",
+    "user": "사용자",
+    "title": "제목",
+    "app": "앱",
+    "prompts": "프롬프트",
+    "bodyBadge": "본문",
+    "bodyMatchHint": "대화 본문에서 검색어가 발견되었습니다."
+  },
+  "detail": {
+    "title": "대화 상세",
+    "noSelection": "선택된 스레드 없음",
+    "selectPrompt": "왼쪽 목록에서 스레드를 선택하세요.",
+    "relatedAudit": "관련 감사 이벤트",
+    "auditCount": "{{n}}개",
+    "collapse": "접기",
+    "expand": "펼치기",
+    "noAuditMatch": "이 시간대에 매칭된 감사 이벤트가 없습니다.",
+    "noTurns": "표시할 turn이 없습니다.",
+    "rawData": "원본 데이터 · {{speaker}}",
+    "rawAuditEvent": "원본 감사 이벤트 · {{operation}}"
+  },
+  "export": {
+    "formatLabel": "스레드 내보내기 형식",
+    "export": "내보내기",
+    "exporting": "내보내는 중…",
+    "success": "스레드 내보내기 완료: {{filename}}",
+    "failed": "내보내기 실패: {{error}}",
+    "error": "내보내기 예외: {{message}}"
+  },
+  "bridge": {
+    "notConnected": "브리지 미연결 상태입니다. 데스크톱 앱에서 --web 으로 실행하세요."
+  },
+  "untitled": "(제목 없음)"
+}

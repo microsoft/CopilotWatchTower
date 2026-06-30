@@ -1,0 +1,73 @@
+{
+  "cardProfiles": "Profiles",
+  "cardSettings": "Settings",
+  "addProfileButton": "+ New profile",
+  "newTenantPlaceholder": "New tenant",
+  "col": {
+    "name": "Name",
+    "status": "Status",
+    "lastUsed": "Last used"
+  },
+  "currentBadge": "(current)",
+  "statusComplete": "Complete",
+  "statusNeedsInit": "Setup required",
+  "form": {
+    "loading": "Loading settings…",
+    "pollInterval": "Collection interval (min)",
+    "scope": "Collection scope",
+    "groupId": "Entra group ID",
+    "upnList": "UPN list (one per line)",
+    "language": "Language",
+    "autoBackup": "Auto-backup after collection",
+    "autoBackupCheckbox": "Automatically back up the current profile's data after each collection run",
+    "autoBackupMode": "Auto-backup mode",
+    "metaLine": "Tenant: {{tenant}} · Client: {{client}} · Secret expires: {{secret}}",
+    "autoBackupHint": "Auto-backup files are saved in the current profile's exports folder. Choosing overwrite keeps only a single `*-latest.cwtbackup` file.",
+    "creditAutoCollect": "Auto-collect credits",
+    "creditAutoCollectCheckbox": "Periodically auto-collect the consumption snapshot to keep daily-diff spike detection current",
+    "creditInterval": "Auto-collect interval (hours)",
+    "creditAutoCollectHint": "Defaults to 24 hours. When enabled, the licensing consumption snapshot is collected on this cadence and credit alerts are re-evaluated when it finishes."
+  },
+  "autoBackupModes": {
+    "new": "Create a new backup file each time",
+    "overwrite": "Keep only the latest auto-backup (overwrite)"
+  },
+  "languages": {
+    "ko_KR": "한국어",
+    "en_US": "English"
+  },
+  "version": {
+    "card": "Version · Updates",
+    "currentLabel": "Current version:",
+    "checking": "Checking…",
+    "checkLatest": "Check for updates",
+    "newVersionPrefix": "Version ",
+    "prerelease": " (pre-release)",
+    "newVersionSuffix": "{{pre}} is available.",
+    "openDownload": "Open download page",
+    "upToDate": "You're on the latest version.",
+    "githubHint": "Checks the latest GitHub release. Install updates directly from the download page."
+  },
+  "advanced": {
+    "card": "Advanced actions",
+    "permissions": "Permissions · Danger zone…",
+    "hint": "Actions that require a device-code flow — such as re-consenting to Graph permissions, deleting collected data, or resetting the tenant — open in a desktop dialog for safety."
+  },
+  "bridgeOffline": "The bridge is offline. Run this inside the desktop app.",
+  "actions": {
+    "addProfile": "Add profile",
+    "switchProfile": "Switch to {{name}}",
+    "deleteProfile": "Delete {{name}}",
+    "saveSettings": "Save settings",
+    "openPermissions": "Open permissions · danger zone"
+  },
+  "toasts": {
+    "checkFailed": "Couldn't check for the latest version.",
+    "newVersion": "A new version is available: {{version}}",
+    "upToDate": "You're on the latest version.",
+    "checkException": "Update check exception: {{message}}",
+    "actionFailed": "{{label}} failed: {{error}}",
+    "actionRequested": "{{label}} requested",
+    "actionException": "{{label}} exception: {{message}}"
+  }
+}

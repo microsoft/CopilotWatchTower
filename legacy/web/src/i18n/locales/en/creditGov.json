@@ -1,0 +1,193 @@
+{
+  "tiers": {
+    "billing": "Billed (lagged)",
+    "realtime": "Near real-time",
+    "predictive": "Static prediction"
+  },
+  "tierHints": {
+    "billing": "Day-over-day diff of the licensing billing snapshot. Accurate but aggregation-lagged.",
+    "realtime": "Based on flow-run history. Fresh, but run counts are a leading indicator, not credits.",
+    "predictive": "Static analysis of the agent definition (YAML). A risk prediction, not a certainty."
+  },
+  "bands": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "severity": {
+    "warn": "Warning",
+    "danger": "Critical"
+  },
+  "analysis": {
+    "title": "Agent Credit Analysis",
+    "tabs": {
+      "overview": "Overview",
+      "agents": "By agent",
+      "users": "By user",
+      "flows": "Run monitor",
+      "risk": "Risk prediction"
+    },
+    "kpi": {
+      "activeAlerts": "Active alerts",
+      "topSpikeAgent": "Top spiking agent",
+      "newAgents": "New agents (7d)",
+      "highRisk": "High-risk agents",
+      "runsToday": "Runs today",
+      "autonomousToday": "Autonomous (today)"
+    },
+    "spikeTop": "Top spikes (vs. previous day)",
+    "newAgentsTitle": "New agents (last 7 days)",
+    "noData": "No data yet. Run a consumption collection first.",
+    "spikeBadge": "spike ×{{ratio}}",
+    "trendTitle": "{{name}} daily consumption trend",
+    "trendHint": "Select a row to see its day-over-day trend.",
+    "deltaWindowDays": "Last {{days}} days"
+  },
+  "agentColumns": {
+    "name": "Agent",
+    "environment": "Environment",
+    "lastDelta": "Latest daily use",
+    "baseline": "Baseline (daily avg)",
+    "spike": "Spike ratio",
+    "latest": "Cumulative",
+    "lastDate": "As of"
+  },
+  "userColumns": {
+    "name": "User",
+    "upn": "UPN",
+    "lastDelta": "Latest daily use",
+    "baseline": "Baseline (daily avg)",
+    "spike": "Spike ratio",
+    "lastDate": "As of"
+  },
+  "newAgentColumns": {
+    "name": "Agent",
+    "environment": "Environment",
+    "firstSeen": "First seen",
+    "latest": "Cumulative use"
+  },
+  "flow": {
+    "title": "Agent Run Monitor",
+    "subtitle": "Power Automate / Copilot Studio flow run history (near-real-time)",
+    "kpi": {
+      "total": "Total runs (7d)",
+      "today": "Runs today",
+      "failed": "Failed",
+      "autonomous": "Autonomous",
+      "flows": "Flows"
+    },
+    "trendTitle": "Daily run count",
+    "agentsTitle": "Per-flow run summary",
+    "columns": {
+      "flow": "Flow",
+      "environment": "Environment",
+      "owner": "Owner",
+      "type": "Type",
+      "runsToday": "Today",
+      "baseline": "Baseline",
+      "failRate": "Fail rate",
+      "autonomous": "Autonomous",
+      "total": "Total runs",
+      "lastRun": "Last run"
+    },
+    "flowType": {
+      "0": "Power Automate",
+      "1": "Copilot Studio",
+      "2": "M365 Copilot agent"
+    },
+    "note": "Run counts are a leading indicator, not credits. See the billing tier for exact charges."
+  },
+  "risk": {
+    "title": "Agent Risk Prediction",
+    "subtitle": "Static analysis of the agent definition (YAML) — a prediction, not a certainty",
+    "columns": {
+      "name": "Agent",
+      "environment": "Environment",
+      "band": "Risk",
+      "score": "Score",
+      "trigger": "Autonomous/trigger",
+      "external": "External calls",
+      "tools": "Tools",
+      "loops": "Loops",
+      "generative": "Generative",
+      "modified": "Modified"
+    },
+    "factors": {
+      "autonomy": "Autonomy/trigger",
+      "external_calls": "External calls/connectors",
+      "tools": "Tool/skill calls",
+      "loops": "Loops/iteration",
+      "generative_orchestration": "Generative orchestration",
+      "knowledge": "Knowledge sources"
+    },
+    "factorTitle": "Risk factor breakdown",
+    "yes": "Yes",
+    "no": "No",
+    "noData": "No agent definitions yet. Run an agent risk analysis collection first.",
+    "detailTitle": "{{name}} risk detail"
+  },
+  "alerts": {
+    "title": "Credit Alerts",
+    "tabs": {
+      "active": "Active",
+      "history": "History",
+      "rules": "Rules"
+    },
+    "empty": "No active alerts.",
+    "emptyHistory": "No alert history.",
+    "acknowledge": "Acknowledge",
+    "acknowledgeAll": "Acknowledge all",
+    "acknowledged": "Acknowledged",
+    "columns": {
+      "severity": "Severity",
+      "tier": "Source",
+      "rule": "Rule",
+      "scope": "Scope",
+      "metric": "Observed",
+      "threshold": "Threshold",
+      "baseline": "Baseline",
+      "date": "As of",
+      "status": "Status",
+      "lastSeen": "Last seen"
+    },
+    "ruleColumns": {
+      "rule": "Rule",
+      "enabled": "On",
+      "threshold": "Threshold",
+      "secondary": "Secondary",
+      "severity": "Default severity"
+    },
+    "ruleNames": {
+      "agent_daily_abs": "Agent daily message threshold",
+      "user_daily_abs": "User daily message threshold",
+      "spike": "Spike vs baseline (ratio)",
+      "monthly_budget": "Projected monthly usage (budget)",
+      "flow_spike": "Flow run-volume spike (ratio)",
+      "flow_fail_loop": "Flow failure loop (fail rate)",
+      "runaway_autonomous": "Runaway autonomous agent (run count)",
+      "high_risk_agent": "High-risk agent (risk score)"
+    },
+    "ruleHints": {
+      "agent_daily_abs": "Alert when one agent's daily message consumption exceeds this value",
+      "user_daily_abs": "Alert when one user's daily message consumption exceeds this value",
+      "spike": "Alert when the latest daily use exceeds N× the baseline (secondary = min baseline floor)",
+      "monthly_budget": "Alert when the projected monthly messages exceed this value",
+      "flow_spike": "Alert when today's runs exceed N× baseline (secondary = min baseline runs)",
+      "flow_fail_loop": "Alert when fail rate exceeds this (0-1) and today's runs ≥ secondary",
+      "runaway_autonomous": "Alert when autonomous (no-human) run count exceeds this value",
+      "high_risk_agent": "Alert when the static risk score is at or above this value"
+    },
+    "save": "Save",
+    "saved": "Rule saved.",
+    "saveFailed": "Failed to save rule: {{error}}",
+    "ackDone": "Alert acknowledged.",
+    "toastNew": "{{count}} new credit alert(s) detected.",
+    "scopeTenant": "Whole tenant"
+  },
+  "banner": {
+    "title": "{{count}} credit alert(s)",
+    "danger": "incl. {{count}} critical",
+    "cta": "View alerts"
+  }
+}

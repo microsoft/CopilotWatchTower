@@ -1,0 +1,47 @@
+{
+  "filters": {
+    "source": "소스",
+    "searchPlaceholder": "사용자 / 작업 / 결과 / IP 검색",
+    "submit": "조회"
+  },
+  "sources": {
+    "all": "(전체 소스)",
+    "purview": "Purview 감사",
+    "entraAudit": "Entra 감사",
+    "entraSignin": "Entra 로그인"
+  },
+  "kpi": {
+    "auditEvents": "감사 이벤트",
+    "auditEventsHint": "선택 범위",
+    "blocked": "차단/거부",
+    "uniqueUsers": "고유 사용자",
+    "uniqueUsersHint": "upn 기준",
+    "topOperation": "상위 작업",
+    "topOperationHint": "{{n}}건"
+  },
+  "cards": {
+    "diagnosticsTitle": "관리 진단",
+    "diagnosticsCount": "{{n}}항목",
+    "auditEventsTitle": "감사 이벤트",
+    "auditEventsCount": "{{n}}건"
+  },
+  "diagnosticColumns": {
+    "label": "항목",
+    "endpoint": "엔드포인트",
+    "status": "상태",
+    "summary": "요약",
+    "capturedAt": "수집"
+  },
+  "eventColumns": {
+    "time": "시간",
+    "source": "소스",
+    "user": "사용자",
+    "operation": "작업",
+    "app": "앱",
+    "result": "결과",
+    "rawTitle": "원본 감사 이벤트 · {{operation}}"
+  },
+  "bridge": {
+    "offline": "브리지 미연결 상태입니다. 데스크톱 앱에서 --web 으로 실행하세요."
+  }
+}

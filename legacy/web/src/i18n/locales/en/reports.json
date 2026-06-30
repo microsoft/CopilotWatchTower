@@ -1,0 +1,31 @@
+{
+  "filters": {
+    "period": "Period",
+    "reportType": "Aggregate report",
+    "searchPlaceholder": "Search user / UPN",
+    "submit": "Search"
+  },
+  "kpi": {
+    "latestSnapshot": "Latest snapshot",
+    "periodHint": "Period {{period}}",
+    "activeUsers": "Active users",
+    "asOfHint": "As of {{date}}",
+    "enabledUsers": "Enabled users",
+    "adoptionRate": "Adoption rate",
+    "adoptionRateHint": "Active / Enabled"
+  },
+  "tables": {
+    "snapshotTitle": "Usage user detail ({{period}})",
+    "itemCount": "{{n}} items"
+  },
+  "columns": {
+    "snapshot": "Snapshot",
+    "user": "User",
+    "lastActivity": "Recent activity",
+    "dateInPeriod": "Date in period",
+    "period": "Period"
+  },
+  "empty": {
+    "bridgeOffline": "Bridge is not connected. Run with --web in the desktop app."
+  }
+}

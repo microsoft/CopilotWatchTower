@@ -1,0 +1,49 @@
+{
+  "kpi": {
+    "activeUsers": "Active users",
+    "activeUsersHint": "Target {{n}} users",
+    "totalTurns": "Total turns",
+    "totalTurnsHint": "{{n}} threads",
+    "meaningfulInteractions": "Meaningful interactions",
+    "meaningfulInteractionsHint": "By session · {{n}} prompts",
+    "licenseInactive": "Inactive licenses",
+    "licenseInactiveHintBase": "Licensed · last 30 days",
+    "licenseInactiveHintRate": "Adoption {{rate}}% · {{n}} licensed",
+    "apiConversations": "API conversations",
+    "apiConversationsHint": "Threads {{n}}",
+    "riskSignals": "Risk signals",
+    "riskSignalsHint": "Blocked / Denied / Failed"
+  },
+  "charts": {
+    "usageTrendTitle": "Copilot usage trend",
+    "last30Days": "Last 30 days",
+    "legend": {
+      "turns": "Turns",
+      "threads": "Threads",
+      "prompts": "Prompts"
+    }
+  },
+  "topUsers": {
+    "title": "Top 5 users",
+    "empty": "No users to display."
+  },
+  "appUsage": {
+    "title": "Usage distribution by app",
+    "subtitle": "Last 30 days · by turns",
+    "empty": "No app activity to display.",
+    "otherApp": "Other"
+  },
+  "report": {
+    "title": "Official report (D30)",
+    "empty": "No aggregated results.",
+    "activeUsersLabel": "Active users",
+    "enabledCount": "Enabled {{n}}",
+    "snapshot": "Snapshot: D7 {{d7}} · D30 {{d30}} · D90 {{d90}}"
+  },
+  "bridge": {
+    "notConnected": "The bridge is not connected. Launch the desktop app with --web."
+  },
+  "footer": {
+    "note": "Session-based \"meaningful interactions\" and adoption metrics are based on collected Copilot interactions. Under the Teams retention policy (30 days by default), some older Copilot interactions may be deleted, so figures for older periods may appear lower than the actual values."
+  }
+}

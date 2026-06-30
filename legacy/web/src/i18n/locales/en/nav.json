@@ -1,0 +1,38 @@
+{
+  "sections": {
+    "dashboard": "Dashboard",
+    "usageAnalysis": "Usage analytics",
+    "governance": "Governance",
+    "dataCollection": "Data collection",
+    "management": "Management"
+  },
+  "items": {
+    "home": "Dashboard",
+    "insights": "Usage insights",
+    "conversationsApi": "Conversations (API)",
+    "conversationsEdiscovery": "Conversations (e-Discovery)",
+    "conversationsDataverse": "Conversations (Teams)",
+    "agents": "Agents",
+    "security": "Security / Audit",
+    "reports": "Official reports",
+    "consumption": "Power Platform credits",
+    "agentCredit": "Agent credit analysis",
+    "creditAlerts": "Credit alerts",
+    "collectOverview": "Overview",
+    "collectConversation": "Collect conversations (API)",
+    "ediscovery": "Collect conversations (e-Discovery)",
+    "collectTranscripts": "Collect conversations (Teams)",
+    "collectDiagnostics": "Agents",
+    "collectConsumption": "Power Platform credits",
+    "collectFlowRuns": "Agent runs (flows)",
+    "collectAgentDefs": "Agent risk analysis",
+    "collectAudit": "Audit events",
+    "collectUsage": "Official usage",
+    "backupRestore": "Backup & restore",
+    "dataExport": "Export",
+    "settings": "Settings"
+  },
+  "menu": "Main menu",
+  "collapse": "Collapse menu",
+  "profilePrefix": "Profile: {{name}}"
+}

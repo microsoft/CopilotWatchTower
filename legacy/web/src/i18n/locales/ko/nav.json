@@ -1,0 +1,38 @@
+{
+  "sections": {
+    "dashboard": "대시보드",
+    "usageAnalysis": "사용량 분석",
+    "governance": "거버넌스",
+    "dataCollection": "데이터 수집",
+    "management": "관리"
+  },
+  "items": {
+    "home": "대시보드",
+    "insights": "사용 인사이트",
+    "conversationsApi": "대화 탐색(API)",
+    "conversationsEdiscovery": "대화 탐색(e-Discovery)",
+    "conversationsDataverse": "대화 탐색(Teams)",
+    "agents": "에이전트",
+    "security": "보안/감사",
+    "reports": "공식 보고서",
+    "consumption": "파워플랫폼 크레딧",
+    "agentCredit": "에이전트 크레딧 분석",
+    "creditAlerts": "크레딧 알람",
+    "collectOverview": "개요",
+    "collectConversation": "대화 수집(API)",
+    "ediscovery": "대화 수집(e-Discovery)",
+    "collectTranscripts": "대화 수집(Teams)",
+    "collectDiagnostics": "에이전트",
+    "collectConsumption": "파워플랫폼 크레딧",
+    "collectFlowRuns": "에이전트 실행(플로우)",
+    "collectAgentDefs": "에이전트 위험 분석",
+    "collectAudit": "감사 이벤트",
+    "collectUsage": "공식 사용량",
+    "backupRestore": "백업·복원",
+    "dataExport": "내보내기",
+    "settings": "설정"
+  },
+  "menu": "주요 메뉴",
+  "collapse": "메뉴 접기",
+  "profilePrefix": "프로필: {{name}}"
+}

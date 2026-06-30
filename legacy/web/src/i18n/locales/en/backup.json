@@ -1,0 +1,44 @@
+{
+  "desktopOnly": "Backup and restore are only available in the desktop app.",
+  "backup": {
+    "title": "Data backup",
+    "openFolder": "Open exports folder",
+    "description": "Creates a portable backup file (.cwtbackup) from the current profile's collected data. Settings and secret values are not included.",
+    "create": "Create backup",
+    "busy": "Backing up…",
+    "lastResult": "✓ {{filename}} · {{rows}} rows total"
+  },
+  "restore": {
+    "title": "Data restore (import)",
+    "description": "Imports a backup file into the currently active profile. Existing items are automatically skipped as duplicates. To import into a new profile, first create and switch to it in Settings, then restore.",
+    "pickFile": "Choose backup file",
+    "confirm": "Restore selected backup",
+    "busy": "Restoring…",
+    "selectedFile": "Selected: {{file}}",
+    "noName": "No name",
+    "manifestInfo": "Backup info: {{name}} · {{rows}} rows total · created {{created}}",
+    "lastResult": "✓ {{added}} added · {{skipped}} duplicates skipped · {{threads}} threads recomputed"
+  },
+  "wipe": {
+    "title": "Danger zone — delete all data",
+    "description": "Permanently deletes all data collected for this profile (conversations, audit logs, usage, agents, consumption, flow runs, credit alerts, and more). App registration and settings are kept. This cannot be undone — back up first.",
+    "button": "Delete all data for this profile",
+    "confirmPrompt": "Press again to permanently delete. This cannot be undone.",
+    "confirm": "Yes, delete everything",
+    "cancel": "Cancel",
+    "busy": "Deleting…",
+    "lastResult": "✓ {{deleted}} rows deleted"
+  },
+  "toasts": {
+    "backupFinished": "Backup complete: {{filename}}",
+    "backupFailed": "Backup failed: {{error}}",
+    "backupStartFailed": "Couldn't start backup: {{error}}",
+    "restoreFinished": "Restore complete: {{added}} added, {{skipped}} duplicates skipped",
+    "restoreFailed": "Restore failed: {{error}}",
+    "restoreStartFailed": "Couldn't start restore: {{error}}",
+    "inspectFailed": "Couldn't read the backup file.",
+    "wipeFinished": "All data deleted: {{deleted}} rows",
+    "wipeFailed": "Data deletion failed: {{error}}",
+    "wipeStartFailed": "Couldn't start data deletion: {{error}}"
+  }
+}

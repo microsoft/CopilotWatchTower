@@ -1,0 +1,80 @@
+{
+  "kpi": {
+    "targetUsers": "Target users",
+    "active30d": "Active 30d {{n}}",
+    "collectedConversations": "Collected conversations",
+    "cumulative": "Cumulative",
+    "threads": "Threads",
+    "currentIndex": "Current index",
+    "status": "Status",
+    "running": "Running",
+    "idle": "Idle",
+    "progressRate": "Progress",
+    "totalRunning": "Total running",
+    "none": "None"
+  },
+  "toasts": {
+    "finished": "{{label}} done (errors {{errors}})",
+    "collectError": "Collection error",
+    "actionFailed": "{{label}} failed: {{error}}",
+    "actionRequested": "{{label}} requested",
+    "actionException": "{{label}} exception: {{message}}",
+    "logCopied": "Log copied.",
+    "copyFailed": "Copy failed: clipboard is not accessible."
+  },
+  "progress": {
+    "done": "Done",
+    "start": "Started"
+  },
+  "actions": {
+    "start": "Start {{label}}",
+    "stop": "Stop {{label}}"
+  },
+  "transcripts": {
+    "addSelfAdmin": "Automatically add me as a system administrator to environments I lack access to",
+    "addSelfAdminHint": "Only for environments where a token couldn't be issued: this adds you as a system administrator in the admin center and retries collection. Because it grants admin rights on shared/production environments, use it only when necessary."
+  },
+  "cards": {
+    "liveLog": "Live log",
+    "runHistory": "Run history",
+    "recentCount": "Last {{n}}",
+    "auditState": "Audit collection state"
+  },
+  "runHistory": {
+    "empty": "No run history yet. Once you start collecting, rows are added regardless of success or failure."
+  },
+  "bridgeOffline": "The bridge is offline. Run this inside the desktop app.",
+  "tile": {
+    "running": "Running",
+    "idle": "Idle",
+    "start": "Start",
+    "stop": "Stop"
+  },
+  "runStatus": {
+    "running": "In progress",
+    "success": "Success",
+    "warn": "Has errors",
+    "error": "Stopped"
+  },
+  "runLog": {
+    "empty": "No logs recorded.",
+    "title": "{{label}} run log"
+  },
+  "runColumns": {
+    "started": "Started",
+    "finished": "Finished",
+    "inProgress": "In progress",
+    "status": "Status",
+    "summary": "Summary",
+    "log": "Log"
+  },
+  "auditColumns": {
+    "source": "Source",
+    "lastSuccess": "Last success",
+    "count": "Count",
+    "status": "Status",
+    "error": "Error",
+    "inProgress": "In progress",
+    "ok": "OK"
+  }
+}

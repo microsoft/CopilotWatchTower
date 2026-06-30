@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>CopilotWatchTower · 코파일럿 워치타워</title>
-<meta name="description" content="테넌트 관리자를 위한 Microsoft 365 Copilot 사용 현황·대화 수집 도구. Python + PySide6로 제작한 Windows 데스크톱 앱." />
-<meta property="og:title" content="CopilotWatchTower (코파일럿 워치타워)" />
-<meta property="og:description" content="조직의 Microsoft 365 Copilot 사용 현황을 관리자가 직접 수집·분석하는 Windows 데스크톱 도구." />
+<title id="page-title">CopilotWatchTower · 코파일럿 워치타워</title>
+<meta id="meta-desc" name="description" content="테넌트 관리자를 위한 Microsoft 365 Copilot 사용 현황·대화 수집 도구. Electron + React + TypeScript로 제작한 Windows 데스크톱 앱." />
+<meta id="og-title" property="og:title" content="CopilotWatchTower (코파일럿 워치타워)" />
+<meta id="og-desc" property="og:description" content="조직의 Microsoft 365 Copilot 사용 현황을 관리자가 직접 수집·분석하는 Windows 데스크톱 도구." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://microsoft.github.io/CopilotWatchTower/" />
 <meta property="og:image" content="https://microsoft.github.io/CopilotWatchTower/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="CopilotWatchTower (코파일럿 워치타워)" />
-<meta name="twitter:description" content="조직의 Microsoft 365 Copilot 사용 현황을 관리자가 직접 수집·분석하는 Windows 데스크톱 도구." />
+<meta id="tw-title" name="twitter:title" content="CopilotWatchTower (코파일럿 워치타워)" />
+<meta id="tw-desc" name="twitter:description" content="조직의 Microsoft 365 Copilot 사용 현황을 관리자가 직접 수집·분석하는 Windows 데스크톱 도구." />
 <meta name="twitter:image" content="https://microsoft.github.io/CopilotWatchTower/og-image.png" />
 <link rel="icon" type="image/x-icon" href="favicon.ico" />
 <link rel="icon" type="image/png" href="app-icon.png" />
@@ -71,6 +71,13 @@
     box-shadow: 0 8px 20px rgba(91,140,255,.28);
   }
   .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(91,140,255,.42); }
+  .lang-toggle {
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    background: var(--bg-soft); border: 1px solid var(--border); color: var(--muted);
+    padding: 8px 13px; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 600;
+    letter-spacing: .2px; transition: color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .lang-toggle:hover { color: var(--text); border-color: var(--accent); background: var(--card-2); }
   @media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } }
 
   /* ---------- Hero ---------- */
@@ -262,17 +269,18 @@
 <header>
   <div class="wrap nav">
     <div class="brand">
-      <img class="logo" src="app-icon.png" alt="CopilotWatchTower 로고" />
+      <img class="logo" src="app-icon.png" alt="CopilotWatchTower 로고" data-i18n-alt="alt.logo" />
       <span>CopilotWatchTower</span>
     </div>
     <nav class="nav-links">
-      <a href="#features">기능</a>
-      <a href="#sources">데이터 출처</a>
-      <a href="#screens">주요 화면</a>
-      <a href="#download">다운로드</a>
-      <a href="#community">커뮤니티</a>
+      <a href="#features" data-i18n="nav.features">기능</a>
+      <a href="#sources" data-i18n="nav.sources">데이터 출처</a>
+      <a href="#screens" data-i18n="nav.screens">주요 화면</a>
+      <a href="#download" data-i18n="nav.download">다운로드</a>
+      <a href="#community" data-i18n="nav.community">커뮤니티</a>
+      <button type="button" class="lang-toggle" id="lang-toggle" aria-label="Switch to English">🌐 English</button>
       <a href="https://github.com/microsoft/CopilotWatchTower" target="_blank" rel="noopener">GitHub</a>
-      <a class="nav-cta" href="https://github.com/microsoft/CopilotWatchTower/releases/latest" target="_blank" rel="noopener">다운로드</a>
+      <a class="nav-cta" href="https://github.com/microsoft/CopilotWatchTower/releases/latest" target="_blank" rel="noopener" data-i18n="nav.cta">다운로드</a>
     </nav>
   </div>
 </header>
@@ -280,27 +288,27 @@
 <!-- HERO -->
 <section class="hero">
   <div class="wrap">
-    <span class="badge"><span class="dot"></span> Windows 데스크톱 · Python + PySide6 · 로컬 전용</span>
+    <span class="badge" data-i18n-html="hero.badge"><span class="dot"></span> Windows 데스크톱 · Electron + React · 로컬 전용</span>
     <br/>
-    <img class="hero-logo" src="app-icon.png" alt="CopilotWatchTower 앱 아이콘" />
-    <h1 class="title">조직의 <span class="grad">Microsoft 365 Copilot</span><br/>사용 현황을 한눈에</h1>
-    <p class="subtitle">
+    <img class="hero-logo" src="app-icon.png" alt="CopilotWatchTower 앱 아이콘" data-i18n-alt="alt.heroLogo" />
+    <h1 class="title" data-i18n-html="hero.title">조직의 <span class="grad">Microsoft 365 Copilot</span><br/>사용 현황을 한눈에</h1>
+    <p class="subtitle" data-i18n-html="hero.subtitle">
       테넌트 관리자를 위한 <strong>Copilot 사용 현황·대화 수집 도구</strong>입니다.
       관리자 PC 한 대에서 Microsoft Graph로 데이터를 수집해 내 PC 안의 로컬 데이터베이스에
       저장하고, 컴플라이언스·분석 용도로 활용합니다.
     </p>
     <div class="hero-cta">
-      <a class="btn btn-primary" href="https://github.com/microsoft/CopilotWatchTower/releases/latest" target="_blank" rel="noopener">
+      <a class="btn btn-primary" href="https://github.com/microsoft/CopilotWatchTower/releases/latest" target="_blank" rel="noopener" data-i18n="hero.ctaDownload">
         ⬇️ 최신 버전 다운로드
       </a>
-      <a class="btn btn-ghost" href="https://github.com/microsoft/CopilotWatchTower" target="_blank" rel="noopener">
+      <a class="btn btn-ghost" href="https://github.com/microsoft/CopilotWatchTower" target="_blank" rel="noopener" data-i18n="hero.ctaGithub">
         ⭐ GitHub에서 보기
       </a>
     </div>
-    <p class="hero-meta">최신 릴리스 <strong>v0.2.0</strong> · MIT 라이선스 · Windows 10/11 (x64)</p>
+    <p class="hero-meta" data-i18n-html="hero.meta">최신 릴리스 <strong>v2.0.0</strong> · MIT 라이선스 · Windows 10/11 (x64)</p>
 
     <div class="hero-shot">
-      <img src="screenshots/01-dashboard.png" alt="CopilotWatchTower 대시보드 화면" loading="lazy" />
+      <img src="screenshots/01-dashboard.png" alt="CopilotWatchTower 대시보드 화면" loading="lazy" data-i18n-alt="alt.heroShot" />
     </div>
   </div>
 </section>
@@ -308,16 +316,16 @@
 <!-- INTRO / COMPLIANCE -->
 <section style="padding-top: 0;">
   <div class="wrap center">
-    <span class="eyebrow">왜 필요한가요?</span>
-    <h2 class="sec">"우리 회사, Copilot 잘 쓰고 있나요?"</h2>
-    <p class="sec-lead" style="margin-bottom: 36px;">
+    <span class="eyebrow" data-i18n="intro.eyebrow">왜 필요한가요?</span>
+    <h2 class="sec" data-i18n="intro.title">"우리 회사, Copilot 잘 쓰고 있나요?"</h2>
+    <p class="sec-lead" style="margin-bottom: 36px;" data-i18n-html="intro.lead">
       누가 얼마나 쓰는지, 어떤 앱(Teams·Word 등)에서 쓰는지, 라이선스는 낭비되고 있지 않은지 —
       이런 질문에 <strong>숫자와 근거</strong>로 답하기 위한 관리 도구입니다.
       별도 서버나 외부 네트워크 포트가 필요 없습니다.
     </p>
     <div class="compliance">
       <div class="ic">⚠️</div>
-      <div>
+      <div data-i18n-html="intro.compliance">
         <strong>컴플라이언스 주의사항.</strong>
         이 도구는 Copilot 대화 내용을 <strong>평문(원문) 그대로</strong> 읽어 옵니다.
         eDiscovery, 내부 감사, 규제 보관 등 <strong>법적·정책적 권한이 명확한 테넌트에서만</strong> 사용하세요.
@@ -330,34 +338,34 @@
 <!-- FEATURES -->
 <section id="features">
   <div class="wrap center">
-    <span class="eyebrow">핵심 기능</span>
-    <h2 class="sec">설치부터 분석까지, 한 도구에서</h2>
-    <p class="sec-lead">관리자 PC에서 바로 돌아가는 가볍고 안전한 데스크톱 앱입니다.</p>
+    <span class="eyebrow" data-i18n="feat.eyebrow">핵심 기능</span>
+    <h2 class="sec" data-i18n="feat.title">설치부터 분석까지, 한 도구에서</h2>
+    <p class="sec-lead" data-i18n="feat.lead">관리자 PC에서 바로 돌아가는 가볍고 안전한 데스크톱 앱입니다.</p>
     <div class="grid" style="text-align:left;">
       <div class="feature">
         <div class="ic">🪄</div>
-        <h3>사전 앱 등록 불필요</h3>
-        <p>첫 실행 시 마법사가 디바이스 코드 로그인으로 Entra ID 앱을 자동 등록하고, 필요한 Graph 권한 부여와 관리자 동의까지 안내합니다.</p>
+        <h3 data-i18n="feat.f1h">사전 앱 등록 불필요</h3>
+        <p data-i18n="feat.f1p">첫 실행 시 마법사가 디바이스 코드 로그인으로 Entra ID 앱을 자동 등록하고, 필요한 Graph 권한 부여와 관리자 동의까지 안내합니다.</p>
       </div>
       <div class="feature">
         <div class="ic">🎯</div>
-        <h3>4가지 수집 범위</h3>
-        <p>LICENSED(라이선스 보유자), ALL_ACTIVE(전체 활성 사용자), GROUP(특정 그룹), CUSTOM(지정 UPN) 모드를 지원합니다.</p>
+        <h3 data-i18n="feat.f2h">4가지 수집 범위</h3>
+        <p data-i18n="feat.f2p">LICENSED(라이선스 보유자), ALL_ACTIVE(전체 활성 사용자), GROUP(특정 그룹), CUSTOM(지정 UPN) 모드를 지원합니다.</p>
       </div>
       <div class="feature">
         <div class="ic">🔁</div>
-        <h3>안전한 증분 수집</h3>
-        <p>사용자별 워터마크, Retry-After 준수, 지수 백오프, 멱등성 업서트로 중단 후 재실행해도 데이터가 중복되지 않습니다.</p>
+        <h3 data-i18n="feat.f3h">안전한 증분 수집</h3>
+        <p data-i18n="feat.f3p">사용자별 워터마크, Retry-After 준수, 지수 백오프, 멱등성 업서트로 중단 후 재실행해도 데이터가 중복되지 않습니다.</p>
       </div>
       <div class="feature">
         <div class="ic">🔒</div>
-        <h3>로컬 전용 저장소</h3>
-        <p>모든 데이터는 내 PC의 SQLite(%LOCALAPPDATA%)에 저장됩니다. 대화 본문에 대한 FTS5 전문 검색을 지원합니다.</p>
+        <h3 data-i18n="feat.f4h">로컬 전용 저장소</h3>
+        <p data-i18n="feat.f4p">모든 데이터는 내 PC의 SQLite(%LOCALAPPDATA%)에 저장됩니다. 대화 본문에 대한 FTS5 전문 검색을 지원합니다.</p>
       </div>
       <div class="feature">
         <div class="ic">📊</div>
-        <h3>현대적인 Qt UI</h3>
-        <p>대시보드(KPI + 차트), 대화 탐색, 실시간 수집 로그 모니터링, CSV/JSON/XLSX 내보내기를 제공합니다.</p>
+        <h3 data-i18n="feat.f5h">현대적인 Electron UI</h3>
+        <p data-i18n="feat.f5p">대시보드(KPI + 차트), 대화 탐색, 실시간 수집 로그 모니터링, CSV/JSON/XLSX 내보내기를 제공합니다.</p>
       </div>
     </div>
   </div>
@@ -366,159 +374,159 @@
 <!-- SOURCES -->
 <section id="sources">
   <div class="wrap center">
-    <span class="eyebrow">데이터 출처</span>
-    <h2 class="sec">무엇을, 어떤 기술로, 어떤 권한으로 수집하나요?</h2>
-    <p class="sec-lead">출처마다 <strong>수집 데이터·사용 기술·필요 권한·제약</strong>이 다릅니다. 앱의 <strong>데이터 수집 → 개요</strong> 화면에서도 동일한 내용을 확인할 수 있습니다.</p>
+    <span class="eyebrow" data-i18n="src.eyebrow">데이터 출처</span>
+    <h2 class="sec" data-i18n="src.title">무엇을, 어떤 기술로, 어떤 권한으로 수집하나요?</h2>
+    <p class="sec-lead" data-i18n-html="src.lead">출처마다 <strong>수집 데이터·사용 기술·필요 권한·제약</strong>이 다릅니다. 앱의 <strong>데이터 수집 → 개요</strong> 화면에서도 동일한 내용을 확인할 수 있습니다.</p>
 
     <div class="src-grid">
       <!-- 대화 수집(API) -->
       <div class="src-card">
-        <div class="src-head"><div class="ic">💬</div><h3>대화 수집 (API)</h3></div>
-        <p class="src-summary">Microsoft Graph API로 사용자별 Copilot 대화 본문을 직접 수집합니다.</p>
-        <div class="src-block"><span class="lbl">기술</span><div class="tech">Microsoft Graph(beta) · getAllEnterpriseInteractions · 앱 전용(client credentials) 토큰</div></div>
-        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
-          <li>프롬프트/응답 본문 텍스트</li>
-          <li>앱 출처(BizChat, Word, Teams, Excel, PowerPoint, Outlook, Loop 등)</li>
-          <li>첨부·링크·멘션 메타데이터, 원본 JSON</li>
+        <div class="src-head"><div class="ic">💬</div><h3 data-i18n="src.c1h">대화 수집 (API)</h3></div>
+        <p class="src-summary" data-i18n="src.c1sum">Microsoft Graph API로 사용자별 Copilot 대화 본문을 직접 수집합니다.</p>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblTech">기술</span><div class="tech" data-i18n="src.c1tech">Microsoft Graph(beta) · getAllEnterpriseInteractions · 앱 전용(client credentials) 토큰</div></div>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblData">수집 데이터</span><ul>
+          <li data-i18n="src.c1d1">프롬프트/응답 본문 텍스트</li>
+          <li data-i18n="src.c1d2">앱 출처(BizChat, Word, Teams, Excel, PowerPoint, Outlook, Loop 등)</li>
+          <li data-i18n="src.c1d3">첨부·링크·멘션 메타데이터, 원본 JSON</li>
         </ul></div>
-        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+        <div class="src-block"><span class="lbl" data-i18n="src.lblPerms">필요 권한</span><div class="src-chips">
           <span class="src-chip">AiEnterpriseInteraction.Read.All</span>
           <span class="src-chip">User.Read.All</span>
           <span class="src-chip">Organization.Read.All</span>
         </div></div>
-        <div class="src-block"><span class="lbl">제약·범위</span><ul>
-          <li>Copilot 라이선스 보유자 대상(전체/라이선스/그룹/사용자 지정 범위 선택)</li>
-          <li>beta 엔드포인트 · 사용자·기간 단위 페이징</li>
-          <li>라이선스 없는 사용자 본문은 eDiscovery 경로로 별도 수집</li>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblScope">제약·범위</span><ul>
+          <li data-i18n="src.c1s1">Copilot 라이선스 보유자 대상(전체/라이선스/그룹/사용자 지정 범위 선택)</li>
+          <li data-i18n="src.c1s2">beta 엔드포인트 · 사용자·기간 단위 페이징</li>
+          <li data-i18n="src.c1s3">라이선스 없는 사용자 본문은 eDiscovery 경로로 별도 수집</li>
         </ul></div>
-        <p class="src-view">앱에서 보기 · <strong>대화 탐색(API)</strong></p>
+        <p class="src-view" data-i18n-html="src.c1view">앱에서 보기 · <strong>대화 탐색(API)</strong></p>
       </div>
 
       <!-- 대화 수집(e-Discovery) -->
       <div class="src-card">
-        <div class="src-head"><div class="ic">🔎</div><h3>대화 수집 (e-Discovery)</h3></div>
-        <p class="src-summary">라이선스 없는 사용자까지 포함해 Purview eDiscovery로 Copilot 본문을 복원합니다.</p>
-        <div class="src-block"><span class="lbl">기술</span><div class="tech">Purview eDiscovery(Graph) · 위임(delegated) 인증</div></div>
-        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
-          <li>라이선스 미보유 사용자를 포함한 Copilot 대화 본문</li>
-          <li>케이스·검색·내보내기 산출물에서 복원한 메시지</li>
+        <div class="src-head"><div class="ic">🔎</div><h3 data-i18n="src.c2h">대화 수집 (e-Discovery)</h3></div>
+        <p class="src-summary" data-i18n="src.c2sum">라이선스 없는 사용자까지 포함해 Purview eDiscovery로 Copilot 본문을 복원합니다.</p>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblTech">기술</span><div class="tech" data-i18n="src.c2tech">Purview eDiscovery(Graph) · 위임(delegated) 인증</div></div>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblData">수집 데이터</span><ul>
+          <li data-i18n="src.c2d1">라이선스 미보유 사용자를 포함한 Copilot 대화 본문</li>
+          <li data-i18n="src.c2d2">케이스·검색·내보내기 산출물에서 복원한 메시지</li>
         </ul></div>
-        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
-          <span class="src-chip">eDiscovery.ReadWrite.All (위임)</span>
-          <span class="src-chip">eDiscovery Manager 역할</span>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblPerms">필요 권한</span><div class="src-chips">
+          <span class="src-chip" data-i18n="src.c2chip1">eDiscovery.ReadWrite.All (위임)</span>
+          <span class="src-chip" data-i18n="src.c2chip2">eDiscovery Manager 역할</span>
         </div></div>
-        <div class="src-block"><span class="lbl">제약·범위</span><ul>
-          <li>앱 전용 인증은 Premium 전용이라 위임 인증 사용</li>
-          <li>케이스 생성 → 검색 → 추정 → 내보내기 → 다운로드 → 해석의 비동기 단계</li>
-          <li>단계별 재개(이어받기) 지원 — 중단 후 다시 시작 가능</li>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblScope">제약·범위</span><ul>
+          <li data-i18n="src.c2s1">앱 전용 인증은 Premium 전용이라 위임 인증 사용</li>
+          <li data-i18n="src.c2s2">케이스 생성 → 검색 → 추정 → 내보내기 → 다운로드 → 해석의 비동기 단계</li>
+          <li data-i18n="src.c2s3">단계별 재개(이어받기) 지원 — 중단 후 다시 시작 가능</li>
         </ul></div>
-        <p class="src-view">앱에서 보기 · <strong>대화 탐색(e-Discovery)</strong></p>
+        <p class="src-view" data-i18n-html="src.c2view">앱에서 보기 · <strong>대화 탐색(e-Discovery)</strong></p>
       </div>
 
       <!-- 대화 수집(Teams) -->
       <div class="src-card">
-        <div class="src-head"><div class="ic">🤝</div><h3>대화 수집 (Teams)</h3></div>
-        <p class="src-summary">Copilot Studio 커스텀 에이전트의 Teams 대화 트랜스크립트를 Dataverse에서 수집합니다.</p>
-        <div class="src-block"><span class="lbl">기술</span><div class="tech">Dataverse 자동 로그인(웹 자동화) · 트랜스크립트 테이블</div></div>
-        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
-          <li>Copilot Studio 커스텀 에이전트의 Teams 대화 기록(트랜스크립트)</li>
-          <li>에이전트·환경별 대화 세션</li>
+        <div class="src-head"><div class="ic">🤝</div><h3 data-i18n="src.c3h">대화 수집 (Teams)</h3></div>
+        <p class="src-summary" data-i18n="src.c3sum">Copilot Studio 커스텀 에이전트의 Teams 대화 트랜스크립트를 Dataverse에서 수집합니다.</p>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblTech">기술</span><div class="tech" data-i18n="src.c3tech">Dataverse 자동 로그인(웹 자동화) · 트랜스크립트 테이블</div></div>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblData">수집 데이터</span><ul>
+          <li data-i18n="src.c3d1">Copilot Studio 커스텀 에이전트의 Teams 대화 기록(트랜스크립트)</li>
+          <li data-i18n="src.c3d2">에이전트·환경별 대화 세션</li>
         </ul></div>
-        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
-          <span class="src-chip">Dataverse 시스템 관리자(환경별)</span>
-          <span class="src-chip">PPAC 자동 로그인 계정</span>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblPerms">필요 권한</span><div class="src-chips">
+          <span class="src-chip" data-i18n="src.c3chip1">Dataverse 시스템 관리자(환경별)</span>
+          <span class="src-chip" data-i18n="src.chipPpac">PPAC 자동 로그인 계정</span>
         </div></div>
-        <div class="src-block"><span class="lbl">제약·범위</span><ul>
-          <li>환경별 접근 권한 필요 — 없는 환경은 '나를 시스템 관리자로 자동 추가' 옵션 사용</li>
-          <li>브라우저 자동 로그인 기반이라 MFA·세션 정책의 영향을 받음</li>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblScope">제약·범위</span><ul>
+          <li data-i18n="src.c3s1">환경별 접근 권한 필요 — 없는 환경은 '나를 시스템 관리자로 자동 추가' 옵션 사용</li>
+          <li data-i18n="src.c3s2">브라우저 자동 로그인 기반이라 MFA·세션 정책의 영향을 받음</li>
         </ul></div>
-        <p class="src-view">앱에서 보기 · <strong>대화 탐색(Teams)</strong></p>
+        <p class="src-view" data-i18n-html="src.c3view">앱에서 보기 · <strong>대화 탐색(Teams)</strong></p>
       </div>
 
       <!-- 에이전트 -->
       <div class="src-card">
-        <div class="src-head"><div class="ic">🤖</div><h3>에이전트</h3></div>
-        <p class="src-summary">Copilot 관리 API와 감사 로그에서 에이전트 인벤토리와 실제 사용 신호를 수집합니다.</p>
-        <div class="src-block"><span class="lbl">기술</span><div class="tech">Microsoft Graph Copilot 관리 API(에이전트 등록·카탈로그) + 감사 로그</div></div>
-        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
-          <li>에이전트 인벤토리(등록 정보·카탈로그 패키지)</li>
-          <li>정책 설정 신호</li>
-          <li>감사 로그 기반 실제 사용 신호</li>
+        <div class="src-head"><div class="ic">🤖</div><h3 data-i18n="src.c4h">에이전트</h3></div>
+        <p class="src-summary" data-i18n="src.c4sum">Copilot 관리 API와 감사 로그에서 에이전트 인벤토리와 실제 사용 신호를 수집합니다.</p>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblTech">기술</span><div class="tech" data-i18n="src.c4tech">Microsoft Graph Copilot 관리 API(에이전트 등록·카탈로그) + 감사 로그</div></div>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblData">수집 데이터</span><ul>
+          <li data-i18n="src.c4d1">에이전트 인벤토리(등록 정보·카탈로그 패키지)</li>
+          <li data-i18n="src.c4d2">정책 설정 신호</li>
+          <li data-i18n="src.c4d3">감사 로그 기반 실제 사용 신호</li>
         </ul></div>
-        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+        <div class="src-block"><span class="lbl" data-i18n="src.lblPerms">필요 권한</span><div class="src-chips">
           <span class="src-chip">AgentRegistration.Read.All</span>
           <span class="src-chip">CopilotPackages.Read.All</span>
           <span class="src-chip">CopilotPolicySettings.Read</span>
         </div></div>
-        <div class="src-block"><span class="lbl">제약·범위</span><ul>
-          <li>사용 신호는 감사 로그 기반 — 감사 이벤트를 먼저 수집할수록 정확</li>
-          <li>관리 API 가용 범위(테넌트 구성)에 따라 일부 항목이 비어 있을 수 있음</li>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblScope">제약·범위</span><ul>
+          <li data-i18n="src.c4s1">사용 신호는 감사 로그 기반 — 감사 이벤트를 먼저 수집할수록 정확</li>
+          <li data-i18n="src.c4s2">관리 API 가용 범위(테넌트 구성)에 따라 일부 항목이 비어 있을 수 있음</li>
         </ul></div>
-        <p class="src-view">앱에서 보기 · <strong>에이전트</strong></p>
+        <p class="src-view" data-i18n-html="src.c4view">앱에서 보기 · <strong>에이전트</strong></p>
       </div>
 
       <!-- 파워플랫폼 크레딧 -->
       <div class="src-card">
-        <div class="src-head"><div class="ic">🪙</div><h3>파워플랫폼 크레딧</h3></div>
-        <p class="src-summary">PPAC 소비량 리포트를 내려받아 메시지·AI Builder·API 요청 사용량을 추적합니다.</p>
-        <div class="src-block"><span class="lbl">기술</span><div class="tech">Power Platform 관리 센터(PPAC) 자동 로그인 · 소비량 리포트 다운로드</div></div>
-        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
-          <li>Copilot Studio 메시지 소비량</li>
-          <li>AI Builder 크레딧 소비량</li>
-          <li>Power Platform 요청(API) 소비량</li>
+        <div class="src-head"><div class="ic">🪙</div><h3 data-i18n="src.c5h">파워플랫폼 크레딧</h3></div>
+        <p class="src-summary" data-i18n="src.c5sum">PPAC 소비량 리포트를 내려받아 메시지·AI Builder·API 요청 사용량을 추적합니다.</p>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblTech">기술</span><div class="tech" data-i18n="src.c5tech">Power Platform 관리 센터(PPAC) 자동 로그인 · 소비량 리포트 다운로드</div></div>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblData">수집 데이터</span><ul>
+          <li data-i18n="src.c5d1">Copilot Studio 메시지 소비량</li>
+          <li data-i18n="src.c5d2">AI Builder 크레딧 소비량</li>
+          <li data-i18n="src.c5d3">Power Platform 요청(API) 소비량</li>
         </ul></div>
-        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
-          <span class="src-chip">Power Platform 관리자</span>
-          <span class="src-chip">PPAC 자동 로그인 계정</span>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblPerms">필요 권한</span><div class="src-chips">
+          <span class="src-chip" data-i18n="src.c5chip1">Power Platform 관리자</span>
+          <span class="src-chip" data-i18n="src.chipPpac">PPAC 자동 로그인 계정</span>
         </div></div>
-        <div class="src-block"><span class="lbl">제약·범위</span><ul>
-          <li>웹 자동화 기반 — PPAC UI/리포트 가용성에 의존</li>
-          <li>리포트가 제공하는 집계 기간·단위 범위 내에서만 수집</li>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblScope">제약·범위</span><ul>
+          <li data-i18n="src.c5s1">웹 자동화 기반 — PPAC UI/리포트 가용성에 의존</li>
+          <li data-i18n="src.c5s2">리포트가 제공하는 집계 기간·단위 범위 내에서만 수집</li>
         </ul></div>
-        <p class="src-view">앱에서 보기 · <strong>파워플랫폼 크레딧</strong></p>
+        <p class="src-view" data-i18n-html="src.c5view">앱에서 보기 · <strong>파워플랫폼 크레딧</strong></p>
       </div>
 
       <!-- 감사 이벤트 -->
       <div class="src-card">
-        <div class="src-head"><div class="ic">🛡️</div><h3>감사 이벤트</h3></div>
-        <p class="src-summary">Purview 통합 감사 로그와 Entra 감사/로그인에서 보안·접근 이벤트를 수집합니다.</p>
-        <div class="src-block"><span class="lbl">기술</span><div class="tech">Graph security.auditLog.queries(비동기 Purview 통합 로그) + Entra 감사/sign-in</div></div>
-        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
-          <li>차단/거부 등 보안 이벤트</li>
-          <li>민감 자료 접근 기록</li>
-          <li>접근·정책 관련 감사 이벤트</li>
+        <div class="src-head"><div class="ic">🛡️</div><h3 data-i18n="src.c6h">감사 이벤트</h3></div>
+        <p class="src-summary" data-i18n="src.c6sum">Purview 통합 감사 로그와 Entra 감사/로그인에서 보안·접근 이벤트를 수집합니다.</p>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblTech">기술</span><div class="tech" data-i18n="src.c6tech">Graph security.auditLog.queries(비동기 Purview 통합 로그) + Entra 감사/sign-in</div></div>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblData">수집 데이터</span><ul>
+          <li data-i18n="src.c6d1">차단/거부 등 보안 이벤트</li>
+          <li data-i18n="src.c6d2">민감 자료 접근 기록</li>
+          <li data-i18n="src.c6d3">접근·정책 관련 감사 이벤트</li>
         </ul></div>
-        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+        <div class="src-block"><span class="lbl" data-i18n="src.lblPerms">필요 권한</span><div class="src-chips">
           <span class="src-chip">AuditLog.Read.All</span>
           <span class="src-chip">AuditLogsQuery.Read.All</span>
           <span class="src-chip">Purview/Exchange roleManagement</span>
         </div></div>
-        <div class="src-block"><span class="lbl">제약·범위</span><ul>
-          <li>Purview 감사 로그 보존 기간 내 데이터만 조회 가능</li>
-          <li>통합 로그 쿼리는 비동기(제출→폴링→결과) 방식</li>
-          <li>auditLog 404 응답 시 Purview 경로는 자동 비활성화되고 Entra 경로만 사용</li>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblScope">제약·범위</span><ul>
+          <li data-i18n="src.c6s1">Purview 감사 로그 보존 기간 내 데이터만 조회 가능</li>
+          <li data-i18n="src.c6s2">통합 로그 쿼리는 비동기(제출→폴링→결과) 방식</li>
+          <li data-i18n="src.c6s3">auditLog 404 응답 시 Purview 경로는 자동 비활성화되고 Entra 경로만 사용</li>
         </ul></div>
-        <p class="src-view">앱에서 보기 · <strong>보안/감사</strong></p>
+        <p class="src-view" data-i18n-html="src.c6view">앱에서 보기 · <strong>보안/감사</strong></p>
       </div>
 
       <!-- 공식 사용량 -->
       <div class="src-card">
-        <div class="src-head"><div class="ic">📈</div><h3>공식 사용량</h3></div>
-        <p class="src-summary">Microsoft 365 Copilot 공식 사용량 보고서 스냅샷을 수집합니다.</p>
-        <div class="src-block"><span class="lbl">기술</span><div class="tech">Microsoft Graph Reports API(Copilot 사용량 CSV)</div></div>
-        <div class="src-block"><span class="lbl">수집 데이터</span><ul>
-          <li>M365 Copilot 공식 사용량 보고서 스냅샷</li>
-          <li>기간별(D7/D30/D90/D180) 사용 집계</li>
+        <div class="src-head"><div class="ic">📈</div><h3 data-i18n="src.c7h">공식 사용량</h3></div>
+        <p class="src-summary" data-i18n="src.c7sum">Microsoft 365 Copilot 공식 사용량 보고서 스냅샷을 수집합니다.</p>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblTech">기술</span><div class="tech" data-i18n="src.c7tech">Microsoft Graph Reports API(Copilot 사용량 CSV)</div></div>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblData">수집 데이터</span><ul>
+          <li data-i18n="src.c7d1">M365 Copilot 공식 사용량 보고서 스냅샷</li>
+          <li data-i18n="src.c7d2">기간별(D7/D30/D90/D180) 사용 집계</li>
         </ul></div>
-        <div class="src-block"><span class="lbl">필요 권한</span><div class="src-chips">
+        <div class="src-block"><span class="lbl" data-i18n="src.lblPerms">필요 권한</span><div class="src-chips">
           <span class="src-chip">Reports.Read.All</span>
           <span class="src-chip">ReportSettings.ReadWrite.All</span>
         </div></div>
-        <div class="src-block"><span class="lbl">제약·범위</span><ul>
-          <li>Microsoft 보고서 익명화 설정 영향 — 식별이 필요하면 ReportSettings로 비익명화</li>
-          <li>Microsoft가 제공하는 보고 기간 단위로만 수집</li>
+        <div class="src-block"><span class="lbl" data-i18n="src.lblScope">제약·범위</span><ul>
+          <li data-i18n="src.c7s1">Microsoft 보고서 익명화 설정 영향 — 식별이 필요하면 ReportSettings로 비익명화</li>
+          <li data-i18n="src.c7s2">Microsoft가 제공하는 보고 기간 단위로만 수집</li>
         </ul></div>
-        <p class="src-view">앱에서 보기 · <strong>공식 보고서</strong></p>
+        <p class="src-view" data-i18n-html="src.c7view">앱에서 보기 · <strong>공식 보고서</strong></p>
       </div>
     </div>
   </div>
@@ -528,41 +536,41 @@
 <section id="screens" style="background: var(--bg-soft); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
   <div class="wrap">
     <div class="center">
-      <span class="eyebrow">주요 화면</span>
-      <h2 class="sec">실제 화면 살펴보기</h2>
-      <p class="sec-lead">대시보드, 사용 인사이트, 대화 탐색 — 세 가지 핵심 화면.</p>
+      <span class="eyebrow" data-i18n="screens.eyebrow">주요 화면</span>
+      <h2 class="sec" data-i18n="screens.title">실제 화면 살펴보기</h2>
+      <p class="sec-lead" data-i18n="screens.lead">대시보드, 사용 인사이트, 대화 탐색 — 세 가지 핵심 화면.</p>
     </div>
 
     <div class="screen">
       <div class="screen-text">
         <span class="screen-num">1</span>
-        <h3>대시보드 — 전체 사용 현황을 한눈에</h3>
-        <p>활성 사용자 수, 총 스레드·메시지·프롬프트, 의미 있는 상호작용, 라이선스 미활용 인원 등 핵심 지표(KPI)와 최근 30일 사용 추이 그래프, 상위 사용자 TOP 5를 보여 줍니다.</p>
+        <h3 data-i18n="screens.s1h">대시보드 — 전체 사용 현황을 한눈에</h3>
+        <p data-i18n="screens.s1p">활성 사용자 수, 총 스레드·메시지·프롬프트, 의미 있는 상호작용, 라이선스 미활용 인원 등 핵심 지표(KPI)와 최근 30일 사용 추이 그래프, 상위 사용자 TOP 5를 보여 줍니다.</p>
       </div>
       <div class="screen-img">
-        <img src="screenshots/01-dashboard.png" alt="대시보드 화면" loading="lazy" />
+        <img src="screenshots/01-dashboard.png" alt="대시보드 화면" loading="lazy" data-i18n-alt="alt.screen1" />
       </div>
     </div>
 
     <div class="screen reverse">
       <div class="screen-text">
         <span class="screen-num">2</span>
-        <h3>사용 인사이트 — 사용자·날짜·앱별 상세 분석</h3>
-        <p>기간·사용자·앱별로 Copilot 활동을 필터링해 분석합니다. 날짜별 스레드·메시지 추이, 앱별 메시지 분포, 사용자별 요약 표를 제공합니다.</p>
+        <h3 data-i18n="screens.s2h">사용 인사이트 — 사용자·날짜·앱별 상세 분석</h3>
+        <p data-i18n="screens.s2p">기간·사용자·앱별로 Copilot 활동을 필터링해 분석합니다. 날짜별 스레드·메시지 추이, 앱별 메시지 분포, 사용자별 요약 표를 제공합니다.</p>
       </div>
       <div class="screen-img">
-        <img src="screenshots/02-usage-insights.png" alt="사용 인사이트 화면" loading="lazy" />
+        <img src="screenshots/02-usage-insights.png" alt="사용 인사이트 화면" loading="lazy" data-i18n-alt="alt.screen2" />
       </div>
     </div>
 
     <div class="screen">
       <div class="screen-text">
         <span class="screen-num">3</span>
-        <h3>대화 탐색 — 실제 대화 기록 열람</h3>
-        <p>Graph API로 수집한 운영 대화 기록을 제목·본문으로 검색하고, 사용자·앱별로 필터링해 개별 대화의 전체 내용을 확인합니다. 관련 감사 이벤트와 함께 Markdown 등으로 내보낼 수 있습니다.</p>
+        <h3 data-i18n="screens.s3h">대화 탐색 — 실제 대화 기록 열람</h3>
+        <p data-i18n="screens.s3p">Graph API로 수집한 운영 대화 기록을 제목·본문으로 검색하고, 사용자·앱별로 필터링해 개별 대화의 전체 내용을 확인합니다. 관련 감사 이벤트와 함께 Markdown 등으로 내보낼 수 있습니다.</p>
       </div>
       <div class="screen-img">
-        <img src="screenshots/03-conversations.png" alt="대화 탐색 화면" loading="lazy" />
+        <img src="screenshots/03-conversations.png" alt="대화 탐색 화면" loading="lazy" data-i18n-alt="alt.screen3" />
       </div>
     </div>
   </div>
@@ -572,17 +580,17 @@
 <section id="download">
   <div class="wrap">
     <div class="download-card">
-      <span class="eyebrow">다운로드 &amp; 설치</span>
-      <h2 class="sec" style="margin-top:10px;">지금 바로 시작하기</h2>
-      <p class="sec-lead" style="margin:0 auto;">
+      <span class="eyebrow" data-i18n="dl.eyebrow">다운로드 &amp; 설치</span>
+      <h2 class="sec" style="margin-top:10px;" data-i18n="dl.title">지금 바로 시작하기</h2>
+      <p class="sec-lead" style="margin:0 auto;" data-i18n-html="dl.lead">
         Releases 페이지에서 <code style="font-family:ui-monospace,monospace;color:var(--accent)">CopilotWatchTower-x.y.z-setup.zip</code>을
         내려받아 압축을 풀고, 관리자 권한으로 설치 배치 파일을 실행하세요.
       </p>
 
       <div class="dl-steps">
-        <div class="dl-step"><b>STEP 1</b><span>setup.zip 다운로드 후 압축 해제</span></div>
-        <div class="dl-step"><b>STEP 2</b><span>Install-CopilotWatchTower.bat 관리자 실행 (인증서 신뢰 + 앱 설치)</span></div>
-        <div class="dl-step"><b>STEP 3</b><span>앱 실행 후 온보딩 마법사로 테넌트 연결</span></div>
+        <div class="dl-step"><b>STEP 1</b><span data-i18n="dl.step1">setup.zip 다운로드 후 압축 해제</span></div>
+        <div class="dl-step"><b>STEP 2</b><span data-i18n="dl.step2">Install-CopilotWatchTower.bat 관리자 실행 (인증서 신뢰 + 앱 설치)</span></div>
+        <div class="dl-step"><b>STEP 3</b><span data-i18n="dl.step3">앱 실행 후 온보딩 마법사로 테넌트 연결</span></div>
       </div>
 
       <div class="pkg-list">
@@ -594,11 +602,11 @@
       </div>
 
       <div class="hero-cta" style="margin-top:32px;">
-        <a class="btn btn-primary" href="https://github.com/microsoft/CopilotWatchTower/releases/latest" target="_blank" rel="noopener">
+        <a class="btn btn-primary" href="https://github.com/microsoft/CopilotWatchTower/releases/latest" target="_blank" rel="noopener" data-i18n="dl.cta">
           ⬇️ 최신 릴리스로 이동
         </a>
       </div>
-      <p class="hero-meta" style="margin-top:18px;">
+      <p class="hero-meta" style="margin-top:18px;" data-i18n-html="dl.meta">
         자체 서명 인증서를 사용하므로 설치 전 인증서 신뢰 등록이 필요합니다. 자세한 절차는 압축 안의 <strong>INSTALL.txt</strong>를 참고하세요.
       </p>
     </div>
@@ -608,16 +616,16 @@
 <!-- DEV -->
 <section style="padding-top:0;">
   <div class="wrap center">
-    <span class="eyebrow">개발자용</span>
-    <h2 class="sec">소스에서 직접 실행</h2>
-    <p class="sec-lead" style="margin:0 auto;">Python 3.11+ 가상환경에서 editable 설치 후 바로 실행할 수 있습니다.</p>
+    <span class="eyebrow" data-i18n="dev.eyebrow">개발자용</span>
+    <h2 class="sec" data-i18n="dev.title">소스에서 직접 실행</h2>
+    <p class="sec-lead" style="margin:0 auto;" data-i18n="dev.lead">Python 3.11+ 가상환경에서 editable 설치 후 바로 실행할 수 있습니다.</p>
     <div class="code" style="text-align:left; max-width:760px; margin-left:auto; margin-right:auto;">
-<span class="c"># 1. Python 3.11+ 가상환경 생성</span><br/>
+<span class="c" data-i18n="dev.c1"># 1. Python 3.11+ 가상환경 생성</span><br/>
 py -3.11 -m venv .venv<br/>
 .\.venv\Scripts\Activate.ps1<br/><br/>
-<span class="c"># 2. 개발 의존성 포함 editable 설치</span><br/>
+<span class="c" data-i18n="dev.c2"># 2. 개발 의존성 포함 editable 설치</span><br/>
 pip install -e <span class="p">".[dev]"</span><br/><br/>
-<span class="c"># 3. 실행</span><br/>
+<span class="c" data-i18n="dev.c3"># 3. 실행</span><br/>
 copilot-watchtower
     </div>
   </div>
@@ -626,17 +634,17 @@ copilot-watchtower
 <!-- COMMUNITY -->
 <section id="community">
   <div class="wrap center">
-    <span class="eyebrow">커뮤니티</span>
-    <h2 class="sec">기능 문의 · 피드백을 남겨주세요</h2>
-    <p class="sec-lead" style="margin:0 auto 36px;">
-      사용 중 궤금한 점, 새로운 기능 제안, 버그 신고는 GitHub 이슈 게시판에서 자유롭게 남겨주세요.
+    <span class="eyebrow" data-i18n="comm.eyebrow">커뮤니티</span>
+    <h2 class="sec" data-i18n="comm.title">기능 문의 · 피드백을 남겨주세요</h2>
+    <p class="sec-lead" style="margin:0 auto 36px;" data-i18n="comm.lead">
+      사용 중 굤금한 점, 새로운 기능 제안, 버그 신고는 GitHub 이슈 게시판에서 자유롭게 남겨주세요.
       함께 만들어가는 도구입니다.
     </p>
     <div class="community-card">
       <div class="fb-icon">⚙</div>
-      <h3 style="font-size:22px; font-weight:800; margin:0 0 10px;">GitHub 이슈 게시판</h3>
-      <p style="color:var(--muted); margin:0 0 28px;">질문 · 기능 제안 · 버그 신고를 남기는 공간</p>
-      <a class="btn btn-fb" href="https://github.com/microsoft/CopilotWatchTower/issues" target="_blank" rel="noopener">
+      <h3 style="font-size:22px; font-weight:800; margin:0 0 10px;" data-i18n="comm.cardTitle">GitHub 이슈 게시판</h3>
+      <p style="color:var(--muted); margin:0 0 28px;" data-i18n="comm.cardLead">질문 · 기능 제안 · 버그 신고를 남기는 공간</p>
+      <a class="btn btn-fb" href="https://github.com/microsoft/CopilotWatchTower/issues" target="_blank" rel="noopener" data-i18n="comm.cta">
         💬 GitHub 이슈 남기기
       </a>
     </div>
@@ -647,13 +655,420 @@ copilot-watchtower
   <div class="wrap foot">
     <div>© 2026 Microsoft · CopilotWatchTower · MIT License</div>
     <div class="foot-links">
-      <a href="https://github.com/microsoft/CopilotWatchTower/issues" target="_blank" rel="noopener">커뮤니티</a>
+      <a href="https://github.com/microsoft/CopilotWatchTower/issues" target="_blank" rel="noopener" data-i18n="foot.community">커뮤니티</a>
       <a href="https://github.com/microsoft/CopilotWatchTower" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/microsoft/CopilotWatchTower/releases/latest" target="_blank" rel="noopener">Releases</a>
-      <a href="https://github.com/microsoft/CopilotWatchTower/blob/main/README.md" target="_blank" rel="noopener">문서</a>
+      <a href="https://github.com/microsoft/CopilotWatchTower/blob/main/README.md" target="_blank" rel="noopener" data-i18n="foot.docs">문서</a>
     </div>
   </div>
 </footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var I18N = {
+    ko: {
+      "meta.title": `CopilotWatchTower · 코파일럿 워치타워`,
+      "meta.desc": `테넌트 관리자를 위한 Microsoft 365 Copilot 사용 현황·대화 수집 도구. Electron + React + TypeScript로 제작한 Windows 데스크톱 앱.`,
+      "meta.ogTitle": `CopilotWatchTower (코파일럿 워치타워)`,
+      "meta.ogDesc": `조직의 Microsoft 365 Copilot 사용 현황을 관리자가 직접 수집·분석하는 Windows 데스크톱 도구.`,
+      "meta.twTitle": `CopilotWatchTower (코파일럿 워치타워)`,
+      "meta.twDesc": `조직의 Microsoft 365 Copilot 사용 현황을 관리자가 직접 수집·분석하는 Windows 데스크톱 도구.`,
+
+      "nav.features": `기능`,
+      "nav.sources": `데이터 출처`,
+      "nav.screens": `주요 화면`,
+      "nav.download": `다운로드`,
+      "nav.community": `커뮤니티`,
+      "nav.cta": `다운로드`,
+
+      "alt.logo": `CopilotWatchTower 로고`,
+      "alt.heroLogo": `CopilotWatchTower 앱 아이콘`,
+      "alt.heroShot": `CopilotWatchTower 대시보드 화면`,
+      "alt.screen1": `대시보드 화면`,
+      "alt.screen2": `사용 인사이트 화면`,
+      "alt.screen3": `대화 탐색 화면`,
+
+      "hero.badge": `<span class="dot"></span> Windows 데스크톱 · Electron + React · 로컬 전용`,
+      "hero.title": `조직의 <span class="grad">Microsoft 365 Copilot</span><br/>사용 현황을 한눈에`,
+      "hero.subtitle": `테넌트 관리자를 위한 <strong>Copilot 사용 현황·대화 수집 도구</strong>입니다. 관리자 PC 한 대에서 Microsoft Graph로 데이터를 수집해 내 PC 안의 로컬 데이터베이스에 저장하고, 컴플라이언스·분석 용도로 활용합니다.`,
+      "hero.ctaDownload": `⬇️ 최신 버전 다운로드`,
+      "hero.ctaGithub": `⭐ GitHub에서 보기`,
+      "hero.meta": `최신 릴리스 <strong>v2.0.0</strong> · MIT 라이선스 · Windows 10/11 (x64)`,
+
+      "intro.eyebrow": `왜 필요한가요?`,
+      "intro.title": `"우리 회사, Copilot 잘 쓰고 있나요?"`,
+      "intro.lead": `누가 얼마나 쓰는지, 어떤 앱(Teams·Word 등)에서 쓰는지, 라이선스는 낭비되고 있지 않은지 — 이런 질문에 <strong>숫자와 근거</strong>로 답하기 위한 관리 도구입니다. 별도 서버나 외부 네트워크 포트가 필요 없습니다.`,
+      "intro.compliance": `<strong>컴플라이언스 주의사항.</strong> 이 도구는 Copilot 대화 내용을 <strong>평문(원문) 그대로</strong> 읽어 옵니다. eDiscovery, 내부 감사, 규제 보관 등 <strong>법적·정책적 권한이 명확한 테넌트에서만</strong> 사용하세요. 도입 전에 개인정보 영향평가(DPIA)와 데이터 취급 정책을 반드시 검토해야 합니다.`,
+
+      "feat.eyebrow": `핵심 기능`,
+      "feat.title": `설치부터 분석까지, 한 도구에서`,
+      "feat.lead": `관리자 PC에서 바로 돌아가는 가볍고 안전한 데스크톱 앱입니다.`,
+      "feat.f1h": `사전 앱 등록 불필요`,
+      "feat.f1p": `첫 실행 시 마법사가 디바이스 코드 로그인으로 Entra ID 앱을 자동 등록하고, 필요한 Graph 권한 부여와 관리자 동의까지 안내합니다.`,
+      "feat.f2h": `4가지 수집 범위`,
+      "feat.f2p": `LICENSED(라이선스 보유자), ALL_ACTIVE(전체 활성 사용자), GROUP(특정 그룹), CUSTOM(지정 UPN) 모드를 지원합니다.`,
+      "feat.f3h": `안전한 증분 수집`,
+      "feat.f3p": `사용자별 워터마크, Retry-After 준수, 지수 백오프, 멱등성 업서트로 중단 후 재실행해도 데이터가 중복되지 않습니다.`,
+      "feat.f4h": `로컬 전용 저장소`,
+      "feat.f4p": `모든 데이터는 내 PC의 SQLite(%LOCALAPPDATA%)에 저장됩니다. 대화 본문에 대한 FTS5 전문 검색을 지원합니다.`,
+      "feat.f5h": `현대적인 Electron UI`,
+      "feat.f5p": `대시보드(KPI + 차트), 대화 탐색, 실시간 수집 로그 모니터링, CSV/JSON/XLSX 내보내기를 제공합니다.`,
+
+      "src.eyebrow": `데이터 출처`,
+      "src.title": `무엇을, 어떤 기술로, 어떤 권한으로 수집하나요?`,
+      "src.lead": `출처마다 <strong>수집 데이터·사용 기술·필요 권한·제약</strong>이 다릅니다. 앱의 <strong>데이터 수집 → 개요</strong> 화면에서도 동일한 내용을 확인할 수 있습니다.`,
+      "src.lblTech": `기술`,
+      "src.lblData": `수집 데이터`,
+      "src.lblPerms": `필요 권한`,
+      "src.lblScope": `제약·범위`,
+      "src.chipPpac": `PPAC 자동 로그인 계정`,
+
+      "src.c1h": `대화 수집 (API)`,
+      "src.c1sum": `Microsoft Graph API로 사용자별 Copilot 대화 본문을 직접 수집합니다.`,
+      "src.c1tech": `Microsoft Graph(beta) · getAllEnterpriseInteractions · 앱 전용(client credentials) 토큰`,
+      "src.c1d1": `프롬프트/응답 본문 텍스트`,
+      "src.c1d2": `앱 출처(BizChat, Word, Teams, Excel, PowerPoint, Outlook, Loop 등)`,
+      "src.c1d3": `첨부·링크·멘션 메타데이터, 원본 JSON`,
+      "src.c1s1": `Copilot 라이선스 보유자 대상(전체/라이선스/그룹/사용자 지정 범위 선택)`,
+      "src.c1s2": `beta 엔드포인트 · 사용자·기간 단위 페이징`,
+      "src.c1s3": `라이선스 없는 사용자 본문은 eDiscovery 경로로 별도 수집`,
+      "src.c1view": `앱에서 보기 · <strong>대화 탐색(API)</strong>`,
+
+      "src.c2h": `대화 수집 (e-Discovery)`,
+      "src.c2sum": `라이선스 없는 사용자까지 포함해 Purview eDiscovery로 Copilot 본문을 복원합니다.`,
+      "src.c2tech": `Purview eDiscovery(Graph) · 위임(delegated) 인증`,
+      "src.c2d1": `라이선스 미보유 사용자를 포함한 Copilot 대화 본문`,
+      "src.c2d2": `케이스·검색·내보내기 산출물에서 복원한 메시지`,
+      "src.c2chip1": `eDiscovery.ReadWrite.All (위임)`,
+      "src.c2chip2": `eDiscovery Manager 역할`,
+      "src.c2s1": `앱 전용 인증은 Premium 전용이라 위임 인증 사용`,
+      "src.c2s2": `케이스 생성 → 검색 → 추정 → 내보내기 → 다운로드 → 해석의 비동기 단계`,
+      "src.c2s3": `단계별 재개(이어받기) 지원 — 중단 후 다시 시작 가능`,
+      "src.c2view": `앱에서 보기 · <strong>대화 탐색(e-Discovery)</strong>`,
+
+      "src.c3h": `대화 수집 (Teams)`,
+      "src.c3sum": `Copilot Studio 커스텀 에이전트의 Teams 대화 트랜스크립트를 Dataverse에서 수집합니다.`,
+      "src.c3tech": `Dataverse 자동 로그인(웹 자동화) · 트랜스크립트 테이블`,
+      "src.c3d1": `Copilot Studio 커스텀 에이전트의 Teams 대화 기록(트랜스크립트)`,
+      "src.c3d2": `에이전트·환경별 대화 세션`,
+      "src.c3chip1": `Dataverse 시스템 관리자(환경별)`,
+      "src.c3s1": `환경별 접근 권한 필요 — 없는 환경은 '나를 시스템 관리자로 자동 추가' 옵션 사용`,
+      "src.c3s2": `브라우저 자동 로그인 기반이라 MFA·세션 정책의 영향을 받음`,
+      "src.c3view": `앱에서 보기 · <strong>대화 탐색(Teams)</strong>`,
+
+      "src.c4h": `에이전트`,
+      "src.c4sum": `Copilot 관리 API와 감사 로그에서 에이전트 인벤토리와 실제 사용 신호를 수집합니다.`,
+      "src.c4tech": `Microsoft Graph Copilot 관리 API(에이전트 등록·카탈로그) + 감사 로그`,
+      "src.c4d1": `에이전트 인벤토리(등록 정보·카탈로그 패키지)`,
+      "src.c4d2": `정책 설정 신호`,
+      "src.c4d3": `감사 로그 기반 실제 사용 신호`,
+      "src.c4s1": `사용 신호는 감사 로그 기반 — 감사 이벤트를 먼저 수집할수록 정확`,
+      "src.c4s2": `관리 API 가용 범위(테넌트 구성)에 따라 일부 항목이 비어 있을 수 있음`,
+      "src.c4view": `앱에서 보기 · <strong>에이전트</strong>`,
+
+      "src.c5h": `파워플랫폼 크레딧`,
+      "src.c5sum": `PPAC 소비량 리포트를 내려받아 메시지·AI Builder·API 요청 사용량을 추적합니다.`,
+      "src.c5tech": `Power Platform 관리 센터(PPAC) 자동 로그인 · 소비량 리포트 다운로드`,
+      "src.c5d1": `Copilot Studio 메시지 소비량`,
+      "src.c5d2": `AI Builder 크레딧 소비량`,
+      "src.c5d3": `Power Platform 요청(API) 소비량`,
+      "src.c5chip1": `Power Platform 관리자`,
+      "src.c5s1": `웹 자동화 기반 — PPAC UI/리포트 가용성에 의존`,
+      "src.c5s2": `리포트가 제공하는 집계 기간·단위 범위 내에서만 수집`,
+      "src.c5view": `앱에서 보기 · <strong>파워플랫폼 크레딧</strong>`,
+
+      "src.c6h": `감사 이벤트`,
+      "src.c6sum": `Purview 통합 감사 로그와 Entra 감사/로그인에서 보안·접근 이벤트를 수집합니다.`,
+      "src.c6tech": `Graph security.auditLog.queries(비동기 Purview 통합 로그) + Entra 감사/sign-in`,
+      "src.c6d1": `차단/거부 등 보안 이벤트`,
+      "src.c6d2": `민감 자료 접근 기록`,
+      "src.c6d3": `접근·정책 관련 감사 이벤트`,
+      "src.c6s1": `Purview 감사 로그 보존 기간 내 데이터만 조회 가능`,
+      "src.c6s2": `통합 로그 쿼리는 비동기(제출→폴링→결과) 방식`,
+      "src.c6s3": `auditLog 404 응답 시 Purview 경로는 자동 비활성화되고 Entra 경로만 사용`,
+      "src.c6view": `앱에서 보기 · <strong>보안/감사</strong>`,
+
+      "src.c7h": `공식 사용량`,
+      "src.c7sum": `Microsoft 365 Copilot 공식 사용량 보고서 스냅샷을 수집합니다.`,
+      "src.c7tech": `Microsoft Graph Reports API(Copilot 사용량 CSV)`,
+      "src.c7d1": `M365 Copilot 공식 사용량 보고서 스냅샷`,
+      "src.c7d2": `기간별(D7/D30/D90/D180) 사용 집계`,
+      "src.c7s1": `Microsoft 보고서 익명화 설정 영향 — 식별이 필요하면 ReportSettings로 비익명화`,
+      "src.c7s2": `Microsoft가 제공하는 보고 기간 단위로만 수집`,
+      "src.c7view": `앱에서 보기 · <strong>공식 보고서</strong>`,
+
+      "screens.eyebrow": `주요 화면`,
+      "screens.title": `실제 화면 살펴보기`,
+      "screens.lead": `대시보드, 사용 인사이트, 대화 탐색 — 세 가지 핵심 화면.`,
+      "screens.s1h": `대시보드 — 전체 사용 현황을 한눈에`,
+      "screens.s1p": `활성 사용자 수, 총 스레드·메시지·프롬프트, 의미 있는 상호작용, 라이선스 미활용 인원 등 핵심 지표(KPI)와 최근 30일 사용 추이 그래프, 상위 사용자 TOP 5를 보여 줍니다.`,
+      "screens.s2h": `사용 인사이트 — 사용자·날짜·앱별 상세 분석`,
+      "screens.s2p": `기간·사용자·앱별로 Copilot 활동을 필터링해 분석합니다. 날짜별 스레드·메시지 추이, 앱별 메시지 분포, 사용자별 요약 표를 제공합니다.`,
+      "screens.s3h": `대화 탐색 — 실제 대화 기록 열람`,
+      "screens.s3p": `Graph API로 수집한 운영 대화 기록을 제목·본문으로 검색하고, 사용자·앱별로 필터링해 개별 대화의 전체 내용을 확인합니다. 관련 감사 이벤트와 함께 Markdown 등으로 내보낼 수 있습니다.`,
+
+      "dl.eyebrow": `다운로드 & 설치`,
+      "dl.title": `지금 바로 시작하기`,
+      "dl.lead": `Releases 페이지에서 <code style="font-family:ui-monospace,monospace;color:var(--accent)">CopilotWatchTower-x.y.z-setup.zip</code>을 내려받아 압축을 풀고, 관리자 권한으로 설치 배치 파일을 실행하세요.`,
+      "dl.step1": `setup.zip 다운로드 후 압축 해제`,
+      "dl.step2": `Install-CopilotWatchTower.bat 관리자 실행 (인증서 신뢰 + 앱 설치)`,
+      "dl.step3": `앱 실행 후 온보딩 마법사로 테넌트 연결`,
+      "dl.cta": `⬇️ 최신 릴리스로 이동`,
+      "dl.meta": `자체 서명 인증서를 사용하므로 설치 전 인증서 신뢰 등록이 필요합니다. 자세한 절차는 압축 안의 <strong>INSTALL.txt</strong>를 참고하세요.`,
+
+      "dev.eyebrow": `개발자용`,
+      "dev.title": `소스에서 직접 실행`,
+      "dev.lead": `Python 3.11+ 가상환경에서 editable 설치 후 바로 실행할 수 있습니다.`,
+      "dev.c1": `# 1. Python 3.11+ 가상환경 생성`,
+      "dev.c2": `# 2. 개발 의존성 포함 editable 설치`,
+      "dev.c3": `# 3. 실행`,
+
+      "comm.eyebrow": `커뮤니티`,
+      "comm.title": `기능 문의 · 피드백을 남겨주세요`,
+      "comm.lead": `사용 중 굤금한 점, 새로운 기능 제안, 버그 신고는 GitHub 이슈 게시판에서 자유롭게 남겨주세요. 함께 만들어가는 도구입니다.`,
+      "comm.cardTitle": `GitHub 이슈 게시판`,
+      "comm.cardLead": `질문 · 기능 제안 · 버그 신고를 남기는 공간`,
+      "comm.cta": `💬 GitHub 이슈 남기기`,
+
+      "foot.community": `커뮤니티`,
+      "foot.docs": `문서`
+    },
+    en: {
+      "meta.title": `CopilotWatchTower · Microsoft 365 Copilot Usage Monitor`,
+      "meta.desc": `A Microsoft 365 Copilot usage and conversation collection tool for tenant administrators. A Windows desktop app built with Electron + React + TypeScript.`,
+      "meta.ogTitle": `CopilotWatchTower — Microsoft 365 Copilot Usage Monitor`,
+      "meta.ogDesc": `A Windows desktop tool that lets administrators collect and analyze their organization's Microsoft 365 Copilot usage firsthand.`,
+      "meta.twTitle": `CopilotWatchTower — Microsoft 365 Copilot Usage Monitor`,
+      "meta.twDesc": `A Windows desktop tool that lets administrators collect and analyze their organization's Microsoft 365 Copilot usage firsthand.`,
+
+      "nav.features": `Features`,
+      "nav.sources": `Data sources`,
+      "nav.screens": `Screens`,
+      "nav.download": `Download`,
+      "nav.community": `Community`,
+      "nav.cta": `Download`,
+
+      "alt.logo": `CopilotWatchTower logo`,
+      "alt.heroLogo": `CopilotWatchTower app icon`,
+      "alt.heroShot": `CopilotWatchTower dashboard screen`,
+      "alt.screen1": `Dashboard screen`,
+      "alt.screen2": `Usage insights screen`,
+      "alt.screen3": `Conversation explorer screen`,
+
+      "hero.badge": `<span class="dot"></span> Windows desktop · Electron + React · Local only`,
+      "hero.title": `Your organization's <span class="grad">Microsoft 365 Copilot</span><br/>usage at a glance`,
+      "hero.subtitle": `A <strong>Copilot usage and conversation collection tool</strong> for tenant administrators. From a single admin PC, it collects data through Microsoft Graph, stores it in a local database on your own PC, and puts it to work for compliance and analysis.`,
+      "hero.ctaDownload": `⬇️ Download the latest version`,
+      "hero.ctaGithub": `⭐ View on GitHub`,
+      "hero.meta": `Latest release <strong>v2.0.0</strong> · MIT License · Windows 10/11 (x64)`,
+
+      "intro.eyebrow": `Why you need it`,
+      "intro.title": `"Is our company really getting value from Copilot?"`,
+      "intro.lead": `Who uses it and how much, which apps they use it in (Teams, Word, and more), whether licenses are going to waste — this is an admin tool for answering those questions with <strong>numbers and evidence</strong>. No separate server or external network port required.`,
+      "intro.compliance": `<strong>Compliance note.</strong> This tool reads Copilot conversation content <strong>as plain text (the original wording)</strong>. Use it <strong>only in tenants where your legal and policy authority is clear</strong> — for eDiscovery, internal audit, regulatory retention, and the like. Before adopting it, be sure to review a Data Protection Impact Assessment (DPIA) and your data-handling policies.`,
+
+      "feat.eyebrow": `Key features`,
+      "feat.title": `From install to analysis, in one tool`,
+      "feat.lead": `A lightweight, secure desktop app that runs right on the administrator's PC.`,
+      "feat.f1h": `No prior app registration`,
+      "feat.f1p": `On first launch, a wizard uses device code sign-in to automatically register an Entra ID app, then guides you through granting the required Graph permissions and admin consent.`,
+      "feat.f2h": `Four collection scopes`,
+      "feat.f2p": `Supports LICENSED (license holders), ALL_ACTIVE (all active users), GROUP (a specific group), and CUSTOM (specified UPNs) modes.`,
+      "feat.f3h": `Safe incremental collection`,
+      "feat.f3p": `Per-user watermarks, Retry-After compliance, exponential backoff, and idempotent upserts mean your data is never duplicated, even if you stop and rerun.`,
+      "feat.f4h": `Local-only storage`,
+      "feat.f4p": `All data is stored in SQLite (%LOCALAPPDATA%) on your own PC. Full-text FTS5 search across conversation bodies is supported.`,
+      "feat.f5h": `A modern Electron UI`,
+      "feat.f5p": `Offers a dashboard (KPIs + charts), conversation exploration, real-time collection log monitoring, and CSV/JSON/XLSX export.`,
+
+      "src.eyebrow": `Data sources`,
+      "src.title": `What is collected, with which technology, and under what permissions?`,
+      "src.lead": `The <strong>data collected, technology used, permissions required, and constraints</strong> differ for each source. You can review the same details in the app's <strong>Data collection → Overview</strong> screen.`,
+      "src.lblTech": `Technology`,
+      "src.lblData": `Collected data`,
+      "src.lblPerms": `Required permissions`,
+      "src.lblScope": `Constraints & scope`,
+      "src.chipPpac": `PPAC automatic sign-in account`,
+
+      "src.c1h": `Conversation collection (API)`,
+      "src.c1sum": `Collects each user's Copilot conversation bodies directly through the Microsoft Graph API.`,
+      "src.c1tech": `Microsoft Graph (beta) · getAllEnterpriseInteractions · app-only (client credentials) token`,
+      "src.c1d1": `Prompt/response body text`,
+      "src.c1d2": `App origin (BizChat, Word, Teams, Excel, PowerPoint, Outlook, Loop, and more)`,
+      "src.c1d3": `Attachment, link, and mention metadata; raw JSON`,
+      "src.c1s1": `Targets Copilot license holders (choose all / licensed / group / custom-specified scope)`,
+      "src.c1s2": `beta endpoint · paging by user and time period`,
+      "src.c1s3": `Bodies for unlicensed users are collected separately via the eDiscovery path`,
+      "src.c1view": `View in app · <strong>Conversation explorer (API)</strong>`,
+
+      "src.c2h": `Conversation collection (e-Discovery)`,
+      "src.c2sum": `Restores Copilot bodies with Purview eDiscovery, including users without a license.`,
+      "src.c2tech": `Purview eDiscovery (Graph) · delegated authentication`,
+      "src.c2d1": `Copilot conversation bodies, including users without a license`,
+      "src.c2d2": `Messages restored from case, search, and export outputs`,
+      "src.c2chip1": `eDiscovery.ReadWrite.All (delegated)`,
+      "src.c2chip2": `eDiscovery Manager role`,
+      "src.c2s1": `App-only authentication is Premium-only, so delegated authentication is used`,
+      "src.c2s2": `Asynchronous stages: create case → search → estimate → export → download → interpret`,
+      "src.c2s3": `Stage-by-stage resume (pick up where you left off) — you can restart after an interruption`,
+      "src.c2view": `View in app · <strong>Conversation explorer (e-Discovery)</strong>`,
+
+      "src.c3h": `Conversation collection (Teams)`,
+      "src.c3sum": `Collects Teams conversation transcripts from Copilot Studio custom agents out of Dataverse.`,
+      "src.c3tech": `Dataverse automatic sign-in (web automation) · transcript tables`,
+      "src.c3d1": `Teams conversation history (transcripts) from Copilot Studio custom agents`,
+      "src.c3d2": `Conversation sessions by agent and environment`,
+      "src.c3chip1": `Dataverse System Administrator (per environment)`,
+      "src.c3s1": `Per-environment access is required — for environments you don't have, use the "Automatically add me as System Administrator" option`,
+      "src.c3s2": `Based on browser automatic sign-in, so it is subject to MFA and session policies`,
+      "src.c3view": `View in app · <strong>Conversation explorer (Teams)</strong>`,
+
+      "src.c4h": `Agents`,
+      "src.c4sum": `Collects agent inventory and real-world usage signals from the Copilot management API and audit logs.`,
+      "src.c4tech": `Microsoft Graph Copilot management API (agent registration and catalog) + audit logs`,
+      "src.c4d1": `Agent inventory (registration details and catalog packages)`,
+      "src.c4d2": `Policy configuration signals`,
+      "src.c4d3": `Real-world usage signals based on audit logs`,
+      "src.c4s1": `Usage signals are based on audit logs — the earlier you collect audit events, the more accurate they are`,
+      "src.c4s2": `Depending on the management API's coverage (tenant configuration), some items may be empty`,
+      "src.c4view": `View in app · <strong>Agents</strong>`,
+
+      "src.c5h": `Power Platform credits`,
+      "src.c5sum": `Downloads PPAC consumption reports to track message, AI Builder, and API request usage.`,
+      "src.c5tech": `Power Platform admin center (PPAC) automatic sign-in · consumption report download`,
+      "src.c5d1": `Copilot Studio message consumption`,
+      "src.c5d2": `AI Builder credit consumption`,
+      "src.c5d3": `Power Platform request (API) consumption`,
+      "src.c5chip1": `Power Platform Administrator`,
+      "src.c5s1": `Based on web automation — depends on PPAC UI/report availability`,
+      "src.c5s2": `Collected only within the aggregation periods and units the report provides`,
+      "src.c5view": `View in app · <strong>Power Platform credits</strong>`,
+
+      "src.c6h": `Audit events`,
+      "src.c6sum": `Collects security and access events from the Purview unified audit log and Entra audit/sign-in logs.`,
+      "src.c6tech": `Graph security.auditLog.queries (asynchronous Purview unified log) + Entra audit/sign-in`,
+      "src.c6d1": `Security events such as blocks and denials`,
+      "src.c6d2": `Sensitive-material access records`,
+      "src.c6d3": `Audit events related to access and policy`,
+      "src.c6s1": `Only data within the Purview audit log retention period can be queried`,
+      "src.c6s2": `Unified log queries are asynchronous (submit → poll → result)`,
+      "src.c6s3": `On an auditLog 404 response, the Purview path is automatically disabled and only the Entra path is used`,
+      "src.c6view": `View in app · <strong>Security/Audit</strong>`,
+
+      "src.c7h": `Official usage`,
+      "src.c7sum": `Collects snapshots of the official Microsoft 365 Copilot usage report.`,
+      "src.c7tech": `Microsoft Graph Reports API (Copilot usage CSV)`,
+      "src.c7d1": `Official M365 Copilot usage report snapshots`,
+      "src.c7d2": `Usage aggregates by period (D7/D30/D90/D180)`,
+      "src.c7s1": `Affected by Microsoft's report anonymization setting — if identification is needed, de-anonymize via ReportSettings`,
+      "src.c7s2": `Collected only in the reporting periods Microsoft provides`,
+      "src.c7view": `View in app · <strong>Official report</strong>`,
+
+      "screens.eyebrow": `Screens`,
+      "screens.title": `Take a look at the actual screens`,
+      "screens.lead": `Dashboard, usage insights, conversation explorer — three core screens.`,
+      "screens.s1h": `Dashboard — your whole usage picture at a glance`,
+      "screens.s1p": `Shows key indicators (KPIs) — active users, total threads, messages, and prompts, meaningful interactions, users not using their licenses, and more — plus a 30-day usage trend graph and the top 5 users.`,
+      "screens.s2h": `Usage insights — detailed analysis by user, date, and app`,
+      "screens.s2p": `Filter and analyze Copilot activity by period, user, and app. Provides thread/message trends by date, message distribution by app, and a per-user summary table.`,
+      "screens.s3h": `Conversation explorer — read the actual conversation records`,
+      "screens.s3p": `Search the operational conversation records collected through the Graph API by title and body, filter by user and app, and review the full content of individual conversations. You can export them, together with related audit events, to formats such as Markdown.`,
+
+      "dl.eyebrow": `Download & install`,
+      "dl.title": `Get started right now`,
+      "dl.lead": `From the Releases page, download <code style="font-family:ui-monospace,monospace;color:var(--accent)">CopilotWatchTower-x.y.z-setup.zip</code>, unzip it, and run the install batch file with administrator privileges.`,
+      "dl.step1": `Download setup.zip, then unzip`,
+      "dl.step2": `Run Install-CopilotWatchTower.bat as administrator (trust the certificate + install the app)`,
+      "dl.step3": `Launch the app, then connect your tenant with the onboarding wizard`,
+      "dl.cta": `⬇️ Go to the latest release`,
+      "dl.meta": `Because it uses a self-signed certificate, you must register trust for the certificate before installing. For the detailed procedure, see <strong>INSTALL.txt</strong> inside the archive.`,
+
+      "dev.eyebrow": `For developers`,
+      "dev.title": `Run directly from source`,
+      "dev.lead": `In a Python 3.11+ virtual environment, install in editable mode and run right away.`,
+      "dev.c1": `# 1. Create a Python 3.11+ virtual environment`,
+      "dev.c2": `# 2. Editable install including dev dependencies`,
+      "dev.c3": `# 3. Run`,
+
+      "comm.eyebrow": `Community`,
+      "comm.title": `Ask about features · leave feedback`,
+      "comm.lead": `Feel free to post any questions that come up while using it, new feature suggestions, or bug reports on the GitHub issues board. This is a tool we build together.`,
+      "comm.cardTitle": `GitHub issues board`,
+      "comm.cardLead": `A place to leave questions, feature suggestions, and bug reports`,
+      "comm.cta": `💬 Open a GitHub issue`,
+
+      "foot.community": `Community`,
+      "foot.docs": `Docs`
+    }
+  };
+
+  function setText(id, val) {
+    if (val == null) return;
+    var el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  function setAttr(id, attr, val) {
+    if (val == null) return;
+    var el = document.getElementById(id);
+    if (el) el.setAttribute(attr, val);
+  }
+
+  function applyLang(lang) {
+    if (lang !== "ko" && lang !== "en") lang = "ko";
+    var dict = I18N[lang];
+    document.documentElement.lang = lang;
+
+    var textNodes = document.querySelectorAll("[data-i18n]");
+    for (var i = 0; i < textNodes.length; i++) {
+      var k = textNodes[i].getAttribute("data-i18n");
+      if (dict[k] != null) textNodes[i].textContent = dict[k];
+    }
+
+    var htmlNodes = document.querySelectorAll("[data-i18n-html]");
+    for (var j = 0; j < htmlNodes.length; j++) {
+      var hk = htmlNodes[j].getAttribute("data-i18n-html");
+      if (dict[hk] != null) htmlNodes[j].innerHTML = dict[hk];
+    }
+
+    var altNodes = document.querySelectorAll("[data-i18n-alt]");
+    for (var a = 0; a < altNodes.length; a++) {
+      var ak = altNodes[a].getAttribute("data-i18n-alt");
+      if (dict[ak] != null) altNodes[a].setAttribute("alt", dict[ak]);
+    }
+
+    setText("page-title", dict["meta.title"]);
+    setAttr("meta-desc", "content", dict["meta.desc"]);
+    setAttr("og-title", "content", dict["meta.ogTitle"]);
+    setAttr("og-desc", "content", dict["meta.ogDesc"]);
+    setAttr("tw-title", "content", dict["meta.twTitle"]);
+    setAttr("tw-desc", "content", dict["meta.twDesc"]);
+
+    var btn = document.getElementById("lang-toggle");
+    if (btn) {
+      btn.textContent = lang === "ko" ? "🌐 English" : "🌐 한국어";
+      btn.setAttribute("aria-label", lang === "ko" ? "Switch to English" : "한국어로 전환");
+    }
+
+    try { localStorage.setItem("cwt-lang", lang); } catch (e) {}
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem("cwt-lang"); } catch (e) {}
+  var initial = saved || ((navigator.language || "").toLowerCase().startsWith("ko") ? "ko" : "en");
+  applyLang(initial);
+
+  var toggle = document.getElementById("lang-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var current = document.documentElement.lang === "en" ? "en" : "ko";
+      applyLang(current === "ko" ? "en" : "ko");
+    });
+  }
+})();
+</script>
 
 </body>
 </html>

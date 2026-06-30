@@ -1,0 +1,47 @@
+{
+  "filters": {
+    "source": "Source",
+    "searchPlaceholder": "User / operation / result / IP search",
+    "submit": "Search"
+  },
+  "sources": {
+    "all": "(All sources)",
+    "purview": "Purview audit",
+    "entraAudit": "Entra audit",
+    "entraSignin": "Entra sign-in"
+  },
+  "kpi": {
+    "auditEvents": "Audit events",
+    "auditEventsHint": "Selected scope",
+    "blocked": "Blocked / denied",
+    "uniqueUsers": "Unique users",
+    "uniqueUsersHint": "By UPN",
+    "topOperation": "Top operation",
+    "topOperationHint": "{{n}} events"
+  },
+  "cards": {
+    "diagnosticsTitle": "Admin diagnostics",
+    "diagnosticsCount": "{{n}} items",
+    "auditEventsTitle": "Audit events",
+    "auditEventsCount": "{{n}} events"
+  },
+  "diagnosticColumns": {
+    "label": "Item",
+    "endpoint": "Endpoint",
+    "status": "Status",
+    "summary": "Summary",
+    "capturedAt": "Collected"
+  },
+  "eventColumns": {
+    "time": "Time",
+    "source": "Source",
+    "user": "User",
+    "operation": "Operation",
+    "app": "App",
+    "result": "Result",
+    "rawTitle": "Raw audit event · {{operation}}"
+  },
+  "bridge": {
+    "offline": "Not connected to the bridge. Run the desktop app with --web."
+  }
+}

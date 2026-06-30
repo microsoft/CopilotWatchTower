@@ -1,0 +1,45 @@
+{
+  "banner": {
+    "label": "라이선스 구성",
+    "notConfigured": "라이선스 구성이 지정되지 않음 (모든 기능 활성)",
+    "configure": "설정에서 지정"
+  },
+  "preset": {
+    "me3": "Microsoft 365 E3",
+    "me3_copilot": "E3 + Copilot",
+    "me5_copilot": "E5 + Copilot",
+    "agent365": "E5 + Copilot + Agent365",
+    "custom": "사용자 지정"
+  },
+  "capability": {
+    "copilot_seats": "Microsoft 365 Copilot 라이선스",
+    "e5": "Microsoft 365 E5",
+    "agent_inventory": "Agent365"
+  },
+  "locked": {
+    "title": "현재 라이선스 구성에서는 사용할 수 없는 기능입니다",
+    "needs": "필요한 라이선스: {{capability}}",
+    "goSettings": "설정에서 라이선스 구성 변경",
+    "ediscoveryAlt": "Copilot 라이선스가 없어도 e-Discovery로 대화를 수집하고 탐색할 수 있습니다.",
+    "goEdiscovery": "대화 탐색(e-Discovery)으로 이동"
+  },
+  "settings": {
+    "title": "라이선스 구성",
+    "description": "고객 테넌트의 Microsoft 365 라이선스 구성을 선택하세요. 구성에 따라 사용 가능한 기능과 메뉴가 결정됩니다.",
+    "presetLabel": "구성 프리셋",
+    "advanced": "고급: 기능별 직접 설정",
+    "detect": "테넌트에서 감지하여 채우기",
+    "detecting": "감지 중…",
+    "save": "저장",
+    "saved": "라이선스 구성을 저장했습니다.",
+    "saveFailed": "저장 실패",
+    "detectFailed": "감지 실패",
+    "detected": "감지된 구성을 적용했습니다. 확인 후 저장하세요.",
+    "notConfiguredHint": "아직 지정되지 않았습니다 — 현재 모든 기능이 활성화되어 있습니다.",
+    "currentSource": {
+      "manual": "관리자 지정",
+      "detected": "자동 감지",
+      "default": "미지정(기본)"
+    }
+  }
+}

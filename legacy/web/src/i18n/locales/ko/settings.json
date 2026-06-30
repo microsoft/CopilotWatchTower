@@ -1,0 +1,73 @@
+{
+  "cardProfiles": "프로필",
+  "cardSettings": "설정",
+  "addProfileButton": "+ 새 프로필",
+  "newTenantPlaceholder": "새 테넌트",
+  "col": {
+    "name": "이름",
+    "status": "상태",
+    "lastUsed": "마지막 사용"
+  },
+  "currentBadge": "(현재)",
+  "statusComplete": "완료",
+  "statusNeedsInit": "초기화 필요",
+  "form": {
+    "loading": "설정을 불러오는 중…",
+    "pollInterval": "수집 주기 (분)",
+    "scope": "수집 범위",
+    "groupId": "Entra 그룹 ID",
+    "upnList": "UPN 목록 (한 줄당 한 명)",
+    "language": "언어",
+    "autoBackup": "수집 후 자동 백업",
+    "autoBackupCheckbox": "수집 작업이 끝날 때마다 현재 프로필 데이터를 자동으로 백업",
+    "autoBackupMode": "자동 백업 방식",
+    "metaLine": "Tenant: {{tenant}} · Client: {{client}} · Secret 만료: {{secret}}",
+    "autoBackupHint": "자동 백업 파일은 현재 프로필의 exports 폴더에 저장됩니다. 덮어쓰기를 선택하면 `*-latest.cwtbackup` 파일 1개만 유지합니다.",
+    "creditAutoCollect": "크레딧 자동 수집",
+    "creditAutoCollectCheckbox": "주기적으로 비용/소비량 스냅샷을 자동 수집해 일별 차분·급증 탐지를 최신으로 유지",
+    "creditInterval": "자동 수집 주기(시간)",
+    "creditAutoCollectHint": "기본값은 24시간입니다. 켜면 설정한 주기마다 라이선싱 소비량 스냅샷을 수집하고, 수집 완료 시 크레딧 알람을 재평가합니다."
+  },
+  "autoBackupModes": {
+    "new": "매번 새 백업 파일 만들기",
+    "overwrite": "마지막 자동 백업 1개만 덮어쓰기"
+  },
+  "languages": {
+    "ko_KR": "한국어",
+    "en_US": "English"
+  },
+  "version": {
+    "card": "버전 · 업데이트",
+    "currentLabel": "현재 버전:",
+    "checking": "확인 중…",
+    "checkLatest": "최신 버전 확인",
+    "newVersionPrefix": "새 버전 ",
+    "prerelease": " (프리릴리스)",
+    "newVersionSuffix": "{{pre}} 이(가) 있습니다.",
+    "openDownload": "다운로드 페이지 열기",
+    "upToDate": "최신 버전을 사용 중입니다.",
+    "githubHint": "GitHub의 최신 릴리스를 확인합니다. 업데이트는 다운로드 페이지에서 직접 설치하세요."
+  },
+  "advanced": {
+    "card": "고급 동작",
+    "permissions": "권한 · 위험 영역…",
+    "hint": "Graph 권한 재동의, 수집 데이터 삭제, 테넌트 초기화처럼 device-code 흐름이 필요한 동작은 안전을 위해 데스크톱 다이얼로그로 열립니다."
+  },
+  "bridgeOffline": "브리지 미연결 상태입니다. 데스크톱 앱에서 실행하세요.",
+  "actions": {
+    "addProfile": "프로필 추가",
+    "switchProfile": "{{name}} 전환",
+    "deleteProfile": "{{name}} 삭제",
+    "saveSettings": "설정 저장",
+    "openPermissions": "권한 · 위험 영역 열기"
+  },
+  "toasts": {
+    "checkFailed": "최신 버전을 확인하지 못했습니다.",
+    "newVersion": "새 버전이 있습니다: {{version}}",
+    "upToDate": "최신 버전을 사용 중입니다.",
+    "checkException": "업데이트 확인 예외: {{message}}",
+    "actionFailed": "{{label}} 실패: {{error}}",
+    "actionRequested": "{{label}} 요청됨",
+    "actionException": "{{label}} 예외: {{message}}"
+  }
+}

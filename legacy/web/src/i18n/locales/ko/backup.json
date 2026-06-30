@@ -1,0 +1,44 @@
+{
+  "desktopOnly": "데스크톱 앱에서만 백업·복원을 사용할 수 있습니다.",
+  "backup": {
+    "title": "데이터 백업",
+    "openFolder": "내보내기 폴더 열기",
+    "description": "현재 프로필의 수집 데이터를 휴대용 백업 파일(.cwtbackup)로 만듭니다. 설정과 비밀 값은 포함되지 않습니다.",
+    "create": "백업 만들기",
+    "busy": "백업 중…",
+    "lastResult": "✓ {{filename}} · 총 {{rows}}행"
+  },
+  "restore": {
+    "title": "데이터 복원(불러오기)",
+    "description": "백업 파일을 현재 활성 프로필로 가져옵니다. 이미 존재하는 항목은 자동으로 중복 제외(스킵)됩니다. 새 프로필로 불러오려면 먼저 설정에서 프로필을 만들고 전환한 뒤 복원하세요.",
+    "pickFile": "백업 파일 선택",
+    "confirm": "선택한 백업 복원",
+    "busy": "복원 중…",
+    "selectedFile": "선택됨: {{file}}",
+    "noName": "이름 없음",
+    "manifestInfo": "백업 정보: {{name}} · 총 {{rows}}행 · 생성 {{created}}",
+    "lastResult": "✓ {{added}}건 추가 · {{skipped}}건 중복 스킵 · 스레드 {{threads}}개 재계산"
+  },
+  "wipe": {
+    "title": "위험 구역 — 데이터 전체 삭제",
+    "description": "이 프로필이 수집한 모든 데이터(대화·감사 로그·사용량·에이전트·소비·플로우 실행·신용 알림 등)를 영구 삭제합니다. 앱 등록 정보와 설정은 유지됩니다. 되돌릴 수 없으니 먼저 백업하세요.",
+    "button": "이 프로필 데이터 전체 삭제",
+    "confirmPrompt": "정말 삭제하려면 한 번 더 누르세요. 되돌릴 수 없습니다.",
+    "confirm": "예, 전부 삭제합니다",
+    "cancel": "취소",
+    "busy": "삭제 중…",
+    "lastResult": "✓ {{deleted}}행 삭제됨"
+  },
+  "toasts": {
+    "backupFinished": "백업 완료: {{filename}}",
+    "backupFailed": "백업 실패: {{error}}",
+    "backupStartFailed": "백업 시작 실패: {{error}}",
+    "restoreFinished": "복원 완료: {{added}}건 추가, {{skipped}}건 중복 스킵",
+    "restoreFailed": "복원 실패: {{error}}",
+    "restoreStartFailed": "복원 시작 실패: {{error}}",
+    "inspectFailed": "백업 파일을 읽을 수 없습니다.",
+    "wipeFinished": "데이터 전체 삭제 완료: {{deleted}}행",
+    "wipeFailed": "데이터 삭제 실패: {{error}}",
+    "wipeStartFailed": "데이터 삭제 시작 실패: {{error}}"
+  }
+}

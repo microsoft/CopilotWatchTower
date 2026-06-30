@@ -1,0 +1,25 @@
+{
+  "bridgeUnavailable": "Export is only available in the desktop app.",
+  "openFolder": "Open exports folder",
+  "interactions": {
+    "title": "Export interactions",
+    "description": "Export all interactions from the current profile to a single file.",
+    "formatLabel": "Interaction export format",
+    "exportButton": "Export interactions"
+  },
+  "threads": {
+    "title": "Export threads",
+    "description": "Export all conversation threads from the current profile to a single file. Individual threads can be exported from the Conversation Explorer screen.",
+    "formatLabel": "Thread export format",
+    "exportButton": "Export threads"
+  },
+  "status": {
+    "title": "Status",
+    "fileLine": "{{filename}} · {{n}} items"
+  },
+  "toasts": {
+    "exportComplete": "Export complete: {{filename}} ({{n}} items)",
+    "exportFailed": "Export failed: {{error}}",
+    "startFailed": "Failed to start export: {{error}}"
+  }
+}

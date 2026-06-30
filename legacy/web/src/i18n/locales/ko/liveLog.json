@@ -1,0 +1,64 @@
+{
+  "kinds": {
+    "conversation": "대화 수집(API)",
+    "audit": "감사 이벤트",
+    "usage": "공식 사용량",
+    "diagnostics": "에이전트",
+    "consumption": "파워플랫폼 크레딧",
+    "transcripts": "대화 수집(Teams)",
+    "flow_runs": "에이전트 실행(플로우)",
+    "agent_definitions": "에이전트 위험 분석"
+  },
+  "ediscoveryStatus": {
+    "pending": "대기",
+    "case": "케이스",
+    "searching": "검색",
+    "estimating": "추정",
+    "exporting": "내보내기",
+    "downloading": "다운로드",
+    "parsing": "해석",
+    "done": "완료",
+    "error": "오류"
+  },
+  "toolbar": {
+    "allKinds": "(전체 종류)",
+    "system": "시스템",
+    "search": "검색",
+    "errorsOnly": "오류만",
+    "group": "묶기",
+    "resume": "재개",
+    "pause": "일시정지",
+    "copy": "복사",
+    "save": "저장",
+    "clear": "지우기"
+  },
+  "counts": {
+    "events": "이벤트",
+    "warnings": "경고",
+    "errors": "오류",
+    "done": "완료",
+    "paused": "일시정지됨"
+  },
+  "systemKind": "시스템",
+  "empty": "이벤트 없음. 수집 작업을 시작하세요.",
+  "rowTitle": "클릭하여 원본 페이로드 보기",
+  "event": {
+    "errorFallback": "오류",
+    "progress": "진행: {{message}}",
+    "ediscovery": "[eDiscovery] {{status}}: {{message}}",
+    "user": "사용자: {{display}}",
+    "fetchedCount": "+{{n}}건",
+    "started": "시작: {{kind}}",
+    "finished": "완료: {{kind}}",
+    "convDetail": "사용자 {{users}} · 대화 {{interactions}} · 오류 {{errors}}",
+    "genericDetail": "{{label}} · 오류 {{errors}}",
+    "reqStart": "요청: {{kind}} 시작",
+    "reqStop": "요청: {{kind}} 중단",
+    "ended": "종료: {{kind}}",
+    "settingsUpdated": "설정 업데이트",
+    "settingsDetail": "interval={{interval}}분 · scope={{scope}}",
+    "dialog": "다이얼로그: {{kind}}",
+    "saved": "저장됨",
+    "profileRemoved": "프로필 삭제"
+  }
+}

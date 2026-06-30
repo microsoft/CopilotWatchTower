@@ -11,12 +11,16 @@ dist/
 venv/
 env/
 
-# Node / frontend
+# Node / Electron (root app)
 node_modules/
-web/node_modules/
-web/dist/
-web/.vite/
+out/
+dist/
+.vite/
 *.tsbuildinfo
+
+# Legacy Python web reference
+legacy/web/node_modules/
+legacy/web/dist/
 
 # IDE
 .vscode/

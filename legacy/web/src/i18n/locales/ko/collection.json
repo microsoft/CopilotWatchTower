@@ -1,0 +1,80 @@
+{
+  "kpi": {
+    "targetUsers": "대상 사용자",
+    "active30d": "활성 30일 {{n}}",
+    "collectedConversations": "수집 대화",
+    "cumulative": "누적",
+    "threads": "스레드",
+    "currentIndex": "현재 인덱스",
+    "status": "상태",
+    "running": "실행 중",
+    "idle": "대기",
+    "progressRate": "진행률",
+    "totalRunning": "전체 진행 중",
+    "none": "없음"
+  },
+  "toasts": {
+    "finished": "{{label}} 완료 (오류 {{errors}})",
+    "collectError": "수집 오류",
+    "actionFailed": "{{label}} 실패: {{error}}",
+    "actionRequested": "{{label}} 요청됨",
+    "actionException": "{{label}} 예외: {{message}}",
+    "logCopied": "로그를 복사했습니다.",
+    "copyFailed": "복사 실패: 클립보드에 접근할 수 없습니다."
+  },
+  "progress": {
+    "done": "완료",
+    "start": "시작"
+  },
+  "actions": {
+    "start": "{{label}} 시작",
+    "stop": "{{label}} 중단"
+  },
+  "transcripts": {
+    "addSelfAdmin": "권한이 없는 환경에 나를 시스템 관리자로 자동 추가",
+    "addSelfAdminHint": "토큰을 발급받지 못한 환경에 한해, 관리 센터에서 본인을 시스템 관리자로 추가한 뒤 다시 수집을 시도합니다. 공유·운영 환경에 관리자 권한을 부여하는 작업이므로 필요할 때만 사용하세요."
+  },
+  "cards": {
+    "liveLog": "실시간 로그",
+    "runHistory": "실행 이력",
+    "recentCount": "최근 {{n}}건",
+    "auditState": "감사 수집 상태"
+  },
+  "runHistory": {
+    "empty": "아직 실행 기록이 없습니다. 수집을 시작하면 성공·실패와 관계없이 행이 추가됩니다."
+  },
+  "bridgeOffline": "브리지 미연결 상태입니다. 데스크톱 앱에서 실행하세요.",
+  "tile": {
+    "running": "실행 중",
+    "idle": "대기",
+    "start": "시작",
+    "stop": "중단"
+  },
+  "runStatus": {
+    "running": "진행 중",
+    "success": "성공",
+    "warn": "오류 있음",
+    "error": "중단"
+  },
+  "runLog": {
+    "empty": "기록된 로그가 없습니다.",
+    "title": "{{label}} 실행 로그"
+  },
+  "runColumns": {
+    "started": "시작",
+    "finished": "종료",
+    "inProgress": "진행 중",
+    "status": "상태",
+    "summary": "요약",
+    "log": "로그"
+  },
+  "auditColumns": {
+    "source": "소스",
+    "lastSuccess": "최근 성공",
+    "count": "건수",
+    "status": "상태",
+    "error": "오류",
+    "inProgress": "진행 중",
+    "ok": "정상"
+  }
+}

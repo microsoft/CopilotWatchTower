@@ -1,0 +1,71 @@
+{
+  "kpi": {
+    "jobs": "Jobs",
+    "jobsHint": "Cumulative collection jobs",
+    "running": "In progress",
+    "runningHint": "Collection running",
+    "runningNone": "None",
+    "done": "Done",
+    "doneHint": "Completed successfully",
+    "error": "Errors",
+    "errorHint": "Resumable"
+  },
+  "liveLogTitle": "Live log (eDiscovery)",
+  "bridgeOffline": "The bridge is offline. Run this inside the desktop app.",
+  "start": {
+    "title": "Start new collection (unlicensed users)",
+    "description": "Collect the prompt/response bodies of users without a Copilot license via Microsoft Purview eDiscovery. Specify the target user (UPN) and an optional time window, then start. Even for the same user and window, each start is tracked as a separate job that can be resumed independently. If the delegated login expires, collection stops; sign in again under Settings → Re-register permissions to continue.",
+    "targetUser": "Target user (UPN)",
+    "startDate": "Start date (optional)",
+    "endDate": "End date (optional)",
+    "submit": "Start collection"
+  },
+  "history": {
+    "title": "Collection job history",
+    "count": "{{n}} jobs",
+    "empty": "No collection jobs yet. Start a new collection above.",
+    "runningNotice": "An eDiscovery job is in progress. It may take a few minutes to finish."
+  },
+  "columns": {
+    "target": "Target",
+    "status": "Status",
+    "window": "Window",
+    "added": "Added",
+    "updated": "Updated"
+  },
+  "actions": {
+    "stop": "Stop",
+    "resume": "Resume"
+  },
+  "runLabels": {
+    "startCollection": "Start eDiscovery collection",
+    "resume": "Resume eDiscovery",
+    "stopCollection": "Stop eDiscovery collection"
+  },
+  "progress": {
+    "title": "Progress · {{stage}}",
+    "processing": "Processing…",
+    "fallback": "In progress"
+  },
+  "status": {
+    "done": "Done",
+    "doneEmpty": "Done · 0 items",
+    "error": "Error"
+  },
+  "statusStage": {
+    "pending": "Pending",
+    "case": "Create case",
+    "searching": "Searching",
+    "exporting": "Exporting",
+    "downloading": "Downloading",
+    "parsing": "Parsing"
+  },
+  "toasts": {
+    "failure": "{{label}} failed: {{error}}",
+    "requested": "{{label}} requested",
+    "exception": "{{label}} exception: {{message}}",
+    "errorFallback": "eDiscovery error",
+    "logCopied": "Copied the log.",
+    "copyFailed": "Copy failed: cannot access the clipboard."
+  }
+}

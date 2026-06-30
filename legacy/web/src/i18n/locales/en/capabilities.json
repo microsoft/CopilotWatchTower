@@ -1,0 +1,45 @@
+{
+  "banner": {
+    "label": "License configuration",
+    "notConfigured": "License configuration not set (all features enabled)",
+    "configure": "Set in Settings"
+  },
+  "preset": {
+    "me3": "Microsoft 365 E3",
+    "me3_copilot": "E3 + Copilot",
+    "me5_copilot": "E5 + Copilot",
+    "agent365": "E5 + Copilot + Agent365",
+    "custom": "Custom"
+  },
+  "capability": {
+    "copilot_seats": "Microsoft 365 Copilot license",
+    "e5": "Microsoft 365 E5",
+    "agent_inventory": "Agent365"
+  },
+  "locked": {
+    "title": "This feature isn't available for the current license configuration",
+    "needs": "Requires: {{capability}}",
+    "goSettings": "Change license configuration in Settings",
+    "ediscoveryAlt": "You can still collect and explore conversations via e-Discovery without a Copilot license.",
+    "goEdiscovery": "Go to Conversations (e-Discovery)"
+  },
+  "settings": {
+    "title": "License configuration",
+    "description": "Select the customer tenant's Microsoft 365 license configuration. It determines which features and menus are available.",
+    "presetLabel": "Configuration preset",
+    "advanced": "Advanced: set capabilities individually",
+    "detect": "Detect from tenant",
+    "detecting": "Detecting…",
+    "save": "Save",
+    "saved": "License configuration saved.",
+    "saveFailed": "Save failed",
+    "detectFailed": "Detection failed",
+    "detected": "Applied the detected configuration. Review and save.",
+    "notConfiguredHint": "Not set yet — all features are currently enabled.",
+    "currentSource": {
+      "manual": "Set by admin",
+      "detected": "Auto-detected",
+      "default": "Unset (default)"
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "bridgeOffline": "브리지 미연결 상태입니다. 데스크톱 앱에서 --web 으로 실행하세요.",
+  "tabs": {
+    "overview": "개요",
+    "messages": "에이전트(리소스)별",
+    "environments": "환경별",
+    "users": "사용자별",
+    "credits": "AI Builder / API"
+  },
+  "kpi": {
+    "recentMessages": "최근 180일 메시지",
+    "unitHint": "단위: {{unit}}",
+    "billableMessagesHint": "Copilot Studio 청구 메시지",
+    "projectedMonth": "월 예상 소비량",
+    "projectedMonthHint": "선형 추정",
+    "agentCount": "에이전트 수",
+    "agentCountHint": "소비가 기록된 리소스",
+    "environmentCount": "환경 수",
+    "environmentCountHint": "Power Platform 환경"
+  },
+  "charts": {
+    "trendTitle": "일별 소비 추이 (최근 180일)",
+    "asOf": "{{date}} 기준",
+    "consumptionSeries": "소비량",
+    "topAgentsTitle": "상위 소비 에이전트 TOP 10"
+  },
+  "cards": {
+    "messagesTitle": "에이전트(리소스)별 메시지 소비",
+    "environmentsTitle": "환경별 메시지 소비",
+    "usersTitle": "사용자별 메시지 소비"
+  },
+  "field": {
+    "report": "보고서"
+  },
+  "creditReports": {
+    "AIByUserAndEnvironment": "AI Builder 크레딧",
+    "ApiByLicensedUser": "API 요청 (라이선스)",
+    "ApiByNonLicensedUser": "API 요청 (비라이선스)",
+    "ApiByFlow": "API 요청 (Flow)"
+  },
+  "badge": {
+    "agentCount": "{{n}}개",
+    "itemCount": "{{n}}건"
+  },
+  "labels": {
+    "unknownAgent": "(미상 에이전트)"
+  },
+  "emptyState": "표시할 데이터가 없습니다.",
+  "envProduct": {
+    "consumed": "소비",
+    "allocated": "할당",
+    "available": "사용 가능"
+  },
+  "columns": {
+    "date": "일자",
+    "user": "사용자",
+    "environment": "환경",
+    "product": "제품",
+    "quantity": "소비량",
+    "unit": "단위",
+    "agentResource": "에이전트/리소스",
+    "environmentId": "환경 ID",
+    "billableMessages": "청구 메시지",
+    "nonBillable": "비청구",
+    "asOfDate": "기준일",
+    "item": "항목",
+    "messages": "메시지"
+  }
+}

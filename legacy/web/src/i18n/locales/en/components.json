@@ -1,0 +1,24 @@
+{
+  "dataTable": {
+    "sortHint": "Click to sort",
+    "resizeHint": "Drag to resize",
+    "empty": "No data to display."
+  },
+  "filterBar": {
+    "period": "Period",
+    "allOption": "(All)",
+    "user": "User",
+    "app": "App",
+    "searchPlaceholder": "Search name / UPN",
+    "submit": "Search",
+    "reset": "Reset"
+  },
+  "rawJsonModal": {
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyFailed": "Copy failed. Please select and copy the text manually.",
+    "emptyBody": "(No raw data)",
+    "noRawData": "No raw data",
+    "viewRawData": "View raw data"
+  }
+}

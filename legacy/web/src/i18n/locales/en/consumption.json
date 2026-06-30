@@ -1,0 +1,69 @@
+{
+  "bridgeOffline": "The bridge is offline. Run the desktop app with --web.",
+  "tabs": {
+    "overview": "Overview",
+    "messages": "By agent (resource)",
+    "environments": "By environment",
+    "users": "By user",
+    "credits": "AI Builder / API"
+  },
+  "kpi": {
+    "recentMessages": "Messages · last 180 days",
+    "unitHint": "Unit: {{unit}}",
+    "billableMessagesHint": "Copilot Studio billable messages",
+    "projectedMonth": "Projected monthly consumption",
+    "projectedMonthHint": "Linear estimate",
+    "agentCount": "Agents",
+    "agentCountHint": "Resources with recorded consumption",
+    "environmentCount": "Environments",
+    "environmentCountHint": "Power Platform environments"
+  },
+  "charts": {
+    "trendTitle": "Daily consumption trend (last 180 days)",
+    "asOf": "As of {{date}}",
+    "consumptionSeries": "Consumption",
+    "topAgentsTitle": "Top consuming agents · TOP 10"
+  },
+  "cards": {
+    "messagesTitle": "Message consumption by agent (resource)",
+    "environmentsTitle": "Message consumption by environment",
+    "usersTitle": "Message consumption by user"
+  },
+  "field": {
+    "report": "Report"
+  },
+  "creditReports": {
+    "AIByUserAndEnvironment": "AI Builder credits",
+    "ApiByLicensedUser": "API requests (licensed)",
+    "ApiByNonLicensedUser": "API requests (non-licensed)",
+    "ApiByFlow": "API requests (Flow)"
+  },
+  "badge": {
+    "agentCount": "{{n}}",
+    "itemCount": "{{n}} items"
+  },
+  "labels": {
+    "unknownAgent": "(Unknown agent)"
+  },
+  "emptyState": "No data to display.",
+  "envProduct": {
+    "consumed": "Consumed",
+    "allocated": "Allocated",
+    "available": "Available"
+  },
+  "columns": {
+    "date": "Date",
+    "user": "User",
+    "environment": "Environment",
+    "product": "Product",
+    "quantity": "Consumption",
+    "unit": "Unit",
+    "agentResource": "Agent / resource",
+    "environmentId": "Environment ID",
+    "billableMessages": "Billable messages",
+    "nonBillable": "Non-billable",
+    "asOfDate": "As-of date",
+    "item": "Item",
+    "messages": "Messages"
+  }
+}

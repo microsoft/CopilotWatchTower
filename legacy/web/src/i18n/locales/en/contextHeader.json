@@ -1,0 +1,101 @@
+{
+  "titles": {
+    "home": {
+      "title": "Dashboard",
+      "subtitle": "See your organization's Copilot usage and key metrics at a glance."
+    },
+    "insights": {
+      "title": "Usage insights",
+      "subtitle": "Analyze Copilot activity by user, date, and app."
+    },
+    "conversationsApi": {
+      "title": "Conversations (API)",
+      "subtitle": "Review operational conversation history collected via the Graph API."
+    },
+    "conversationsEdiscovery": {
+      "title": "Conversations (e-Discovery)",
+      "subtitle": "Review conversation history recovered via Purview eDiscovery as a separate archive."
+    },
+    "conversationsDataverse": {
+      "title": "Conversations (Teams)",
+      "subtitle": "Review Teams conversation history from Copilot Studio custom agents collected from Dataverse."
+    },
+    "agents": {
+      "title": "Agents",
+      "subtitle": "Compare registered agents against real usage signals."
+    },
+    "security": {
+      "title": "Security / Audit",
+      "subtitle": "Inspect block/deny events, sensitive data access, and policy diagnostics."
+    },
+    "ediscovery": {
+      "title": "Collect conversations (e-Discovery)",
+      "subtitle": "Collect and resume Copilot message bodies for unlicensed users via Purview eDiscovery."
+    },
+    "reports": {
+      "title": "Official reports",
+      "subtitle": "View official Microsoft 365 Copilot usage reports."
+    },
+    "consumption": {
+      "title": "Power Platform credits",
+      "subtitle": "Track Copilot Studio messages, AI Builder credits, and Power Platform request consumption."
+    },    "agentCredit": {
+      "title": "Agent credit analysis",
+      "subtitle": "Per-agent/user daily consumption deltas and spikes, a near-real-time run monitor, and static risk prediction in one place."
+    },
+    "creditAlerts": {
+      "title": "Credit alerts",
+      "subtitle": "Combines billing, real-time, and predictive signals to catch runaway agents, and manages the alert rules."
+    },    "collectOverview": {
+      "title": "Data collection overview",
+      "subtitle": "Learn what data each source collects, with which technology and permissions, plus its constraints and scope."
+    },
+    "collectConversation": {
+      "title": "Collect conversations (API)",
+      "subtitle": "Collect and index user Copilot conversations via the Graph API."
+    },
+    "collectAudit": {
+      "title": "Audit events",
+      "subtitle": "Collect security and access events from Purview and Entra audit logs."
+    },
+    "collectUsage": {
+      "title": "Official usage",
+      "subtitle": "Collect snapshots of the official Microsoft 365 Copilot usage reports."
+    },
+    "collectDiagnostics": {
+      "title": "Agents",
+      "subtitle": "Collect agent inventory and usage signals from the Copilot admin API and audit logs."
+    },
+    "collectConsumption": {
+      "title": "Collect Power Platform credits",
+      "subtitle": "Download message, AI Builder, and API request consumption reports via PPAC automatic sign-in."
+    },
+    "collectTranscripts": {
+      "title": "Collect conversations (Teams)",
+      "subtitle": "Collect Teams conversation history from Copilot Studio custom agents via Dataverse automatic sign-in."
+    },
+    "collectFlowRuns": {
+      "title": "Collect agent runs (flows)",
+      "subtitle": "Collects autonomous/scheduled agent execution history from the Dataverse flowrun table (near-real-time)."
+    },
+    "collectAgentDefs": {
+      "title": "Collect agent risk analysis",
+      "subtitle": "Reads Dataverse bot/botcomponent definitions (YAML) to compute a per-agent static risk score."
+    },
+    "backupRestore": {
+      "title": "Backup & restore",
+      "subtitle": "Create a portable backup of the current profile's data and import another backup into it (duplicates are skipped automatically)."
+    },
+    "dataExport": {
+      "title": "Export",
+      "subtitle": "Export collected interactions and threads to a file for download."
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Manage profiles, collection interval, scope, and system dialogs."
+    }
+  },
+  "bridgeConnected": "Python bridge connected",
+  "bridgeDisconnected": "Bridge offline",
+  "manageProfile": "Manage profile · Current: {{name}}"
+}

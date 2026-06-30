@@ -1,0 +1,71 @@
+{
+  "kpi": {
+    "jobs": "작업",
+    "jobsHint": "누적 수집 작업",
+    "running": "진행 중",
+    "runningHint": "수집 실행 중",
+    "runningNone": "없음",
+    "done": "완료",
+    "doneHint": "성공적으로 마침",
+    "error": "오류",
+    "errorHint": "재개 가능"
+  },
+  "liveLogTitle": "실시간 로그 (eDiscovery)",
+  "bridgeOffline": "브리지 미연결 상태입니다. 데스크톱 앱에서 실행하세요.",
+  "start": {
+    "title": "새 수집 시작 (라이선스 없는 사용자)",
+    "description": "Copilot 라이선스가 없는 사용자의 프롬프트/응답 본문을 Microsoft Purview eDiscovery로 수집합니다. 대상 사용자(UPN)와 선택적 기간을 지정한 뒤 시작하세요. 같은 사용자/기간이라도 시작할 때마다 별도 작업으로 추적되어 각각 독립적으로 재개할 수 있습니다. 위임 로그인이 만료되면 수집이 중단되며, 설정 → 권한 재등록에서 다시 로그인한 뒤 이어서 진행할 수 있습니다.",
+    "targetUser": "대상 사용자 (UPN)",
+    "startDate": "시작일 (선택)",
+    "endDate": "종료일 (선택)",
+    "submit": "수집 시작"
+  },
+  "history": {
+    "title": "수집 작업 이력",
+    "count": "{{n}}건",
+    "empty": "아직 수집 작업이 없습니다. 위에서 새 수집을 시작하세요.",
+    "runningNotice": "진행 중인 eDiscovery 작업이 있습니다. 완료까지 수 분이 걸릴 수 있습니다."
+  },
+  "columns": {
+    "target": "대상",
+    "status": "상태",
+    "window": "기간",
+    "added": "추가",
+    "updated": "갱신"
+  },
+  "actions": {
+    "stop": "중단",
+    "resume": "재개"
+  },
+  "runLabels": {
+    "startCollection": "eDiscovery 수집 시작",
+    "resume": "eDiscovery 재개",
+    "stopCollection": "eDiscovery 수집 중단"
+  },
+  "progress": {
+    "title": "진행 상황 · {{stage}}",
+    "processing": "처리 중…",
+    "fallback": "진행 중"
+  },
+  "status": {
+    "done": "완료",
+    "doneEmpty": "완료 · 0건",
+    "error": "오류"
+  },
+  "statusStage": {
+    "pending": "대기",
+    "case": "케이스 생성",
+    "searching": "검색",
+    "exporting": "내보내기",
+    "downloading": "다운로드",
+    "parsing": "파싱"
+  },
+  "toasts": {
+    "failure": "{{label}} 실패: {{error}}",
+    "requested": "{{label}} 요청됨",
+    "exception": "{{label}} 예외: {{message}}",
+    "errorFallback": "eDiscovery 오류",
+    "logCopied": "로그를 복사했습니다.",
+    "copyFailed": "복사 실패: 클립보드에 접근할 수 없습니다."
+  }
+}

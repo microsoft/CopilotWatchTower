@@ -1,0 +1,62 @@
+{
+  "filters": {
+    "submit": "Search",
+    "reset": "Reset",
+    "userFilter": "User filter",
+    "appFilter": "App filter",
+    "allUsers": "All users",
+    "allEdiscoveryUsers": "All eDiscovery users",
+    "allApps": "All apps"
+  },
+  "search": {
+    "scopeLabel": "Search scope",
+    "scopeTooltip": "Search scope: {{label}}",
+    "optionTitle": "Title",
+    "optionBody": "Body",
+    "placeholderAll": "Search title & body",
+    "placeholderTitle": "Search title",
+    "placeholderBody": "Search conversation body",
+    "placeholderRestoredAll": "Search restored conversation title & body",
+    "placeholderRestoredTitle": "Search restored conversation title",
+    "placeholderRestoredBody": "Search restored conversation body",
+    "ftsHint": "Body search uses full-text search (FTS). e.g. security policy,  \"quarterly report\",  budget OR cost"
+  },
+  "threads": {
+    "cardTitle": "Threads",
+    "count": "{{n}}"
+  },
+  "columns": {
+    "started": "Started",
+    "user": "User",
+    "title": "Title",
+    "app": "App",
+    "prompts": "Prompts",
+    "bodyBadge": "Body",
+    "bodyMatchHint": "The search term was found in the conversation body."
+  },
+  "detail": {
+    "title": "Conversation detail",
+    "noSelection": "No thread selected",
+    "selectPrompt": "Select a thread from the list on the left.",
+    "relatedAudit": "Related audit events",
+    "auditCount": "{{n}}",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "noAuditMatch": "No audit events matched this time window.",
+    "noTurns": "No turns to display.",
+    "rawData": "Raw data · {{speaker}}",
+    "rawAuditEvent": "Raw audit event · {{operation}}"
+  },
+  "export": {
+    "formatLabel": "Thread export format",
+    "export": "Export",
+    "exporting": "Exporting…",
+    "success": "Thread export complete: {{filename}}",
+    "failed": "Export failed: {{error}}",
+    "error": "Export error: {{message}}"
+  },
+  "bridge": {
+    "notConnected": "The bridge is not connected. Run the desktop app with --web."
+  },
+  "untitled": "(No title)"
+}

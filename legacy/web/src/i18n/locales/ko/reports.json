@@ -1,0 +1,31 @@
+{
+  "filters": {
+    "period": "기간",
+    "reportType": "집계 보고서",
+    "searchPlaceholder": "사용자 / UPN 검색",
+    "submit": "조회"
+  },
+  "kpi": {
+    "latestSnapshot": "최신 스냅샷",
+    "periodHint": "기간 {{period}}",
+    "activeUsers": "활성 사용자",
+    "asOfHint": "{{date}} 기준",
+    "enabledUsers": "활성화 사용자",
+    "adoptionRate": "활성률",
+    "adoptionRateHint": "활성/활성화"
+  },
+  "tables": {
+    "snapshotTitle": "사용량 user detail ({{period}})",
+    "itemCount": "{{n}}건"
+  },
+  "columns": {
+    "snapshot": "스냅샷",
+    "user": "사용자",
+    "lastActivity": "최근 활동",
+    "dateInPeriod": "기간내 일자",
+    "period": "기간"
+  },
+  "empty": {
+    "bridgeOffline": "브리지 미연결 상태입니다. 데스크톱 앱에서 --web 으로 실행하세요."
+  }
+}

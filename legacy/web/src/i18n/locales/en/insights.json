@@ -1,0 +1,40 @@
+{
+  "bridge": {
+    "offlineBefore": "Not connected to the Python bridge. Run the desktop app with the ",
+    "offlineMiddle": " option, or set ",
+    "offlineAfter": " during development."
+  },
+  "kpi": {
+    "activeUsers": "Active users",
+    "activeUsersHint": "Target {{n}} users",
+    "threads": "Threads",
+    "threadsHint": "Selected scope",
+    "messages": "Messages",
+    "messagesHint": "{{n}} prompts",
+    "topApp": "Top app"
+  },
+  "charts": {
+    "dailyTitle": "Threads / messages by day",
+    "messagesSeries": "Messages",
+    "threadsSeries": "Threads",
+    "appMessagesTitle": "Messages by app"
+  },
+  "tables": {
+    "userSummaryTitle": "User summary",
+    "userCount": "{{n}} users",
+    "dailyDetailTitle": "Daily detail",
+    "rowCount": "{{n}} rows"
+  },
+  "columns": {
+    "user": "User",
+    "activeDays": "Active days",
+    "threads": "Threads",
+    "messages": "Messages",
+    "prompts": "Prompts",
+    "responses": "Responses",
+    "apps": "Apps",
+    "topApp": "Top app",
+    "lastActivity": "Last activity",
+    "date": "Date"
+  }
+}

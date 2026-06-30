@@ -1,0 +1,193 @@
+{
+  "tiers": {
+    "billing": "확정 청구(지연)",
+    "realtime": "실시간(약 분 단위)",
+    "predictive": "정적 예측"
+  },
+  "tierHints": {
+    "billing": "라이선싱 청구 스냅샷의 일별 차분. 정확하지만 집계 지연이 있습니다.",
+    "realtime": "플로우 실행 이력 기반. 신선하지만 실행 수는 크레딧이 아닌 선행 지표입니다.",
+    "predictive": "에이전트 정의(YAML)의 정적 분석. 확정이 아닌 위험 예측입니다."
+  },
+  "bands": {
+    "low": "낮음",
+    "medium": "보통",
+    "high": "높음",
+    "critical": "심각"
+  },
+  "severity": {
+    "warn": "경고",
+    "danger": "위험"
+  },
+  "analysis": {
+    "title": "에이전트 크레딧 분석",
+    "tabs": {
+      "overview": "개요",
+      "agents": "에이전트별",
+      "users": "사용자별",
+      "flows": "실행 모니터",
+      "risk": "위험 예측"
+    },
+    "kpi": {
+      "activeAlerts": "활성 알람",
+      "topSpikeAgent": "최대 급증 에이전트",
+      "newAgents": "신규 에이전트(7일)",
+      "highRisk": "고위험 에이전트",
+      "runsToday": "오늘 실행 수",
+      "autonomousToday": "자율 실행(오늘)"
+    },
+    "spikeTop": "급증 TOP (전일 대비)",
+    "newAgentsTitle": "신규 에이전트 (최근 7일)",
+    "noData": "데이터가 아직 없습니다. 비용/소비량 수집을 먼저 실행하세요.",
+    "spikeBadge": "급증 ×{{ratio}}",
+    "trendTitle": "{{name}} 일별 소비 추이",
+    "trendHint": "행을 선택하면 일별 차분 추이를 표시합니다.",
+    "deltaWindowDays": "최근 {{days}}일"
+  },
+  "agentColumns": {
+    "name": "에이전트",
+    "environment": "환경",
+    "lastDelta": "최근 일일 소비",
+    "baseline": "기준선(일평균)",
+    "spike": "급증 비율",
+    "latest": "누적",
+    "lastDate": "기준일"
+  },
+  "userColumns": {
+    "name": "사용자",
+    "upn": "UPN",
+    "lastDelta": "최근 일일 소비",
+    "baseline": "기준선(일평균)",
+    "spike": "급증 비율",
+    "lastDate": "기준일"
+  },
+  "newAgentColumns": {
+    "name": "에이전트",
+    "environment": "환경",
+    "firstSeen": "최초 관측",
+    "latest": "누적 소비"
+  },
+  "flow": {
+    "title": "에이전트 실행 모니터",
+    "subtitle": "Power Automate / Copilot Studio 플로우 실행 이력 (near-real-time)",
+    "kpi": {
+      "total": "총 실행(7일)",
+      "today": "오늘 실행",
+      "failed": "실패",
+      "autonomous": "자율 실행",
+      "flows": "플로우 수"
+    },
+    "trendTitle": "일별 실행 수",
+    "agentsTitle": "플로우별 실행 요약",
+    "columns": {
+      "flow": "플로우",
+      "environment": "환경",
+      "owner": "소유자",
+      "type": "유형",
+      "runsToday": "오늘",
+      "baseline": "기준선",
+      "failRate": "실패율",
+      "autonomous": "자율",
+      "total": "총 실행",
+      "lastRun": "최근 실행"
+    },
+    "flowType": {
+      "0": "Power Automate",
+      "1": "Copilot Studio",
+      "2": "M365 Copilot 에이전트"
+    },
+    "note": "실행 수는 크레딧이 아니라 선행 지표입니다. 정확한 청구는 ‘확정 청구’ 탭을 참고하세요."
+  },
+  "risk": {
+    "title": "에이전트 위험 예측",
+    "subtitle": "에이전트 정의(YAML)의 정적 분석 — 확정이 아닌 예측",
+    "columns": {
+      "name": "에이전트",
+      "environment": "환경",
+      "band": "위험도",
+      "score": "점수",
+      "trigger": "자율/트리거",
+      "external": "외부 호출",
+      "tools": "툴",
+      "loops": "루프",
+      "generative": "생성형",
+      "modified": "수정"
+    },
+    "factors": {
+      "autonomy": "자율/트리거",
+      "external_calls": "외부 호출/커넥터",
+      "tools": "툴/스킬 호출",
+      "loops": "루프/반복",
+      "generative_orchestration": "생성형 오케스트레이션",
+      "knowledge": "지식 소스"
+    },
+    "factorTitle": "위험 요소 분해",
+    "yes": "예",
+    "no": "아니오",
+    "noData": "에이전트 정의가 아직 없습니다. ‘에이전트 위험 분석’ 수집을 먼저 실행하세요.",
+    "detailTitle": "{{name}} 위험 상세"
+  },
+  "alerts": {
+    "title": "크레딧 알람",
+    "tabs": {
+      "active": "활성 알람",
+      "history": "이력",
+      "rules": "규칙 설정"
+    },
+    "empty": "활성 알람이 없습니다.",
+    "emptyHistory": "알람 이력이 없습니다.",
+    "acknowledge": "확인",
+    "acknowledgeAll": "모두 확인",
+    "acknowledged": "확인됨",
+    "columns": {
+      "severity": "심각도",
+      "tier": "출처",
+      "rule": "규칙",
+      "scope": "대상",
+      "metric": "관측값",
+      "threshold": "임계치",
+      "baseline": "기준선",
+      "date": "기준일",
+      "status": "상태",
+      "lastSeen": "최근 관측"
+    },
+    "ruleColumns": {
+      "rule": "규칙",
+      "enabled": "사용",
+      "threshold": "임계치",
+      "secondary": "보조값",
+      "severity": "기본 심각도"
+    },
+    "ruleNames": {
+      "agent_daily_abs": "에이전트 일일 메시지 임계치",
+      "user_daily_abs": "사용자 일일 메시지 임계치",
+      "spike": "기준선 대비 급증(비율)",
+      "monthly_budget": "월 예상 사용량(예산)",
+      "flow_spike": "플로우 실행량 급증(비율)",
+      "flow_fail_loop": "플로우 실패 루프(실패율)",
+      "runaway_autonomous": "자율 에이전트 폭주(실행 수)",
+      "high_risk_agent": "고위험 에이전트(위험 점수)"
+    },
+    "ruleHints": {
+      "agent_daily_abs": "한 에이전트의 하루 메시지 소비가 이 값을 넘으면 경보",
+      "user_daily_abs": "한 사용자의 하루 메시지 소비가 이 값을 넘으면 경보",
+      "spike": "최근 일일 소비가 기준선의 N배를 넘으면 경보 (보조값=기준선 최소 바닥)",
+      "monthly_budget": "현재 추세의 월 예상 메시지가 이 값을 넘으면 경보",
+      "flow_spike": "오늘 실행 수가 기준선의 N배를 넘으면 경보 (보조값=기준선 최소 실행 수)",
+      "flow_fail_loop": "실패율이 이 값(0~1)을 넘고 오늘 실행이 보조값 이상이면 경보",
+      "runaway_autonomous": "자율(사람 없는) 실행 수가 이 값을 넘으면 경보",
+      "high_risk_agent": "정적 위험 점수가 이 값 이상이면 경보"
+    },
+    "save": "저장",
+    "saved": "규칙을 저장했습니다.",
+    "saveFailed": "규칙 저장 실패: {{error}}",
+    "ackDone": "알람을 확인했습니다.",
+    "toastNew": "새 크레딧 알람 {{count}}건이 탐지되었습니다.",
+    "scopeTenant": "테넌트 전체"
+  },
+  "banner": {
+    "title": "크레딧 알람 {{count}}건",
+    "danger": "위험 {{count}}건 포함",
+    "cta": "알람 보기"
+  }
+}

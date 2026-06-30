@@ -1,0 +1,87 @@
+{
+  "filters": {
+    "thresholdLabel": "비활성 기준",
+    "days": "{{n}}일",
+    "staleOnly": "비활성/미사용만 보기",
+    "searchPlaceholder": "이름 / 식별자 검색",
+    "submit": "조회"
+  },
+  "kpi": {
+    "total": "총 에이전트",
+    "totalHint": "사용 이벤트 {{n}}건",
+    "active": "활성",
+    "activeHint": "{{n}}일 기준",
+    "stale": "비활성",
+    "staleHint": "기준 초과 {{n}}일",
+    "neverUsed": "미사용",
+    "neverUsedHint": "활동 기록 없음"
+  },
+  "table": {
+    "title": "에이전트 활동",
+    "agentCount": "{{n}}건"
+  },
+  "bridgeOffline": "브리지 미연결 상태입니다. 데스크톱 앱에서 --web 으로 실행하세요.",
+  "openInAdminCenter": "M365 관리 센터에서 열기",
+  "columns": {
+    "name": "에이전트",
+    "source": "출처",
+    "state": "상태",
+    "usage": "사용 이벤트",
+    "daysInactive": "비활성일",
+    "lastActivity": "마지막 활동"
+  },
+  "status": {
+    "active": "활성",
+    "stale": "비활성",
+    "never_used": "미사용"
+  },
+  "confidence": {
+    "ok": "감사 데이터로 확인됨",
+    "limited_audit_window": "감사 수집 범위가 짧아 판단 보류",
+    "no_audit_data": "감사 이벤트가 없어 판단 불가"
+  },
+  "rawFields": {
+    "publisher": "게시자",
+    "description": "설명",
+    "version": "버전",
+    "distributionMethod": "배포 방식",
+    "categories": "범주"
+  },
+  "detail": {
+    "usageEvents": "사용 이벤트",
+    "daysInactive": "비활성일",
+    "daysValue": "{{n}}일",
+    "lastActivity": "마지막 활동",
+    "activitySource": "활동 출처",
+    "statusValue": "상태값",
+    "confidenceBasis": "판정 근거",
+    "catalogInfo": "카탈로그 정보",
+    "identifiers": "식별자",
+    "internalId": "내부 ID",
+    "createdAt": "생성일",
+    "updatedAt": "수정일",
+    "auditStart": "감사 수집 시작",
+    "auditEnd": "감사 수집 종료"
+  },
+  "identityEvents": {
+    "title": "에이전트 ID 이벤트",
+    "subtitle": "디렉터리 감사에서 파생된 Copilot 에이전트 서비스 주체 생성·삭제 이력",
+    "count": "{{n}}건",
+    "empty": "에이전트 ID 이벤트가 없습니다.",
+    "columns": {
+      "time": "시각",
+      "action": "작업",
+      "agent": "에이전트",
+      "actor": "수행 주체",
+      "result": "결과"
+    },
+    "action": {
+      "created": "생성",
+      "deleted": "삭제",
+      "updated": "변경",
+      "other": "기타"
+    },
+    "known": "인벤토리 매칭됨",
+    "unknown": "미매칭"
+  }
+}

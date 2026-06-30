@@ -1,0 +1,18 @@
+appId: com.copilotwatchtower.app
+productName: CopilotWatchTower
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - out/**/*
+  - resources/**/*
+  - package.json
+asarUnpack:
+  - '**/node_modules/koffi/**'
+win:
+  target:
+    - portable
+  icon: resources/app.ico
+portable:
+  artifactName: CopilotWatchTower-${version}-portable.exe
+compression: maximum

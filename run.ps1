@@ -1,19 +1,19 @@
 # CopilotWatchTower launcher (PowerShell).
 #
+# Launches the Electron app in development mode (electron-vite dev + HMR).
 # Usage from any PowerShell prompt:
 #     .\run.ps1
 #
-# Launches the GUI as a detached pythonw process so closing this
-# console does not terminate the app.
+# The legacy Python app lives under legacy/ and is reference-only.
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$exe = Join-Path $root ".venv\Scripts\copilot-watchtower.exe"
+Set-Location $root
 
-if (-not (Test-Path $exe)) {
-    Write-Error "Virtual environment not found at $exe. Run `pip install -e .` inside .venv first."
-    exit 1
+if (-not (Test-Path (Join-Path $root "node_modules"))) {
+    Write-Host "Installing dependencies (npm ci)..."
+    npm ci
 }
 
-Start-Process -FilePath $exe -WorkingDirectory $root
-Write-Host "CopilotWatchTower launched (detached). You can close this window safely."
+Write-Host "Starting CopilotWatchTower (Electron dev)..."
+npm run dev
