@@ -1,0 +1,15 @@
+{
+  "collectButton": "Collect conversations via portal",
+  "teamsOnly": "Collect Teams channel only (off = all channels including webchat/Direct Line)",
+  "addAdmin": "Automatically add myself as System Administrator for environments I can't access",
+  "autoLoginDesc": "Automatically signs in using the <strong1>download account</strong1> (eDiscovery service account) from Settings. A sign-in window will appear if no account is configured. By default it collects conversations from <strong2>all channels</strong2> (Teams, webchat, Direct Line, etc.); turning on “Teams only” keeps only Teams conversations. Turning on “Add myself as System Administrator” will, only for environments without access, add you as System Administrator in the admin center and retry.",
+  "kpis": { "interactions": "Collected turns", "interactionsFoot": "Dataverse conversations", "users": "Users", "threads": "Threads", "apps": "Channels" },
+  "history": {
+    "title": "Collection run history",
+    "subtitle_other": "Last {{count}} runs",
+    "columns": { "started": "Started", "trigger": "Trigger", "environments": "Environments", "transcripts": "Conversations", "rows": "Turns", "status": "Status", "log": "Log" },
+    "status": { "done": "Done", "errorCount": "{{count}} errors", "running": "Running" },
+    "logTitle": "Run log",
+    "empty": "No collection runs yet. Use the button above to start collecting."
+  }
+}

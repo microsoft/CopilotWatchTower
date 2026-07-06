@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { THEMES, mix, type Theme } from '../lib/theme'
 import type { PageProps } from '../types'
 
@@ -9,6 +10,7 @@ function sidebarTone(t: Theme): string {
 }
 
 function ThemeCard({ t, active, onSelect }: { t: Theme; active: boolean; onSelect: () => void }): JSX.Element {
+  const { t: tr } = useTranslation('themeGallery')
   return (
     <button className={`tg-card${active ? ' active' : ''}`} onClick={onSelect}>
       <div className="tg-preview" style={{ background: t.bg }}>
@@ -47,7 +49,7 @@ function ThemeCard({ t, active, onSelect }: { t: Theme; active: boolean; onSelec
       </div>
       <div className="tg-meta">
         <span className="tg-name">{t.name}</span>
-        <span className="tg-mode">{t.mode === 'dark' ? '다크' : '라이트'}</span>
+        <span className="tg-mode">{t.mode === 'dark' ? tr('mode.dark') : tr('mode.light')}</span>
         {active && <Check size={15} className="tg-check" />}
       </div>
     </button>
@@ -55,25 +57,23 @@ function ThemeCard({ t, active, onSelect }: { t: Theme; active: boolean; onSelec
 }
 
 export function ThemeGallery({ themeId, onThemeChange }: PageProps): JSX.Element {
+  const { t } = useTranslation('themeGallery')
   const dark = THEMES.filter((t) => t.mode === 'dark')
   const light = THEMES.filter((t) => t.mode === 'light')
   const select = (id: string): void => onThemeChange?.(id)
 
   return (
     <div className="content">
-      <p className="tg-intro">
-        색 미리보기를 둘러보고 마음에 드는 테마를 클릭하면 즉시 적용됩니다. 상단 바의 테마 버튼에서도 빠르게 바꿀 수
-        있어요. (총 {THEMES.length}개)
-      </p>
+      <p className="tg-intro">{t('intro', { count: THEMES.length })}</p>
 
-      <div className="tg-section-title">다크 · {dark.length}</div>
+      <div className="tg-section-title">{t('mode.dark')} · {dark.length}</div>
       <div className="tg-grid">
         {dark.map((t) => (
           <ThemeCard key={t.id} t={t} active={t.id === themeId} onSelect={() => select(t.id)} />
         ))}
       </div>
 
-      <div className="tg-section-title">라이트 · {light.length}</div>
+      <div className="tg-section-title">{t('mode.light')} · {light.length}</div>
       <div className="tg-grid">
         {light.map((t) => (
           <ThemeCard key={t.id} t={t} active={t.id === themeId} onSelect={() => select(t.id)} />

@@ -1,0 +1,24 @@
+{
+  "evaluateNow": "立即评估",
+  "evaluating": "正在评估规则…",
+  "evaluated": "评估完成: {{count}} 条(新增 {{newCount}})",
+  "error": "错误: {{error}}",
+  "ruleLabel": {
+    "agent_daily_abs": "代理每日限额",
+    "user_daily_abs": "用户每日限额",
+    "spike": "突增检测",
+    "monthly_budget": "超出月度预算",
+    "flow_spike": "流程突增",
+    "flow_fail_loop": "流程失败循环",
+    "runaway_autonomous": "失控的自主执行",
+    "high_risk_agent": "高风险代理"
+  },
+  "rules": { "title": "已启用的警报规则", "activeCount_other": "{{count}} 个已启用" },
+  "fired": {
+    "title": "已触发的警报",
+    "activeCount_other": "活跃 {{count}} 条",
+    "empty": "尚未触发任何警报。收集数据后请点击“立即评估”。"
+  },
+  "columns": { "rule": "规则", "target": "目标", "valueVsThreshold": "值 / 阈值", "severity": "严重程度" },
+  "severity": { "danger": "危险", "warn": "警告" }
+}

@@ -1,0 +1,12 @@
+{
+  "collectButton": "포털에서 플로우 실행 수집",
+  "autoLoginDesc": "설정의 <strong>다운로드 계정</strong>(eDiscovery 서비스 계정)으로 메이커 포털에 자동 로그인합니다. 계정이 없으면 로그인 창이 표시됩니다.",
+  "kpis": { "runs": "총 실행", "failed": "실패", "flows": "플로우", "environments": "환경" },
+  "recent": {
+    "title": "최근 플로우 실행",
+    "subtitle_other": "최신 {{count}}건",
+    "columns": { "time": "시각", "flow": "플로우", "env": "환경", "status": "상태", "reason": "사유" },
+    "empty": "아직 수집된 플로우 실행이 없습니다. 위 버튼으로 메이커 포털에 로그인해 수집하세요.",
+    "rawTitle": "플로우 실행 원본 JSON"
+  }
+}

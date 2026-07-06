@@ -1,0 +1,6 @@
+{
+  "title": "CopilotWatchTower",
+  "desc": "Add a tenant profile first to collect and analyze Microsoft 365 Copilot usage. Signing in with an admin device code automatically handles app registration and consent.",
+  "addStart": "Add a profile to get started",
+  "foot": "Credentials are encrypted with Windows DPAPI and stored only on this PC."
+}

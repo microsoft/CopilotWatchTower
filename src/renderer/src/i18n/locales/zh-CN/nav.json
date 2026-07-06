@@ -1,0 +1,38 @@
+{
+  "brandTagline": "Copilot 治理",
+  "sections": {
+    "dashboard": "仪表盘",
+    "usage": "使用情况分析",
+    "governance": "治理",
+    "collection": "数据收集",
+    "management": "管理"
+  },
+  "locked": "在当前许可配置下被锁定",
+  "routes": {
+    "home": { "title": "仪表盘", "subtitle": "一目了然地查看 Copilot 使用情况和关键指标。" },
+    "insights": { "title": "使用洞察", "subtitle": "分析使用模式和趋势。" },
+    "conversationsApi": { "title": "对话浏览(API)", "subtitle": "浏览通过 Graph API 收集的 Copilot 对话。" },
+    "conversationsEdiscovery": { "title": "对话浏览(e-Discovery)", "subtitle": "浏览通过 e-Discovery 收集的对话。" },
+    "conversationsDataverse": { "title": "对话浏览(Teams)", "subtitle": "浏览 Teams(Dataverse)对话。" },
+    "agents": { "title": "代理", "subtitle": "查看代理活动和积分消耗。" },
+    "security": { "title": "安全/审计", "subtitle": "查看审计日志和访问事件。" },
+    "reports": { "title": "官方报告", "subtitle": "查看管理中心官方使用情况报告。" },
+    "consumption": { "title": "Power Platform 积分", "subtitle": "跟踪积分消耗与分配。" },
+    "agentCredit": { "title": "代理积分分析", "subtitle": "分析每个代理的积分消耗。" },
+    "creditAlerts": { "title": "积分警报", "subtitle": "管理基于阈值的积分警报。" },
+    "collectOverview": { "title": "收集概览", "subtitle": "管理数据收集状态和来源。" },
+    "collectConversation": { "title": "对话收集(API)", "subtitle": "查看 Graph API 对话收集状态和运行记录。" },
+    "ediscovery": { "title": "对话收集(e-Discovery)", "subtitle": "管理 e-Discovery 导出和导入。" },
+    "collectTranscripts": { "title": "对话收集(Teams)", "subtitle": "管理 Teams 对话(Dataverse)收集。" },
+    "collectDiagnostics": { "title": "代理诊断收集", "subtitle": "查看 Copilot 管理 API 诊断结果。" },
+    "collectConsumption": { "title": "积分数据收集", "subtitle": "通过门户登录收集 Power Platform 积分数据。" },
+    "collectFlowRuns": { "title": "代理运行(流程)", "subtitle": "收集并查看流程运行记录。" },
+    "collectAgentDefs": { "title": "代理风险分析", "subtitle": "对代理定义进行静态分析并评分风险。" },
+    "collectAudit": { "title": "审计事件", "subtitle": "查看 Purview/Entra 审计事件收集状态。" },
+    "collectUsage": { "title": "官方使用情况", "subtitle": "查看管理中心官方使用情况快照。" },
+    "backupRestore": { "title": "备份与恢复", "subtitle": "管理数据库备份和恢复。" },
+    "dataExport": { "title": "导出", "subtitle": "将收集的数据导出为 CSV/JSON 文件。" },
+    "theme": { "title": "主题", "subtitle": "预览并选择颜色主题。" },
+    "settings": { "title": "设置", "subtitle": "配置配置文件、租户和应用环境。" }
+  }
+}

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MessagesSquare, Users, GitBranch, PlayCircle, Radio, Loader2, Search, DownloadCloud } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Kpi } from '../components/Kpi'
 import { LiveLog } from '../components/LiveLog'
 import { DataTable, type Column } from '../components/DataTable'
 import { RawJsonButton } from '../components/RawJsonModal'
 import { useCollectionRun, startRun, startConversationUser, clearRun } from '../lib/collectRuns'
 import { invoke } from '../lib/api'
+import { useNumberFormat } from '../lib/format'
 
 interface UserRow {
   userId: string
@@ -36,11 +38,9 @@ const FALLBACK: DTO = {
   runs: []
 }
 
-function n(v: number): string {
-  return v.toLocaleString('ko-KR')
-}
-
 export function ConversationCollect(): JSX.Element {
+  const { t } = useTranslation('conversationCollect')
+  const n = useNumberFormat()
   const [d, setD] = useState<DTO>(FALLBACK)
   const run = useCollectionRun('conversation')
 
@@ -70,13 +70,13 @@ export function ConversationCollect(): JSX.Element {
   }, [d.users, userQuery])
 
   const userColumns: Column<UserRow>[] = [
-    { key: 'user', header: '사용자', cell: (u) => <span className="ttl">{u.user}</span>, sortValue: (u) => u.user },
-    { key: 'count', header: '상호작용', align: 'right', cell: (u) => n(u.count), sortValue: (u) => u.count },
-    { key: 'last', header: '워터마크', cell: (u) => <span className="muted">{u.last}</span>, sortValue: (u) => u.last },
+    { key: 'user', header: t('userStatus.columns.user'), cell: (u) => <span className="ttl">{u.user}</span>, sortValue: (u) => u.user },
+    { key: 'count', header: t('userStatus.columns.count'), align: 'right', cell: (u) => n(u.count), sortValue: (u) => u.count },
+    { key: 'last', header: t('userStatus.columns.last'), cell: (u) => <span className="muted">{u.last}</span>, sortValue: (u) => u.last },
     {
       key: 'backfill',
-      header: '백필',
-      cell: (u) => <span className={`stat ${u.backfill ? 'ok' : 'idle'}`}>{u.backfill ? '완료' : '진행 중'}</span>,
+      header: t('userStatus.columns.backfill'),
+      cell: (u) => <span className={`stat ${u.backfill ? 'ok' : 'idle'}`}>{u.backfill ? t('userStatus.backfill.done') : t('userStatus.backfill.inProgress')}</span>,
       sortValue: (u) => (u.backfill ? 1 : 0)
     },
     {
@@ -87,35 +87,35 @@ export function ConversationCollect(): JSX.Element {
         <button
           className="btn-sm"
           disabled={run.running}
-          title="이 사용자만 다시 수집"
+          title={t('collectUserTitle')}
           onClick={() => startConversationUser(u.userId, u.user)}
         >
-          <DownloadCloud size={13} /> 수집
+          <DownloadCloud size={13} /> {t('collectUser')}
         </button>
       )
     }
   ]
 
   const runColumns: Column<RunRow>[] = [
-    { key: 'started', header: '시작', cell: (r) => <span className="muted">{r.started}</span>, sortValue: (r) => r.started },
-    { key: 'trigger', header: '트리거', cell: (r) => <span className="muted">{r.trigger}</span>, sortValue: (r) => r.trigger },
-    { key: 'users', header: '사용자', align: 'right', cell: (r) => n(r.users), sortValue: (r) => r.users },
-    { key: 'interactions', header: '수집', align: 'right', cell: (r) => n(r.interactions), sortValue: (r) => r.interactions },
+    { key: 'started', header: t('runHistory.columns.started'), cell: (r) => <span className="muted">{r.started}</span>, sortValue: (r) => r.started },
+    { key: 'trigger', header: t('runHistory.columns.trigger'), cell: (r) => <span className="muted">{r.trigger}</span>, sortValue: (r) => r.trigger },
+    { key: 'users', header: t('runHistory.columns.users'), align: 'right', cell: (r) => n(r.users), sortValue: (r) => r.users },
+    { key: 'interactions', header: t('runHistory.columns.interactions'), align: 'right', cell: (r) => n(r.interactions), sortValue: (r) => r.interactions },
     {
       key: 'status',
-      header: '상태',
+      header: t('runHistory.columns.status'),
       cell: (r) => (
         <span className={`stat ${r.status}`}>
-          {r.status === 'ok' ? '완료' : r.status === 'err' ? `오류 ${r.errors}` : '실행 중'}
+          {r.status === 'ok' ? t('runHistory.status.done') : r.status === 'err' ? t('runHistory.status.errorCount', { count: r.errors }) : t('runHistory.status.running')}
         </span>
       ),
       sortValue: (r) => r.status
     },
     {
       key: 'log',
-      header: '로그',
+      header: t('runHistory.columns.log'),
       align: 'right',
-      cell: (r) => (r.log ? <RawJsonButton data={r.log} title="실행 로그" /> : <span className="muted">—</span>)
+      cell: (r) => (r.log ? <RawJsonButton data={r.log} title={t('runHistory.logTitle')} /> : <span className="muted">—</span>)
     }
   ]
 
@@ -123,9 +123,9 @@ export function ConversationCollect(): JSX.Element {
     <div className="content">
       <div className="page-actions">
         <button className="btn primary" onClick={() => startRun('conversation')} disabled={run.running}>
-          {run.running ? <Loader2 size={15} className="spin" /> : <Radio size={15} />} 전체 수집 시작
+          {run.running ? <Loader2 size={15} className="spin" /> : <Radio size={15} />} {t('collectAll')}
         </button>
-        <span className="muted action-status">전체 사용자를 순회 수집합니다. 개별 수집은 아래 표의 “수집” 버튼.</span>
+        <span className="muted action-status">{t('collectAllDesc')}</span>
       </div>
 
       {(run.running || run.lines.length > 0) && (
@@ -133,23 +133,23 @@ export function ConversationCollect(): JSX.Element {
       )}
 
       <div className="kpi-row">
-        <Kpi icon={<MessagesSquare />} label="총 상호작용" value={n(d.kpis.interactions)} foot="interactions" />
-        <Kpi icon={<Users />} label="수집 사용자" value={n(d.kpis.users)} foot="distinct" />
-        <Kpi icon={<GitBranch />} label="대화 스레드" value={n(d.kpis.threads)} foot="conversation_threads" />
-        <Kpi icon={<PlayCircle />} label="마지막 수집" value={d.kpis.lastRun} foot="collection run" />
+        <Kpi icon={<MessagesSquare />} label={t('kpis.interactions')} value={n(d.kpis.interactions)} foot="interactions" />
+        <Kpi icon={<Users />} label={t('kpis.users')} value={n(d.kpis.users)} foot="distinct" />
+        <Kpi icon={<GitBranch />} label={t('kpis.threads')} value={n(d.kpis.threads)} foot="conversation_threads" />
+        <Kpi icon={<PlayCircle />} label={t('kpis.lastRun')} value={d.kpis.lastRun} foot="collection run" />
       </div>
 
       <div className="card">
         <div className="card-head">
-          <h2>사용자별 수집 현황</h2>
-          <span className="hint">{n(filteredUsers.length)}명</span>
+          <h2>{t('userStatus.title')}</h2>
+          <span className="hint">{t('userStatus.count', { count: n(filteredUsers.length) })}</span>
         </div>
         <div className="card-toolbar">
           <div className="search-box">
             <Search size={14} />
             <input
               type="text"
-              placeholder="사용자 이름·ID 검색"
+              placeholder={t('userStatus.searchPlaceholder')}
               value={userQuery}
               onChange={(e) => setUserQuery(e.target.value)}
             />
@@ -157,8 +157,8 @@ export function ConversationCollect(): JSX.Element {
         </div>
         {d.users.length === 0 ? (
           <div className="empty">
-            <div className="empty-title">아직 수집된 대화가 없습니다</div>
-            <div className="empty-desc">위 “전체 수집 시작”을 눌러 수집하세요.</div>
+            <div className="empty-title">{t('userStatus.emptyTitle')}</div>
+            <div className="empty-desc">{t('userStatus.emptyDesc')}</div>
           </div>
         ) : (
           <DataTable<UserRow>
@@ -175,12 +175,12 @@ export function ConversationCollect(): JSX.Element {
 
       <div className="card">
         <div className="card-head">
-          <h2>수집 실행 이력</h2>
-          <span className="hint">{n(d.runs.length)}회</span>
+          <h2>{t('runHistory.title')}</h2>
+          <span className="hint">{t('runHistory.count', { count: n(d.runs.length) })}</span>
         </div>
         {d.runs.length === 0 ? (
           <div className="empty">
-            <div className="empty-title">실행 기록이 없습니다</div>
+            <div className="empty-title">{t('runHistory.emptyTitle')}</div>
           </div>
         ) : (
           <DataTable<RunRow>

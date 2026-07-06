@@ -1,0 +1,15 @@
+{
+  "tableLabels": {
+    "interactions": "Interacciones",
+    "conversation_threads": "Hilos de conversación",
+    "audit_events": "Eventos de auditoría",
+    "copilot_usage_snapshots": "Instantáneas de uso",
+    "power_platform_consumption": "Consumo de créditos",
+    "copilot_agents": "Agentes",
+    "copilot_admin_diagnostics": "Diagnóstico de administrador",
+    "users": "Usuarios"
+  },
+  "format": "Formato",
+  "messages": { "chooseLocation": "Elija una ubicación para guardar…", "exported_other": "Se exportaron {{count}} filas de {{table}} → {{path}}", "canceled": "Cancelado", "error": "Error: {{error}}" },
+  "table": { "title": "Exportar tabla", "columns": { "table": "Tabla", "records": "Registros" }, "exportButton": "Exportar" }
+}

@@ -1,0 +1,19 @@
+{
+  "kpis": { "dbSize": "数据库大小", "totalRecords": "总记录数", "totalRecordsFoot_other": "{{count}} 个表", "backup": "备份", "backupValue": "快照", "backupFoot": "安全副本", "restore": "恢复", "restoreValue": "替换", "restoreFoot": "需谨慎操作" },
+  "actions": { "backup": "备份数据库", "restore": "从备份恢复", "wipe": "重置数据" },
+  "confirm": {
+    "restore": "这将用所选备份文件覆盖当前数据库。是否继续？",
+    "wipe": "这将删除此配置文件中收集的所有数据。凭据和警报规则将保留。\n是否继续？"
+  },
+  "messages": {
+    "chooseBackupLocation": "请选择备份位置…",
+    "backupDone": "备份完成 → {{path}} ({{size}})",
+    "canceled": "已取消",
+    "error": "错误: {{error}}",
+    "chooseRestoreFile": "请选择要恢复的备份文件…",
+    "restoreDone": "恢复完成，正在刷新…",
+    "wiping": "正在删除数据…",
+    "wipeDone_other": "重置完成: 已删除 {{count}} 行。正在刷新…"
+  },
+  "location": { "title": "数据库位置", "lastModified": "最后修改: {{date}}" }
+}

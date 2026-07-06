@@ -1,0 +1,40 @@
+{
+  "sources": {
+    "all": "Todas las fuentes",
+    "purview": "Auditoría unificada de Purview",
+    "entra_audit": "Auditoría de directorio de Entra",
+    "entra_signin": "Inicio de sesión de Entra"
+  },
+  "filters": { "sourceFilter": "Filtro de fuente", "dateFrom": "Fecha de inicio", "dateTo": "Fecha de fin", "searchPlaceholder": "Buscar operación/usuario/app", "apply": "Aplicar", "reset": "Restablecer" },
+  "count_other": "{{count}}",
+  "kpis": {
+    "total": "Eventos de auditoría",
+    "totalFoot": "Resultados filtrados",
+    "blocked": "Bloqueado/denegado",
+    "blockedFoot": "result=denied/blocked",
+    "uniqueUsers": "Usuarios únicos",
+    "uniqueUsersFoot": "Actores distintos",
+    "topOperation": "Operación principal",
+    "topOperationFoot_other": "{{count}}"
+  },
+  "diagnostics": {
+    "title": "Diagnóstico de administrador",
+    "subtitle": "OK {{ok}} · Denegado {{forbidden}} · No encontrado {{notFound}}"
+  },
+  "columns": {
+    "diagLabel": "Diagnóstico",
+    "endpoint": "Endpoint",
+    "status": "Estado",
+    "summary": "Resumen",
+    "capturedAt": "Capturado el",
+    "time": "Hora",
+    "source": "Fuente",
+    "user": "Usuario",
+    "operation": "Operación",
+    "workload": "Carga de trabajo",
+    "app": "App",
+    "result": "Resultado"
+  },
+  "rawAuditEventTitle": "Evento de auditoría sin procesar",
+  "auditEvents": { "title": "Eventos de auditoría", "subtitle_other": "{{count}} · Más reciente primero" }
+}

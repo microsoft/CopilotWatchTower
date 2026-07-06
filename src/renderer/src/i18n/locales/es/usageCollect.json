@@ -1,0 +1,10 @@
+{
+  "collectStart": "Iniciar recopilación",
+  "kpis": { "rows": "Filas de instantáneas", "latest": "Última instantánea", "users": "Usuarios", "period": "Período" },
+  "table": {
+    "title": "Última actividad por usuario (Copilot)",
+    "subtitle_other": "Última instantánea · top {{count}}",
+    "columns": { "user": "Usuario", "overall": "General", "teams": "Teams", "word": "Word", "excel": "Excel" },
+    "empty": "Aún no se han recopilado instantáneas de uso. Haga clic en Iniciar recopilación."
+  }
+}

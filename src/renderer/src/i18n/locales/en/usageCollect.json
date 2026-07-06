@@ -1,0 +1,10 @@
+{
+  "collectStart": "Start collection",
+  "kpis": { "rows": "Snapshot rows", "latest": "Latest snapshot", "users": "Users", "period": "Period" },
+  "table": {
+    "title": "Last activity by user (Copilot)",
+    "subtitle_other": "Latest snapshot · top {{count}}",
+    "columns": { "user": "User", "overall": "Overall", "teams": "Teams", "word": "Word", "excel": "Excel" },
+    "empty": "No usage snapshots collected yet. Click Start collection."
+  }
+}

@@ -1,4 +1,6 @@
 // Dependency-free multi-series SVG line chart shared by Dashboard and Insights.
+import { useTranslation } from 'react-i18next'
+
 export interface LineSeries {
   key: string
   color: string
@@ -19,7 +21,8 @@ export function LineChart<T extends { day: string }>({
   series: LineSeries[]
   height?: number
 }): JSX.Element {
-  if (data.length === 0) return <div className="empty-state">표시할 데이터가 없습니다.</div>
+  const { t } = useTranslation()
+  if (data.length === 0) return <div className="empty-state">{t('noData')}</div>
   const num = (d: T, key: string): number => Number((d as Record<string, number | string>)[key]) || 0
   const W = 600
   const H = 190

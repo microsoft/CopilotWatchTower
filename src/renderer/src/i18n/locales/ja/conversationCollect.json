@@ -1,0 +1,24 @@
+{
+  "collectAll": "全体収集開始",
+  "collectAllDesc": "全ユーザーを順に収集します。個別収集は下の表の「収集」ボタンから。",
+  "collectUserTitle": "このユーザーのみ再収集",
+  "collectUser": "収集",
+  "kpis": { "interactions": "総インタラクション", "users": "収集ユーザー", "threads": "会話スレッド", "lastRun": "最終収集" },
+  "userStatus": {
+    "title": "ユーザー別収集状況",
+    "count_other": "{{count}}名",
+    "searchPlaceholder": "ユーザー名・IDを検索",
+    "columns": { "user": "ユーザー", "count": "インタラクション", "last": "ウォーターマーク", "backfill": "バックフィル" },
+    "backfill": { "done": "完了", "inProgress": "進行中" },
+    "emptyTitle": "まだ収集された会話がありません",
+    "emptyDesc": "上の「全体収集開始」を押して収集してください。"
+  },
+  "runHistory": {
+    "title": "収集実行履歴",
+    "count_other": "{{count}}回",
+    "columns": { "started": "開始", "trigger": "トリガー", "users": "ユーザー", "interactions": "収集", "status": "状態", "log": "ログ" },
+    "status": { "done": "完了", "errorCount": "エラー{{count}}", "running": "実行中" },
+    "logTitle": "実行ログ",
+    "emptyTitle": "実行記録がありません"
+  }
+}

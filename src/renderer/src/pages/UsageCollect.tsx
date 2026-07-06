@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { BarChart3, CalendarDays, Users, Clock, Radio, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Kpi } from '../components/Kpi'
 import { LiveLog } from '../components/LiveLog'
 import { useCollectionRun, startRun, clearRun } from '../lib/collectRuns'
 import { invoke } from '../lib/api'
+import { useNumberFormat } from '../lib/format'
 
 interface TopRow {
   user: string
@@ -22,11 +24,9 @@ const FALLBACK: DTO = {
   top: []
 }
 
-function n(v: number): string {
-  return v.toLocaleString('ko-KR')
-}
-
 export function UsageCollect(): JSX.Element {
+  const { t } = useTranslation('usageCollect')
+  const n = useNumberFormat()
   const [d, setD] = useState<DTO>(FALLBACK)
   const run = useCollectionRun('usage')
 
@@ -51,7 +51,7 @@ export function UsageCollect(): JSX.Element {
     <div className="content">
       <div className="page-actions">
         <button className="btn primary" onClick={() => startRun('usage')} disabled={run.running}>
-          {run.running ? <Loader2 size={15} className="spin" /> : <Radio size={15} />} 수집 시작
+          {run.running ? <Loader2 size={15} className="spin" /> : <Radio size={15} />} {t('collectStart')}
         </button>
       </div>
 
@@ -60,32 +60,32 @@ export function UsageCollect(): JSX.Element {
       )}
 
       <div className="kpi-row">
-        <Kpi icon={<BarChart3 />} label="스냅샷 행" value={n(d.kpis.rows)} foot="copilot_usage_snapshots" />
-        <Kpi icon={<CalendarDays />} label="최신 스냅샷" value={d.kpis.latest} foot="report refresh" />
-        <Kpi icon={<Users />} label="사용자" value={n(d.kpis.users)} foot="distinct" />
-        <Kpi icon={<Clock />} label="기간" value={d.kpis.period} foot="period" />
+        <Kpi icon={<BarChart3 />} label={t('kpis.rows')} value={n(d.kpis.rows)} foot="copilot_usage_snapshots" />
+        <Kpi icon={<CalendarDays />} label={t('kpis.latest')} value={d.kpis.latest} foot="report refresh" />
+        <Kpi icon={<Users />} label={t('kpis.users')} value={n(d.kpis.users)} foot="distinct" />
+        <Kpi icon={<Clock />} label={t('kpis.period')} value={d.kpis.period} foot="period" />
       </div>
 
       <div className="card">
         <div className="card-head">
-          <h2>사용자별 마지막 활동 (Copilot)</h2>
-          <span className="hint">최신 스냅샷 · 상위 {d.top.length}명</span>
+          <h2>{t('table.title')}</h2>
+          <span className="hint">{t('table.subtitle', { count: d.top.length })}</span>
         </div>
         <table className="table">
           <thead>
             <tr>
-              <th>사용자</th>
-              <th>전체</th>
-              <th>Teams</th>
-              <th>Word</th>
-              <th>Excel</th>
+              <th>{t('table.columns.user')}</th>
+              <th>{t('table.columns.overall')}</th>
+              <th>{t('table.columns.teams')}</th>
+              <th>{t('table.columns.word')}</th>
+              <th>{t('table.columns.excel')}</th>
             </tr>
           </thead>
           <tbody>
             {d.top.length === 0 ? (
               <tr>
                 <td colSpan={5} className="muted">
-                  아직 수집된 사용량 스냅샷이 없습니다. 수집 시작을 눌러주세요.
+                  {t('table.empty')}
                 </td>
               </tr>
             ) : (

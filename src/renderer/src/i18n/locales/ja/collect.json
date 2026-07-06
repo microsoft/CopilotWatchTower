@@ -1,0 +1,101 @@
+{
+  "overview": { "title": "データ収集概要" },
+  "intro": "CopilotWatchTowerは複数のソースからMicrosoft 365 Copilotの活動を収集し、一箇所で分析します。各収集メニューは<strongData>収集するデータ</strongData>、<strongTech>使用する技術</strongTech>、必要な<strongPerm>権限</strongPerm>、そして<strongConstraint>制約・範囲</strongConstraint>がそれぞれ異なります。以下でソースごとの特性を確認してから、左側メニューで個別の収集を実行してください。",
+  "authMethod": {
+    "title": "認証方式",
+    "bootstrapLabel": "ブートストラップ(委任・デバイスコード)",
+    "bootstrapDesc": " — 最初の1回のみ。Entraアプリ登録を作成し、テナント管理者の同意で必要な権限を付与します。",
+    "appOnlyLabel": "アプリ専用(client credentials)",
+    "appOnlyDesc": " — 日常的な収集。発行されたシークレット(有効期限180日)でGraph APIを呼び出します。eDiscovery・Teams・クレジットの一部経路は委任/Web自動化サインインを使用します。",
+    "noteLabel": "設定 → 権限アップグレード",
+    "noteDesc": "権限が不足している場合は、<1>{{label}}</1>で不足している権限を再同意するか、新しいプロファイルを作成して最新の権限でアプリを再生成できます。"
+  },
+  "specLabels": { "technology": "技術", "data": "収集データ", "permissions": "必要な権限", "constraints": "制約・範囲" },
+  "viewIn": "確認画面: ",
+  "sources": {
+    "api": {
+      "title": "会話収集(API)",
+      "summary": "Microsoft Graph APIでユーザー別のCopilot会話本文を直接収集します。",
+      "technology": "Microsoft Graph (beta) · getAllEnterpriseInteractions · アプリ専用(client credentials)トークン",
+      "data": ["プロンプト/応答本文テキスト", "アプリ出所(BizChat、Word、Teams、Excel、PowerPoint、Outlook、Loopなど)", "添付・リンク・メンションのメタデータ、生のJSON"],
+      "permissions": ["AiEnterpriseInteraction.Read.All", "User.Read.All", "Organization.Read.All"],
+      "constraints": [
+        "Copilotライセンスを保有するユーザーのみ対象(範囲設定により全体/ライセンス/グループ/ユーザー指定)",
+        "betaエンドポイント · ユーザー・期間単位のページング(@odata.nextLink)",
+        "ライセンスのないユーザーの本文はeDiscovery経路で別途収集"
+      ],
+      "viewIn": "会話探索(API)"
+    },
+    "ediscovery": {
+      "title": "会話収集(e-Discovery)",
+      "summary": "ライセンスのないユーザーも含めてPurview eDiscoveryでCopilot本文を復元します。",
+      "technology": "Purview eDiscovery (Graph) · 委任(delegated)認証",
+      "data": ["ライセンス未保有ユーザーを含むCopilot会話本文", "ケース・検索・エクスポート成果物から復元したメッセージ"],
+      "permissions": ["eDiscovery.ReadWrite.All (委任)", "実行アカウントにeDiscovery Managerロールが必要"],
+      "constraints": [
+        "アプリ専用認証はPremium専用のため委任認証を使用",
+        "ケース作成 → 検索 → 見積もり → エクスポート → ダウンロード → 解析の非同期ステップで進行",
+        "段階ごとの再開をサポート — 中断後に再開可能"
+      ],
+      "viewIn": "会話探索(e-Discovery)"
+    },
+    "teams": {
+      "title": "会話収集(Teams)",
+      "summary": "Copilot Studioカスタムエージェントのteams会話トランスクリプトをDataverseから収集します。",
+      "technology": "Dataverse自動サインイン(Web自動化) · トランスクリプトテーブル",
+      "data": ["Copilot Studioカスタムエージェントのteams会話履歴(トランスクリプト)", "エージェント・環境別の会話セッション"],
+      "permissions": ["環境別Dataverseアクセス(システム管理者権限)", "PPAC/Dataverse自動サインインアカウント"],
+      "constraints": [
+        "環境別のアクセス権限が必要 — ない環境は「自分をシステム管理者として自動追加」オプションで対応",
+        "ブラウザ自動サインインに基づくため、MFA・セッションポリシーの影響を受ける"
+      ],
+      "viewIn": "会話探索(Teams)"
+    },
+    "agents": {
+      "title": "エージェント",
+      "summary": "Copilot管理APIと監査ログからエージェントインベントリと実際の利用シグナルを収集します。",
+      "technology": "Microsoft Graph Copilot管理API(エージェント登録・カタログ) + 監査ログ",
+      "data": ["エージェントインベントリ(登録情報・カタログパッケージ)", "ポリシー設定シグナル", "監査ログに基づく実際の利用シグナル"],
+      "permissions": ["AgentRegistration.Read.All", "CopilotPackages.Read.All", "CopilotPolicySettings.Read"],
+      "constraints": [
+        "利用シグナルは監査ログに基づくため、監査イベント収集を先に行うほど正確",
+        "管理APIの利用可能範囲(テナント構成)によって一部項目が空になる場合がある"
+      ],
+      "viewIn": "エージェント"
+    },
+    "consumption": {
+      "title": "Power Platform クレジット",
+      "summary": "PPAC消費量レポートをダウンロードしてメッセージ・AI Builder・APIリクエスト利用量を追跡します。",
+      "technology": "Power Platform管理センター(PPAC)自動サインイン · 消費量レポートダウンロード",
+      "data": ["Copilot Studioメッセージ消費量", "AI Builderクレジット消費量", "Power Platformリクエスト(API)消費量"],
+      "permissions": ["Power Platform管理者権限", "PPAC自動サインインアカウント"],
+      "constraints": ["Web自動化ベース — PPAC UI/レポートの可用性に依存", "レポートが提供する集計期間・単位の範囲内でのみ収集"],
+      "viewIn": "Power Platform クレジット"
+    },
+    "audit": {
+      "title": "監査イベント",
+      "summary": "Purview統合監査ログとEntra監査/サインインからセキュリティ・アクセスイベントを収集します。",
+      "technology": "Graph security.auditLog.queries(非同期Purview統合ログ) + Entra監査/sign-in",
+      "data": ["ブロック/拒否などのセキュリティイベント", "機密資料へのアクセス記録", "アクセス・ポリシー関連の監査イベント"],
+      "permissions": ["AuditLog.Read.All (Entra監査・サインイン)", "AuditLogsQuery.Read.All (Purview統合ログ)", "追加でPurview/Exchange roleManagementロールが必要"],
+      "constraints": [
+        "Purview監査ログの保持期間内のデータのみ照会可能",
+        "統合ログクエリは非同期(送信→ポーリング→結果)方式",
+        "auditLogクエリが404を返すとPurview経路は自動的に無効化され、Entra経路のみ使用"
+      ],
+      "viewIn": "セキュリティ/監査"
+    },
+    "usage": {
+      "title": "公式利用状況",
+      "summary": "Microsoft 365 Copilotの公式利用状況レポートのスナップショットを収集します。",
+      "technology": "Microsoft Graph Reports API(Copilot利用状況CSV)",
+      "data": ["M365 Copilot公式利用状況レポートのスナップショット", "期間別(D7/D30/D90/D180)利用集計"],
+      "permissions": ["Reports.Read.All", "ReportSettings.ReadWrite.All(非匿名化設定)"],
+      "constraints": [
+        "Microsoftレポートの匿名化設定の影響を受ける — ユーザー識別が必要な場合はReportSettingsで非匿名化",
+        "Microsoftが提供する報告期間単位でのみ収集"
+      ],
+      "viewIn": "公式レポート"
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { invoke } from '../lib/api'
 
 /**
@@ -9,6 +10,7 @@ import { invoke } from '../lib/api'
  * (same keys as the Python app: ediscovery_browser_user / _password).
  */
 export function EdiscoveryAccountCard(): JSX.Element {
+  const { t } = useTranslation('ediscoveryAccount')
   const [user, setUser] = useState('')
   const [pw, setPw] = useState('')
   const [configured, setConfigured] = useState(false)
@@ -26,7 +28,7 @@ export function EdiscoveryAccountCard(): JSX.Element {
 
   async function save(): Promise<void> {
     if (!user.trim() || !pw) {
-      setMsg('서비스 계정과 비밀번호를 입력하세요.')
+      setMsg(t('messages.missingInput'))
       return
     }
     setBusy(true)
@@ -38,12 +40,12 @@ export function EdiscoveryAccountCard(): JSX.Element {
       if (r.ok) {
         setConfigured(true)
         setPw('')
-        setMsg('저장됨 — 다음 ME3 다운로드부터 로그인 창 없이 자동 실행됩니다.')
+        setMsg(t('messages.saved'))
       } else {
-        setMsg(`저장 실패: ${r.error ?? '오류'}`)
+        setMsg(t('messages.saveFailed', { error: r.error ?? t('unknownError') }))
       }
     } catch {
-      setMsg('저장 중 오류가 발생했습니다.')
+      setMsg(t('messages.saveError'))
     } finally {
       setBusy(false)
     }
@@ -55,9 +57,9 @@ export function EdiscoveryAccountCard(): JSX.Element {
       setConfigured(false)
       setUser('')
       setPw('')
-      setMsg('자격 증명을 삭제했습니다.')
+      setMsg(t('messages.cleared'))
     } catch {
-      setMsg('삭제 중 오류가 발생했습니다.')
+      setMsg(t('messages.clearError'))
     } finally {
       setBusy(false)
     }
@@ -66,21 +68,19 @@ export function EdiscoveryAccountCard(): JSX.Element {
   return (
     <div className="card">
       <div className="card-head">
-        <h2>eDiscovery 다운로드 계정 (ME3 자동 다운로드)</h2>
-        <span className={`hint stat ${configured ? 'ok' : 'idle'}`}>{configured ? '설정됨' : '미설정'}</span>
+        <h2>{t('title')}</h2>
+        <span className={`hint stat ${configured ? 'ok' : 'idle'}`}>
+          {configured ? t('status.configured') : t('status.notConfigured')}
+        </span>
       </div>
       <div className="card-body">
-        <p className="muted cap-desc">
-          eDiscovery Standard(ME3) 테넌트의 내보내기 다운로드는 브라우저 로그인이 필요합니다. MFA가 없는 전용 서비스 계정을
-          등록하면 로그인 창 없이 자동으로 다운로드합니다. (MFA 계정은 자동 입력 후 창에서 직접 승인해야 합니다.) 비밀번호는
-          Windows DPAPI로 암호화되어 이 PC의 프로필에만 저장됩니다.
-        </p>
+        <p className="muted cap-desc">{t('desc')}</p>
         <div className="ediscovery-form">
           <input
             className="field"
             value={user}
             onChange={(e) => setUser(e.target.value)}
-            placeholder="서비스 계정 (user@tenant)"
+            placeholder={t('userPlaceholder')}
             autoComplete="username"
           />
           <input
@@ -88,15 +88,15 @@ export function EdiscoveryAccountCard(): JSX.Element {
             type="password"
             value={pw}
             onChange={(e) => setPw(e.target.value)}
-            placeholder="비밀번호"
+            placeholder={t('passwordPlaceholder')}
             autoComplete="current-password"
           />
           <button className="btn primary" onClick={save} disabled={busy}>
-            저장
+            {t('save')}
           </button>
           {configured && (
             <button className="btn" onClick={clear} disabled={busy}>
-              삭제
+              {t('delete')}
             </button>
           )}
         </div>

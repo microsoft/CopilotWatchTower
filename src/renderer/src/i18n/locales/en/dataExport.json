@@ -1,0 +1,15 @@
+{
+  "tableLabels": {
+    "interactions": "Interactions",
+    "conversation_threads": "Conversation threads",
+    "audit_events": "Audit events",
+    "copilot_usage_snapshots": "Usage snapshots",
+    "power_platform_consumption": "Credit consumption",
+    "copilot_agents": "Agents",
+    "copilot_admin_diagnostics": "Admin diagnostics",
+    "users": "Users"
+  },
+  "format": "Format",
+  "messages": { "chooseLocation": "Choose a save location…", "exported_other": "Exported {{count}} rows of {{table}} → {{path}}", "canceled": "Canceled", "error": "Error: {{error}}" },
+  "table": { "title": "Export table", "columns": { "table": "Table", "records": "Records" }, "exportButton": "Export" }
+}

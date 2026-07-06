@@ -1,0 +1,11 @@
+{
+  "collectStart": "Iniciar recopilación",
+  "status": { "ok": "OK", "forbidden": "Denegado", "not_found": "No encontrado", "error": "Error" },
+  "kpis": { "total": "Elementos de diagnóstico", "totalFoot": "Sondas de la API de administración", "ok": "OK", "okFoot": "Accesible", "forbidden": "Denegado", "forbiddenFoot": "Requiere consentimiento", "notFound": "No encontrado", "notFoundFoot": "Sin endpoint" },
+  "table": {
+    "title": "Diagnóstico de la API de administración de Copilot",
+    "subtitle_other": "{{count}} endpoints",
+    "columns": { "label": "Elemento", "endpoint": "Endpoint", "status": "Estado", "summary": "Resumen", "capturedAt": "Capturado el" },
+    "empty": "Aún no hay datos de diagnóstico. Haga clic en Iniciar recopilación."
+  }
+}

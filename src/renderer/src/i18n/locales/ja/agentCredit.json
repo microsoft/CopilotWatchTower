@@ -1,0 +1,11 @@
+{
+  "kpis": {
+    "agents": "消費エージェント",
+    "messages": "総メッセージ",
+    "messagesFoot": "消費量",
+    "environments": "環境",
+    "top": "最多消費"
+  },
+  "table": { "title": "エージェント別メッセージ消費", "subtitle_other": "上位{{count}}件", "empty": "エージェント消費データがありません。まずクレジットデータ収集(ポータル)を実行してください。" },
+  "columns": { "agent": "エージェント", "env": "環境", "messages": "メッセージ", "share": "比率" }
+}

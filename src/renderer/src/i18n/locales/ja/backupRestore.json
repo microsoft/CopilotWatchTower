@@ -1,0 +1,19 @@
+{
+  "kpis": { "dbSize": "DBサイズ", "totalRecords": "総レコード数", "totalRecordsFoot_other": "{{count}}テーブル", "backup": "バックアップ", "backupValue": "スナップショット", "backupFoot": "安全なコピー", "restore": "復元", "restoreValue": "置き換え", "restoreFoot": "注意が必要" },
+  "actions": { "backup": "データベースをバックアップ", "restore": "バックアップから復元", "wipe": "データを初期化" },
+  "confirm": {
+    "restore": "現在のデータベースを選択したバックアップファイルで上書きします。続行しますか？",
+    "wipe": "このプロファイルに収集されたすべてのデータを削除します。資格情報とアラートルールは維持されます。\n続行しますか？"
+  },
+  "messages": {
+    "chooseBackupLocation": "バックアップの保存先を選択してください…",
+    "backupDone": "バックアップ完了 → {{path}} ({{size}})",
+    "canceled": "キャンセルされました",
+    "error": "エラー: {{error}}",
+    "chooseRestoreFile": "復元するバックアップファイルを選択してください…",
+    "restoreDone": "復元が完了しました。更新しています…",
+    "wiping": "データを削除しています…",
+    "wipeDone_other": "初期化完了: {{count}}行削除されました。更新しています…"
+  },
+  "location": { "title": "データベースの場所", "lastModified": "最終更新: {{date}}" }
+}

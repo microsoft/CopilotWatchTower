@@ -1,0 +1,40 @@
+{
+  "sources": {
+    "all": "すべてのソース",
+    "purview": "Purview統合監査",
+    "entra_audit": "Entraディレクトリ監査",
+    "entra_signin": "Entraサインイン"
+  },
+  "filters": { "sourceFilter": "ソースフィルター", "dateFrom": "開始日", "dateTo": "終了日", "searchPlaceholder": "操作・ユーザー・アプリを検索", "apply": "適用", "reset": "リセット" },
+  "count_other": "{{count}}件",
+  "kpis": {
+    "total": "監査イベント",
+    "totalFoot": "フィルター結果",
+    "blocked": "ブロック・拒否",
+    "blockedFoot": "result=denied/blocked",
+    "uniqueUsers": "固有ユーザー",
+    "uniqueUsersFoot": "行為者数",
+    "topOperation": "最多操作",
+    "topOperationFoot_other": "{{count}}件"
+  },
+  "diagnostics": {
+    "title": "管理者診断",
+    "subtitle": "正常 {{ok}} · 拒否 {{forbidden}} · 未検出 {{notFound}}"
+  },
+  "columns": {
+    "diagLabel": "診断",
+    "endpoint": "エンドポイント",
+    "status": "状態",
+    "summary": "概要",
+    "capturedAt": "取得時刻",
+    "time": "時刻",
+    "source": "ソース",
+    "user": "ユーザー",
+    "operation": "操作",
+    "workload": "ワークロード",
+    "app": "アプリ",
+    "result": "結果"
+  },
+  "rawAuditEventTitle": "監査イベントの生データ",
+  "auditEvents": { "title": "監査イベント", "subtitle_other": "{{count}}件 · 新しい順" }
+}

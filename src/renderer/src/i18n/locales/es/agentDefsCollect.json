@@ -1,0 +1,13 @@
+{
+  "collectButton": "Analizar riesgo de agentes desde el portal",
+  "autoLoginDesc": "Inicia sesión automáticamente en el portal de creación usando la <strong>cuenta de descarga</strong> (cuenta de servicio de eDiscovery) de Configuración. Aparecerá una ventana de inicio de sesión si no hay una cuenta configurada.",
+  "band": { "critical": "Crítico", "high": "Alto", "medium": "Medio", "low": "Bajo" },
+  "kpis": { "agents": "Agentes", "high": "Alto riesgo", "highFoot": "Puntuación ≥ 50", "triggers": "Disparadores autónomos", "environments": "Entornos" },
+  "table": {
+    "title": "Puntuaciones de riesgo de agentes",
+    "subtitle_other": "Top {{count}} por riesgo",
+    "columns": { "agent": "Agente", "env": "Entorno", "risk": "Riesgo", "signals": "Señales" },
+    "signals": "Llamadas externas {{external}} · Bucles {{loops}}",
+    "empty": "Aún no se han analizado agentes. Use el botón de arriba para iniciar sesión en el portal de creación y recopilar."
+  }
+}

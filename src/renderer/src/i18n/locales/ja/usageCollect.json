@@ -1,0 +1,10 @@
+{
+  "collectStart": "収集開始",
+  "kpis": { "rows": "スナップショット行", "latest": "最新スナップショット", "users": "ユーザー", "period": "期間" },
+  "table": {
+    "title": "ユーザー別最終活動(Copilot)",
+    "subtitle_other": "最新スナップショット · 上位{{count}}名",
+    "columns": { "user": "ユーザー", "overall": "全体", "teams": "Teams", "word": "Word", "excel": "Excel" },
+    "empty": "まだ収集された利用状況スナップショットがありません。収集開始を押してください。"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "overview": { "title": "Data collection overview" },
+  "intro": "CopilotWatchTower collects Microsoft 365 Copilot activity from multiple sources and analyzes it in one place. Each collection menu differs in the <strongData>data it collects</strongData>, the <strongTech>technology it uses</strongTech>, the <strongPerm>permissions</strongPerm> it needs, and its <strongConstraint>constraints/scope</strongConstraint>. Review each source's characteristics below, then run individual collections from the menu on the left.",
+  "authMethod": {
+    "title": "Authentication methods",
+    "bootstrapLabel": "Bootstrap (delegated · device code)",
+    "bootstrapDesc": " — One time only. Creates an Entra app registration and grants the required permissions via tenant admin consent.",
+    "appOnlyLabel": "App-only (client credentials)",
+    "appOnlyDesc": " — For everyday collection. Calls the Graph API using the issued secret (valid 180 days). Some eDiscovery/Teams/credit paths use delegated or web-automation sign-in.",
+    "noteLabel": "Settings → Upgrade permissions",
+    "noteDesc": "If permissions are insufficient, re-consent to the missing permissions from <1>{{label}}</1>, or create a new profile to regenerate the app with the latest permissions."
+  },
+  "specLabels": { "technology": "Technology", "data": "Collected data", "permissions": "Required permissions", "constraints": "Constraints/scope" },
+  "viewIn": "View in: ",
+  "sources": {
+    "api": {
+      "title": "Conversation collection (API)",
+      "summary": "Collects Copilot conversation body text directly per user via the Microsoft Graph API.",
+      "technology": "Microsoft Graph (beta) · getAllEnterpriseInteractions · app-only (client credentials) token",
+      "data": ["Prompt/response body text", "App origin (BizChat, Word, Teams, Excel, PowerPoint, Outlook, Loop, etc.)", "Attachment/link/mention metadata, raw JSON"],
+      "permissions": ["AiEnterpriseInteraction.Read.All", "User.Read.All", "Organization.Read.All"],
+      "constraints": [
+        "Only targets users with a Copilot license (all/licensed/group/specific users depending on scope settings)",
+        "Beta endpoint · paginated per user/period (@odata.nextLink)",
+        "Body text for unlicensed users is collected separately via the eDiscovery path"
+      ],
+      "viewIn": "Conversations (API)"
+    },
+    "ediscovery": {
+      "title": "Conversation collection (e-Discovery)",
+      "summary": "Restores Copilot body text via Purview eDiscovery, including unlicensed users.",
+      "technology": "Purview eDiscovery (Graph) · delegated authentication",
+      "data": ["Copilot conversation body text including unlicensed users", "Messages restored from case/search/export artifacts"],
+      "permissions": ["eDiscovery.ReadWrite.All (delegated)", "The executing account needs the eDiscovery Manager role"],
+      "constraints": [
+        "App-only auth is Premium-only, so delegated auth is used",
+        "Runs asynchronously: create case → search → estimate → export → download → parse",
+        "Supports resuming per stage — can restart after a stop"
+      ],
+      "viewIn": "Conversations (e-Discovery)"
+    },
+    "teams": {
+      "title": "Conversation collection (Teams)",
+      "summary": "Collects Teams conversation transcripts from Copilot Studio custom agents via Dataverse.",
+      "technology": "Dataverse auto-login (web automation) · transcript table",
+      "data": ["Teams conversation history (transcripts) from Copilot Studio custom agents", "Conversation sessions per agent/environment"],
+      "permissions": ["Per-environment Dataverse access (System Administrator role)", "PPAC/Dataverse auto-login account"],
+      "constraints": [
+        "Requires per-environment access — environments without it are handled via the 'Add myself as System Administrator' option",
+        "Based on browser auto-login, so it is affected by MFA/session policies"
+      ],
+      "viewIn": "Conversations (Teams)"
+    },
+    "agents": {
+      "title": "Agents",
+      "summary": "Collects agent inventory and real usage signals from the Copilot admin API and audit logs.",
+      "technology": "Microsoft Graph Copilot admin API (agent registration/catalog) + audit logs",
+      "data": ["Agent inventory (registration info/catalog packages)", "Policy setting signals", "Real usage signals based on audit logs"],
+      "permissions": ["AgentRegistration.Read.All", "CopilotPackages.Read.All", "CopilotPolicySettings.Read"],
+      "constraints": [
+        "Usage signals are based on audit logs, so accuracy improves the earlier audit events are collected",
+        "Some items may be empty depending on admin API availability (tenant configuration)"
+      ],
+      "viewIn": "Agents"
+    },
+    "consumption": {
+      "title": "Power Platform credits",
+      "summary": "Downloads PPAC consumption reports to track message/AI Builder/API request usage.",
+      "technology": "Power Platform admin center (PPAC) auto-login · consumption report download",
+      "data": ["Copilot Studio message consumption", "AI Builder credit consumption", "Power Platform request (API) consumption"],
+      "permissions": ["Power Platform administrator role", "PPAC auto-login account"],
+      "constraints": ["Based on web automation — depends on PPAC UI/report availability", "Only collected within the aggregation period/unit the report provides"],
+      "viewIn": "Power Platform credits"
+    },
+    "audit": {
+      "title": "Audit events",
+      "summary": "Collects security/access events from the Purview unified audit log and Entra audit/sign-in.",
+      "technology": "Graph security.auditLog.queries (asynchronous Purview unified log) + Entra audit/sign-in",
+      "data": ["Blocked/denied security events", "Sensitive data access records", "Access/policy-related audit events"],
+      "permissions": ["AuditLog.Read.All (Entra audit/sign-in)", "AuditLogsQuery.Read.All (Purview unified log)", "Also requires a Purview/Exchange roleManagement role"],
+      "constraints": [
+        "Only data within the Purview audit log retention period can be queried",
+        "Unified log queries are asynchronous (submit → poll → result)",
+        "If the auditLog query returns 404, the Purview path is automatically disabled and only the Entra path is used"
+      ],
+      "viewIn": "Security/Audit"
+    },
+    "usage": {
+      "title": "Official usage",
+      "summary": "Collects official Microsoft 365 Copilot usage report snapshots.",
+      "technology": "Microsoft Graph Reports API (Copilot usage CSV)",
+      "data": ["Official M365 Copilot usage report snapshots", "Usage aggregates by period (D7/D30/D90/D180)"],
+      "permissions": ["Reports.Read.All", "ReportSettings.ReadWrite.All (de-anonymization setting)"],
+      "constraints": [
+        "Affected by Microsoft's report anonymization setting — de-anonymize via ReportSettings if user identification is needed",
+        "Only collected at the reporting period granularity Microsoft provides"
+      ],
+      "viewIn": "Official reports"
+    }
+  }
+}

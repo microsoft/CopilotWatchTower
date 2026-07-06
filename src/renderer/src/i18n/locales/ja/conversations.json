@@ -1,0 +1,29 @@
+{
+  "scope": { "all": "すべて", "title": "タイトル", "body": "本文" },
+  "searchPlaceholder": {
+    "title": "会話タイトルを検索",
+    "body": "会話本文を検索",
+    "all": "会話タイトル・本文を検索",
+    "restoredTitle": "復元済み会話タイトルを検索",
+    "restoredBody": "復元済み会話本文を検索",
+    "restoredAll": "復元済み会話タイトル・本文を検索"
+  },
+  "filters": {
+    "dateFrom": "開始日",
+    "dateTo": "終了日",
+    "searchScope": "検索範囲",
+    "userFilter": "ユーザーフィルター",
+    "allUsers": "すべてのユーザー",
+    "restoredAllUsers": "復元済みのすべてのユーザー",
+    "appFilter": "アプリフィルター",
+    "allApps": "すべてのアプリ",
+    "apply": "適用",
+    "reset": "リセット"
+  },
+  "count_other": "{{count}}件の会話",
+  "noMatch": "一致する会話がありません。",
+  "messageCount_other": "{{count}}件のメッセージ",
+  "noMessages": "表示するメッセージがありません。",
+  "rawInteractionTitle": "生のインタラクションJSON",
+  "empty": { "title": "会話を選択してください", "desc": "左側のリストから会話を選択すると、すべてのメッセージがここに表示されます。" }
+}

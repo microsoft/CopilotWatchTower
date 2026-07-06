@@ -1,0 +1,18 @@
+{
+  "title": "eDiscoveryダウンロードアカウント(ME3自動ダウンロード)",
+  "status": { "configured": "設定済み", "notConfigured": "未設定" },
+  "desc": "eDiscovery Standard(ME3)テナントのエクスポートダウンロードにはブラウザサインインが必要です。MFAなしの専用サービスアカウントを登録すると、サインイン画面なしで自動的にダウンロードします。(MFAアカウントは自動入力後、画面で直接承認が必要です。)パスワードはWindows DPAPIで暗号化され、このPCのプロファイルにのみ保存されます。",
+  "userPlaceholder": "サービスアカウント (user@tenant)",
+  "passwordPlaceholder": "パスワード",
+  "save": "保存",
+  "delete": "削除",
+  "unknownError": "エラー",
+  "messages": {
+    "missingInput": "サービスアカウントとパスワードを入力してください。",
+    "saved": "保存しました — 次回のME3ダウンロードからサインイン画面なしで自動実行されます。",
+    "saveFailed": "保存失敗: {{error}}",
+    "saveError": "保存中にエラーが発生しました。",
+    "cleared": "資格情報を削除しました。",
+    "clearError": "削除中にエラーが発生しました。"
+  }
+}

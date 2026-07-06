@@ -1,0 +1,13 @@
+{
+  "collectButton": "Analyze agent risk via portal",
+  "autoLoginDesc": "Automatically signs in to the maker portal using the <strong>download account</strong> (eDiscovery service account) from Settings. A sign-in window will appear if no account is configured.",
+  "band": { "critical": "Critical", "high": "High", "medium": "Medium", "low": "Low" },
+  "kpis": { "agents": "Agents", "high": "High risk", "highFoot": "Score ≥ 50", "triggers": "Autonomous triggers", "environments": "Environments" },
+  "table": {
+    "title": "Agent risk scores",
+    "subtitle_other": "Top {{count}} by risk",
+    "columns": { "agent": "Agent", "env": "Environment", "risk": "Risk", "signals": "Signals" },
+    "signals": "External calls {{external}} · Loops {{loops}}",
+    "empty": "No agents analyzed yet. Use the button above to sign in to the maker portal and collect."
+  }
+}

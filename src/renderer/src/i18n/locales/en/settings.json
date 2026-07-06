@@ -1,0 +1,28 @@
+{
+  "profiles": {
+    "title": "Profile management",
+    "count_other": "{{count}}",
+    "active": "Active",
+    "switch": "Switch",
+    "deleteTitle": "Delete profile",
+    "noTenant": "—",
+    "empty": "No profiles registered.",
+    "add": "Add profile"
+  },
+  "confirm": {
+    "deleteLast": "'{{name}}' is the last profile.\nDeleting it will erase all data, and you'll need to add a new profile to start again. Continue?",
+    "delete": "Delete the '{{name}}' profile?\nThe data (store.db) collected in this profile will be permanently deleted."
+  },
+  "messages": {
+    "deleteFailed": "Delete failed: {{error}}",
+    "unknownError": "unknown"
+  },
+  "systemInfo": {
+    "title": "System information",
+    "app": "App",
+    "activeProfile": "Active profile",
+    "tenant": "Tenant",
+    "version": "Version",
+    "theme": "Theme"
+  }
+}

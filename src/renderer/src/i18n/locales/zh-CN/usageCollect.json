@@ -1,0 +1,10 @@
+{
+  "collectStart": "开始收集",
+  "kpis": { "rows": "快照行数", "latest": "最新快照", "users": "用户", "period": "周期" },
+  "table": {
+    "title": "按用户查看最后活动(Copilot)",
+    "subtitle_other": "最新快照 · 前 {{count}} 名",
+    "columns": { "user": "用户", "overall": "总计", "teams": "Teams", "word": "Word", "excel": "Excel" },
+    "empty": "尚未收集到使用情况快照。请点击开始收集。"
+  }
+}

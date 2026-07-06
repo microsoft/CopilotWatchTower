@@ -1,4 +1,5 @@
 import { Construction } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Shared "not wired yet" page. The sidebar/route structure mirrors the original
@@ -6,6 +7,7 @@ import { Construction } from 'lucide-react'
  * menu still navigates to a real screen.
  */
 export function Stub(): JSX.Element {
+  const { t } = useTranslation('stub')
   return (
     <div className="content">
       <div className="card">
@@ -14,11 +16,9 @@ export function Stub(): JSX.Element {
             <div className="empty-icon">
               <Construction size={24} />
             </div>
-            <div className="empty-title">준비 중인 화면입니다</div>
-            <div className="empty-desc">
-              메뉴 구조는 원본 앱과 동일하게 맞춰 두었습니다. 이 화면의 실제 데이터와 기능은 다음 단계에서 구현됩니다.
-            </div>
-            <div className="empty-tag">준비 중</div>
+            <div className="empty-title">{t('title')}</div>
+            <div className="empty-desc">{t('desc')}</div>
+            <div className="empty-tag">{t('tag')}</div>
           </div>
         </div>
       </div>

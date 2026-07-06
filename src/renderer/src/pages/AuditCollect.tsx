@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Database, ShieldCheck, UserCheck, Activity, Radio, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Kpi } from '../components/Kpi'
 import { LiveLog } from '../components/LiveLog'
 import { useCollectionRun, startRun, clearRun } from '../lib/collectRuns'
 import { invoke } from '../lib/api'
+import { useNumberFormat } from '../lib/format'
 
 interface Source {
   source: string
@@ -40,6 +42,8 @@ function n(v: number): string {
 }
 
 export function AuditCollect(): JSX.Element {
+  const { t } = useTranslation('auditCollect')
+  const n = useNumberFormat()
   const [d, setD] = useState<DTO>(FALLBACK)
   const run = useCollectionRun('audit')
 
@@ -64,7 +68,7 @@ export function AuditCollect(): JSX.Element {
     <div className="content">
       <div className="page-actions">
         <button className="btn primary" onClick={() => startRun('audit')} disabled={run.running}>
-          {run.running ? <Loader2 size={15} className="spin" /> : <Radio size={15} />} 수집 시작
+          {run.running ? <Loader2 size={15} className="spin" /> : <Radio size={15} />} {t('collectStart')}
         </button>
       </div>
 
@@ -73,25 +77,25 @@ export function AuditCollect(): JSX.Element {
       )}
 
       <div className="kpi-row">
-        <Kpi icon={<Database />} label="총 감사 이벤트" value={n(d.kpis.total)} foot="audit_events" />
-        <Kpi icon={<ShieldCheck />} label="Purview" value={n(d.kpis.purview)} foot="통합 감사" />
-        <Kpi icon={<Activity />} label="Entra 감사" value={n(d.kpis.entraAudit)} foot="디렉터리" />
-        <Kpi icon={<UserCheck />} label="Entra 로그인" value={n(d.kpis.entraSignin)} foot="sign-ins" />
+        <Kpi icon={<Database />} label={t('kpis.total')} value={n(d.kpis.total)} foot="audit_events" />
+        <Kpi icon={<ShieldCheck />} label={t('kpis.purview')} value={n(d.kpis.purview)} foot={t('kpis.purviewFoot')} />
+        <Kpi icon={<Activity />} label={t('kpis.entraAudit')} value={n(d.kpis.entraAudit)} foot={t('kpis.entraAuditFoot')} />
+        <Kpi icon={<UserCheck />} label={t('kpis.entraSignin')} value={n(d.kpis.entraSignin)} foot="sign-ins" />
       </div>
 
       <div className="grid-2">
         <div className="card">
           <div className="card-head">
-            <h2>수집 소스 상태</h2>
-            <span className="hint">{d.sources.length}개 소스</span>
+            <h2>{t('sourceStatus.title')}</h2>
+            <span className="hint">{t('sourceStatus.count', { count: d.sources.length })}</span>
           </div>
           <table className="table">
             <thead>
               <tr>
-                <th>소스</th>
-                <th>상태</th>
-                <th>마지막 수집</th>
-                <th>건수</th>
+                <th>{t('sourceStatus.columns.source')}</th>
+                <th>{t('sourceStatus.columns.status')}</th>
+                <th>{t('sourceStatus.columns.last')}</th>
+                <th>{t('sourceStatus.columns.count')}</th>
               </tr>
             </thead>
             <tbody>
@@ -100,7 +104,7 @@ export function AuditCollect(): JSX.Element {
                   <td className="ttl">{s.label}</td>
                   <td>
                     <span className={`stat ${s.error ? 'err' : s.enabled ? 'ok' : 'idle'}`}>
-                      {s.error ? '오류' : s.enabled ? '활성' : '비활성'}
+                      {s.error ? t('sourceStatus.status.error') : s.enabled ? t('sourceStatus.status.active') : t('sourceStatus.status.inactive')}
                     </span>
                   </td>
                   <td className="muted">{s.last}</td>
@@ -113,23 +117,23 @@ export function AuditCollect(): JSX.Element {
 
         <div className="card">
           <div className="card-head">
-            <h2>최근 감사 이벤트</h2>
-            <span className="hint">최신 {d.recent.length}건</span>
+            <h2>{t('recent.title')}</h2>
+            <span className="hint">{t('recent.subtitle', { count: d.recent.length })}</span>
           </div>
           <table className="table">
             <thead>
               <tr>
-                <th>시각</th>
-                <th>소스</th>
-                <th>작업</th>
-                <th>행위자</th>
+                <th>{t('recent.columns.time')}</th>
+                <th>{t('recent.columns.source')}</th>
+                <th>{t('recent.columns.operation')}</th>
+                <th>{t('recent.columns.actor')}</th>
               </tr>
             </thead>
             <tbody>
               {d.recent.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="muted">
-                    아직 수집된 감사 이벤트가 없습니다. 수집 시작을 눌러주세요.
+                    {t('recent.empty')}
                   </td>
                 </tr>
               ) : (

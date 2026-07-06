@@ -1,0 +1,13 @@
+{
+  "collectButton": "从门户分析代理风险",
+  "autoLoginDesc": "使用设置中的<strong>下载账户</strong>(eDiscovery 服务账户)自动登录制作者门户。如果未配置账户，将显示登录窗口。",
+  "band": { "critical": "严重", "high": "高", "medium": "中", "low": "低" },
+  "kpis": { "agents": "代理", "high": "高风险", "highFoot": "分数 ≥ 50", "triggers": "自主触发器", "environments": "环境" },
+  "table": {
+    "title": "代理风险评分",
+    "subtitle_other": "按风险排序前 {{count}} 个",
+    "columns": { "agent": "代理", "env": "环境", "risk": "风险度", "signals": "信号" },
+    "signals": "外部调用 {{external}} · 循环 {{loops}}",
+    "empty": "尚未分析任何代理。请使用上方按钮登录制作者门户进行收集。"
+  }
+}

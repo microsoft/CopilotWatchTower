@@ -1,0 +1,24 @@
+{
+  "collectAll": "开始全量收集",
+  "collectAllDesc": "遍历收集所有用户。单独收集请使用下表中的“收集”按钮。",
+  "collectUserTitle": "仅重新收集该用户",
+  "collectUser": "收集",
+  "kpis": { "interactions": "总互动数", "users": "已收集用户", "threads": "对话线程", "lastRun": "最后收集" },
+  "userStatus": {
+    "title": "按用户查看收集状态",
+    "count_other": "{{count}} 人",
+    "searchPlaceholder": "搜索用户名/ID",
+    "columns": { "user": "用户", "count": "互动数", "last": "水位线", "backfill": "回填" },
+    "backfill": { "done": "完成", "inProgress": "进行中" },
+    "emptyTitle": "尚未收集到对话",
+    "emptyDesc": "请点击上方“开始全量收集”进行收集。"
+  },
+  "runHistory": {
+    "title": "收集运行历史",
+    "count_other": "{{count}} 次",
+    "columns": { "started": "开始时间", "trigger": "触发方式", "users": "用户", "interactions": "已收集", "status": "状态", "log": "日志" },
+    "status": { "done": "完成", "errorCount": "错误 {{count}}", "running": "运行中" },
+    "logTitle": "运行日志",
+    "emptyTitle": "暂无运行记录"
+  }
+}

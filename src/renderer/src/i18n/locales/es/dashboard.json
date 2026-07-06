@@ -1,0 +1,24 @@
+{
+  "banner": {
+    "text": "Aún no se ha configurado la licencia del inquilino. Al configurarla, las funciones no disponibles se organizan automáticamente, reduciendo errores innecesarios.",
+    "cta": "Configurar licencia"
+  },
+  "kpis": {
+    "activeUsers": "Usuarios activos",
+    "activeUsersFoot": "{{count}} en total",
+    "interactions": "Interacciones totales",
+    "interactionsFoot": "{{count}} hilos",
+    "sessions": "Interacciones significativas",
+    "sessionsFoot": "{{count}} solicitudes",
+    "inactiveLicensed": "Licencias sin usar",
+    "inactiveLicensedFoot": "Adopción {{pct}}% · {{count}} con licencia",
+    "agents": "Agentes",
+    "agentsFoot": "Agentes registrados/observados",
+    "riskSignals": "Señales de riesgo",
+    "riskSignalsFoot": "Eventos de auditoría bloqueados/denegados"
+  },
+  "trend": { "title": "Tendencia de uso", "subtitle": "Últimos 15 días", "messages": "Turnos", "threads": "Hilos", "prompts": "Solicitudes" },
+  "credits": { "title": "Créditos de Power Platform", "subtitle": "Este mes", "usedPct": "{{pct}}% usado", "remaining": "{{count}} restante" },
+  "topUsers": { "title": "Usuarios principales", "subtitle": "Cantidad de interacciones" },
+  "appUsage": { "title": "Uso por app", "subtitle": "Apps principales" }
+}

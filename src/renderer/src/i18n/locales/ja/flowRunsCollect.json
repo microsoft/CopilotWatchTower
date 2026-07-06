@@ -1,0 +1,12 @@
+{
+  "collectButton": "ポータルからフロー実行を収集",
+  "autoLoginDesc": "設定の<strong>ダウンロードアカウント</strong>(eDiscoveryサービスアカウント)でメーカーポータルに自動サインインします。アカウントがない場合はサインイン画面が表示されます。",
+  "kpis": { "runs": "総実行", "failed": "失敗", "flows": "フロー", "environments": "環境" },
+  "recent": {
+    "title": "最近のフロー実行",
+    "subtitle_other": "最新{{count}}件",
+    "columns": { "time": "時刻", "flow": "フロー", "env": "環境", "status": "状態", "reason": "理由" },
+    "empty": "まだ収集されたフロー実行がありません。上のボタンでメーカーポータルにサインインして収集してください。",
+    "rawTitle": "フロー実行の生JSON"
+  }
+}

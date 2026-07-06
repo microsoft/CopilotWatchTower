@@ -1,0 +1,10 @@
+{
+  "collectStart": "수집 시작",
+  "kpis": { "rows": "스냅샷 행", "latest": "최신 스냅샷", "users": "사용자", "period": "기간" },
+  "table": {
+    "title": "사용자별 마지막 활동 (Copilot)",
+    "subtitle_other": "최신 스냅샷 · 상위 {{count}}명",
+    "columns": { "user": "사용자", "overall": "전체", "teams": "Teams", "word": "Word", "excel": "Excel" },
+    "empty": "아직 수집된 사용량 스냅샷이 없습니다. 수집 시작을 눌러주세요."
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "stage": {
+    "pending": "Pending",
+    "preflight": "Checking permissions",
+    "case": "Creating case",
+    "searching": "Searching",
+    "exporting": "Exporting",
+    "downloading": "Downloading",
+    "parsing": "Parsing",
+    "done": "Done",
+    "error": "Error"
+  },
+  "errors": {
+    "no-tenant": "No tenant information. Complete onboarding first.",
+    "no-upn": "Enter the target user's UPN.",
+    "already-running": "A collection is already running."
+  },
+  "log": {
+    "resuming": "Resuming collection…",
+    "starting": "Starting collection: {{upn}}",
+    "done_other": "Done · {{count}} interactions",
+    "error": "Error: {{message}}",
+    "stopRequested": "Stop requested…",
+    "jobAndConvDeleted": "Job and conversations deleted ({{interactions}} conversations · {{threads}} threads)",
+    "jobOnlyDeleted": "Only the job record was deleted",
+    "jobDeleteFailed": "Failed to delete job: {{message}}",
+    "jobDeleteFailedWhileCollecting": "Cannot delete while collecting.",
+    "jobDeleteError": "Error deleting job: {{message}}"
+  },
+  "startCard": {
+    "title": "Start new collection",
+    "subtitle": "Purview eDiscovery · Reuses onboarding sign-in automatically",
+    "desc": "Collect Copilot prompts/responses into Microsoft Purview eDiscovery by specifying a target user (UPN) and an optional date range. It automatically reuses the onboarding sign-in, so no additional sign-in is needed (a device code prompt appears only as a fallback). Stopped or failed jobs can be resumed from the history below.",
+    "upnPlaceholder": "Target user UPN (user@tenant)",
+    "startDateTitle": "Start date (optional)",
+    "endDateTitle": "End date (optional)",
+    "stop": "Stop",
+    "start": "Start collection"
+  },
+  "kpis": { "jobs": "Jobs", "jobsFoot": "Cumulative collection jobs", "running": "Running", "runningFoot": "Collection in progress", "items": "Imported items", "itemsFoot": "Conversations", "failed": "Failed", "failedFoot": "Can be retried" },
+  "jobHistory": {
+    "title": "Collection job history",
+    "count_other": "{{count}}",
+    "columns": { "target": "Target", "status": "Status", "window": "Window", "added": "Added", "updated": "Updated" },
+    "empty": "No collection jobs yet. Start a new collection above.",
+    "resume": "Resume",
+    "rawTitle": "Raw job · {{target}}",
+    "deleteTitle": "Delete job record"
+  },
+  "credentials": {
+    "title": "Download account (ME3 auto-download)",
+    "configured": "Configured",
+    "notConfigured": "Not configured",
+    "desc": "eDiscovery Standard (ME3) tenants require a browser sign-in to download exports. Registering a dedicated non-MFA service account enables automatic download with no sign-in prompt. (MFA accounts still require manual approval in the window after auto-fill.) The password is encrypted with Windows DPAPI and stored only in this profile on this PC.",
+    "userPlaceholder": "Service account (user@tenant)",
+    "passwordPlaceholder": "Password",
+    "save": "Save",
+    "delete": "Delete",
+    "messages": {
+      "missingInput": "Enter the account and password.",
+      "saved": "Saved — the next ME3 download will run automatically with no sign-in prompt.",
+      "saveFailed": "Save failed: {{error}}",
+      "saveError": "An error occurred while saving.",
+      "cleared": "Credentials removed.",
+      "clearError": "An error occurred while deleting."
+    }
+  }
+}

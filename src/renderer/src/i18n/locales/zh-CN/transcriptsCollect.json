@@ -1,0 +1,15 @@
+{
+  "collectButton": "从门户收集对话",
+  "teamsOnly": "仅收集 Teams 频道(关闭则收集网页聊天、Direct Line 等所有频道)",
+  "addAdmin": "对于无访问权限的环境，自动将我添加为系统管理员",
+  "autoLoginDesc": "使用设置中的<strong1>下载账户</strong1>(eDiscovery 服务账户)自动登录。如果未配置账户，将显示登录窗口。默认收集<strong2>所有频道</strong2>(Teams、网页聊天、Direct Line 等)的对话；开启“仅 Teams”选项后仅保留 Teams 对话。开启“自动将我添加为系统管理员”后，仅针对无访问权限的环境，将在管理中心把您添加为系统管理员并重试。",
+  "kpis": { "interactions": "已收集轮次", "interactionsFoot": "Dataverse 对话", "users": "用户", "threads": "线程", "apps": "频道" },
+  "history": {
+    "title": "收集运行历史",
+    "subtitle_other": "最近 {{count}} 次",
+    "columns": { "started": "开始时间", "trigger": "触发方式", "environments": "环境", "transcripts": "对话", "rows": "轮次", "status": "状态", "log": "日志" },
+    "status": { "done": "完成", "errorCount": "错误 {{count}}", "running": "运行中" },
+    "logTitle": "运行日志",
+    "empty": "尚无收集运行记录。请使用上方按钮开始收集。"
+  }
+}

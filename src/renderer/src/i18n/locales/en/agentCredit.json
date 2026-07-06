@@ -1,0 +1,11 @@
+{
+  "kpis": {
+    "agents": "Consuming agents",
+    "messages": "Total messages",
+    "messagesFoot": "Consumption",
+    "environments": "Environments",
+    "top": "Top consumer"
+  },
+  "table": { "title": "Message consumption by agent", "subtitle_other": "Top {{count}}", "empty": "No agent consumption data. Run credit data collection (portal) first." },
+  "columns": { "agent": "Agent", "env": "Environment", "messages": "Messages", "share": "Share" }
+}

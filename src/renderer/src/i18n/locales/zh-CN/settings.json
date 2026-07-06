@@ -1,0 +1,28 @@
+{
+  "profiles": {
+    "title": "配置文件管理",
+    "count_other": "{{count}} 个",
+    "active": "活跃",
+    "switch": "切换",
+    "deleteTitle": "删除配置文件",
+    "noTenant": "—",
+    "empty": "未注册任何配置文件。",
+    "add": "添加配置文件"
+  },
+  "confirm": {
+    "deleteLast": "“{{name}}”是最后一个配置文件。\n删除后所有数据将丢失，需要添加新的配置文件才能重新开始。是否继续？",
+    "delete": "是否删除“{{name}}”配置文件？\n此配置文件中收集的数据(store.db)将被永久删除。"
+  },
+  "messages": {
+    "deleteFailed": "删除失败: {{error}}",
+    "unknownError": "未知"
+  },
+  "systemInfo": {
+    "title": "系统信息",
+    "app": "应用",
+    "activeProfile": "活跃配置文件",
+    "tenant": "租户",
+    "version": "版本",
+    "theme": "主题"
+  }
+}

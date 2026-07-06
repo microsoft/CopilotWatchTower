@@ -1,0 +1,18 @@
+{
+  "title": "eDiscovery 下载账户(ME3 自动下载)",
+  "status": { "configured": "已设置", "notConfigured": "未设置" },
+  "desc": "eDiscovery Standard(ME3)租户的导出下载需要浏览器登录。注册一个无 MFA 的专用服务账户后，将无需登录窗口即可自动下载。(MFA 账户在自动填写后仍需在窗口中手动批准。)密码使用 Windows DPAPI 加密，仅存储在此电脑的配置文件中。",
+  "userPlaceholder": "服务账户 (user@tenant)",
+  "passwordPlaceholder": "密码",
+  "save": "保存",
+  "delete": "删除",
+  "unknownError": "错误",
+  "messages": {
+    "missingInput": "请输入服务账户和密码。",
+    "saved": "已保存 — 下次 ME3 下载起将无需登录窗口自动执行。",
+    "saveFailed": "保存失败: {{error}}",
+    "saveError": "保存时发生错误。",
+    "cleared": "已删除凭据。",
+    "clearError": "删除时发生错误。"
+  }
+}

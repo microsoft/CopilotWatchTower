@@ -1,0 +1,68 @@
+{
+  "stage": {
+    "pending": "等待中",
+    "preflight": "权限检查",
+    "case": "创建案例",
+    "searching": "搜索中",
+    "exporting": "导出中",
+    "downloading": "下载中",
+    "parsing": "解析中",
+    "done": "完成",
+    "error": "错误"
+  },
+  "errors": {
+    "no-tenant": "没有租户信息。请先完成入驻。",
+    "no-upn": "请输入目标用户的 UPN。",
+    "already-running": "收集已在进行中。"
+  },
+  "log": {
+    "resuming": "正在恢复收集…",
+    "starting": "开始收集: {{upn}}",
+    "done_other": "完成 · {{count}} 条交互",
+    "error": "错误: {{message}}",
+    "stopRequested": "已请求中断…",
+    "jobAndConvDeleted": "作业和对话已删除(对话 {{interactions}} 条 · 线程 {{threads}} 个)",
+    "jobOnlyDeleted": "仅删除了作业记录",
+    "jobDeleteFailed": "作业删除失败: {{message}}",
+    "jobDeleteFailedWhileCollecting": "收集期间无法删除。",
+    "jobDeleteError": "作业删除出错: {{message}}"
+  },
+  "startCard": {
+    "title": "开始新的收集",
+    "subtitle": "Purview eDiscovery · 自动复用入驻登录",
+    "desc": "指定目标用户(UPN)和可选的时间范围，将 Copilot 提示/响应收集到 Microsoft Purview eDiscovery。系统会自动复用入驻登录，因此无需额外登录(仅在异常情况下显示设备代码)；已中断或失败的作业可在下方历史记录中恢复。",
+    "upnPlaceholder": "目标用户 UPN (user@tenant)",
+    "startDateTitle": "开始日期(可选)",
+    "endDateTitle": "结束日期(可选)",
+    "stop": "中断",
+    "start": "开始收集"
+  },
+  "kpis": { "jobs": "作业", "jobsFoot": "累计收集作业", "running": "进行中", "runningFoot": "收集正在进行", "items": "已导入项目", "itemsFoot": "对话", "failed": "失败", "failedFoot": "可重试" },
+  "jobHistory": {
+    "title": "收集作业历史",
+    "count_other": "{{count}} 条",
+    "columns": { "target": "目标", "status": "状态", "window": "时间范围", "added": "新增", "updated": "更新" },
+    "empty": "尚无收集作业。请在上方开始新的收集。",
+    "resume": "恢复",
+    "rawTitle": "作业原始数据 · {{target}}",
+    "deleteTitle": "删除作业记录"
+  },
+  "credentials": {
+    "title": "下载账户(ME3 自动下载)",
+    "configured": "已设置",
+    "notConfigured": "未设置",
+    "desc": "eDiscovery Standard(ME3)租户的导出下载需要浏览器登录。注册一个无 MFA 的专用服务账户后，将无需登录窗口即可自动下载。(MFA 账户在自动填写后仍需在窗口中手动批准。)密码使用 Windows DPAPI 加密，仅存储在此电脑的配置文件中。",
+    "userPlaceholder": "服务账户 (user@tenant)",
+    "passwordPlaceholder": "密码",
+    "save": "保存",
+    "delete": "删除",
+    "messages": {
+      "missingInput": "请输入账户和密码。",
+      "saved": "已保存 — 下次 ME3 下载起将无需登录窗口自动执行。",
+      "saveFailed": "保存失败: {{error}}",
+      "saveError": "保存时发生错误。",
+      "cleared": "已删除凭据。",
+      "clearError": "删除时发生错误。"
+    }
+  }
+}

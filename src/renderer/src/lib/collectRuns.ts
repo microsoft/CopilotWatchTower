@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { invoke, subscribe } from './api'
+import i18n, { LOCALE_TAG, type AppLanguage } from '../i18n'
+import { formatNumber } from './format'
 
 export type LogLevel = 'info' | 'success' | 'warn' | 'error'
 export interface LogLine {
@@ -39,62 +41,67 @@ interface RunResult {
 interface RunConfig {
   channel: string
   method: string
-  startLine: string
+  startLine: () => string
   done: (r: RunResult) => string
 }
 
 function n(v: number): string {
-  return v.toLocaleString('ko-KR')
+  return formatNumber(v, i18n.language)
 }
 
 const CONFIG: Record<RunKind, RunConfig> = {
   conversation: {
     channel: 'conversation_progress',
     method: 'conversation_collect_start',
-    startLine: '대화 수집을 시작합니다…',
-    done: (r) => `완료: 사용자 ${n(r.users ?? 0)}명 · 신규 상호작용 ${n(r.interactions ?? 0)}건`
+    startLine: () => i18n.t('liveLog:runs.conversation.start'),
+    done: (r) => i18n.t('liveLog:runs.conversation.done', { users: n(r.users ?? 0), interactions: n(r.interactions ?? 0) })
   },
   audit: {
     channel: 'audit_progress',
     method: 'audit_collect_start',
-    startLine: '감사 이벤트 수집을 시작합니다…',
-    done: (r) => `완료: 감사 이벤트 ${n(r.audit ?? 0)}건`
+    startLine: () => i18n.t('liveLog:runs.audit.start'),
+    done: (r) => i18n.t('liveLog:runs.audit.done', { audit: n(r.audit ?? 0) })
   },
   usage: {
     channel: 'usage_progress',
     method: 'usage_collect_start',
-    startLine: '사용 리포트 수집을 시작합니다…',
-    done: (r) => `완료: 스냅샷 ${n(r.usage ?? 0)}행`
+    startLine: () => i18n.t('liveLog:runs.usage.start'),
+    done: (r) => i18n.t('liveLog:runs.usage.done', { usage: n(r.usage ?? 0) })
   },
   diagnostics: {
     channel: 'diagnostics_progress',
     method: 'diagnostics_collect_start',
-    startLine: '에이전트 진단을 시작합니다…',
-    done: (r) => `완료: 에이전트 인벤토리 ${r.agents ?? 0}개`
+    startLine: () => i18n.t('liveLog:runs.diagnostics.start'),
+    done: (r) => i18n.t('liveLog:runs.diagnostics.done', { agents: r.agents ?? 0 })
   },
   transcripts: {
     channel: 'transcripts_progress',
     method: 'transcripts_collect_start',
-    startLine: 'Teams 대화 수집을 시작합니다…',
-    done: (r) => `완료: 환경 ${r.environments ?? 0} · 대화 ${n(r.transcripts ?? 0)} · 턴 ${n(r.rows ?? 0)}`
+    startLine: () => i18n.t('liveLog:runs.transcripts.start'),
+    done: (r) =>
+      i18n.t('liveLog:runs.transcripts.done', {
+        environments: r.environments ?? 0,
+        transcripts: n(r.transcripts ?? 0),
+        rows: n(r.rows ?? 0)
+      })
   },
   flowruns: {
     channel: 'flowruns_progress',
     method: 'flowruns_collect_start',
-    startLine: '플로우 실행 수집을 시작합니다…',
-    done: (r) => `완료: 환경 ${r.environments ?? 0} · 실행 ${n(r.runs ?? 0)}건`
+    startLine: () => i18n.t('liveLog:runs.flowruns.start'),
+    done: (r) => i18n.t('liveLog:runs.flowruns.done', { environments: r.environments ?? 0, runs: n(r.runs ?? 0) })
   },
   agentdefs: {
     channel: 'agentdefs_progress',
     method: 'agentdefs_collect_start',
-    startLine: '에이전트 정의 분석을 시작합니다…',
-    done: (r) => `완료: 환경 ${r.environments ?? 0} · 에이전트 ${r.agents ?? 0}개 점수화`
+    startLine: () => i18n.t('liveLog:runs.agentdefs.start'),
+    done: (r) => i18n.t('liveLog:runs.agentdefs.done', { environments: r.environments ?? 0, agents: r.agents ?? 0 })
   },
   consumption: {
     channel: 'consumption_progress',
     method: 'consumption_collect_start',
-    startLine: '소비량 리포트 수집을 시작합니다…',
-    done: (r) => `완료: 소비량 ${n(r.rows ?? 0)}행`
+    startLine: () => i18n.t('liveLog:runs.consumption.start'),
+    done: (r) => i18n.t('liveLog:runs.consumption.done', { rows: n(r.rows ?? 0) })
   }
 }
 
@@ -126,7 +133,8 @@ function subscribeStore(fn: () => void): () => void {
 }
 
 function stamp(): string {
-  return new Date().toLocaleTimeString('ko-KR', { hour12: false })
+  const tag = LOCALE_TAG[(i18n.language as AppLanguage) in LOCALE_TAG ? (i18n.language as AppLanguage) : 'ko']
+  return new Date().toLocaleTimeString(tag, { hour12: false })
 }
 function levelOf(text: string): LogLevel {
   if (/오류|실패|error|fail/i.test(text)) return 'error'
@@ -143,8 +151,8 @@ function push(kind: RunKind, text: string, level?: LogLevel): void {
   emit()
 }
 function errLabel(e?: string): string {
-  if (e === 'no-credentials') return '앱 등록(자격 증명)이 필요합니다. 설정에서 구성하세요.'
-  if (e === 'already-running') return '이미 수집이 실행 중입니다.'
+  if (e === 'no-credentials') return i18n.t('liveLog:errors.no-credentials')
+  if (e === 'already-running') return i18n.t('liveLog:errors.already-running')
   return e ?? 'unknown'
 }
 
@@ -154,7 +162,7 @@ export async function startRun(kind: RunKind, payload?: unknown): Promise<void> 
   const cfg = CONFIG[kind]
   state[kind] = { running: true, percent: null, lines: [] }
   emit()
-  push(kind, cfg.startLine)
+  push(kind, cfg.startLine())
   const unsub = subscribe<{ message: string; percent?: number }>(cfg.channel, (p) => {
     if (typeof p.percent === 'number') state[kind] = { ...state[kind], percent: p.percent }
     push(kind, p.message)
@@ -162,9 +170,9 @@ export async function startRun(kind: RunKind, payload?: unknown): Promise<void> 
   try {
     const r = await invoke<RunResult>(cfg.method, payload)
     if (r?.ok) push(kind, cfg.done(r), 'success')
-    else push(kind, `오류: ${errLabel(r?.error)}`, 'error')
+    else push(kind, i18n.t('liveLog:errors.prefix', { message: errLabel(r?.error) }), 'error')
   } catch (e) {
-    push(kind, `오류: ${e instanceof Error ? e.message : String(e)}`, 'error')
+    push(kind, i18n.t('liveLog:errors.prefix', { message: e instanceof Error ? e.message : String(e) }), 'error')
   } finally {
     unsub()
     state[kind] = { ...state[kind], running: false, percent: null }
@@ -188,17 +196,17 @@ export async function startConversationUser(userId: string, label: string): Prom
   if (state[kind].running) return
   state[kind] = { running: true, percent: 0, lines: [] }
   emit()
-  push(kind, `${label} 사용자만 수집합니다…`)
+  push(kind, i18n.t('liveLog:userScoped.start', { label }))
   const unsub = subscribe<{ message: string; percent: number }>('conversation_progress', (p) => {
     state[kind] = { ...state[kind], percent: p.percent }
     push(kind, p.message)
   })
   try {
     const r = await invoke<RunResult>('conversation_collect_user', userId)
-    if (r?.ok) push(kind, `완료: ${label} · 신규 ${n(r.interactions ?? 0)}건`, 'success')
-    else push(kind, `오류: ${errLabel(r?.error)}`, 'error')
+    if (r?.ok) push(kind, i18n.t('liveLog:userScoped.done', { label, count: n(r.interactions ?? 0) }), 'success')
+    else push(kind, i18n.t('liveLog:errors.prefix', { message: errLabel(r?.error) }), 'error')
   } catch (e) {
-    push(kind, `오류: ${e instanceof Error ? e.message : String(e)}`, 'error')
+    push(kind, i18n.t('liveLog:errors.prefix', { message: e instanceof Error ? e.message : String(e) }), 'error')
   } finally {
     unsub()
     state[kind] = { ...state[kind], running: false, percent: null }

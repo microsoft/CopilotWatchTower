@@ -1,0 +1,6 @@
+{
+  "title": "CopilotWatchTower",
+  "desc": "要收集和分析 Microsoft 365 Copilot 的使用情况，请先添加租户配置文件。使用管理员设备代码登录将自动完成应用注册和权限同意。",
+  "addStart": "添加配置文件并开始",
+  "foot": "凭据使用 Windows DPAPI 加密，仅存储在此电脑上。"
+}

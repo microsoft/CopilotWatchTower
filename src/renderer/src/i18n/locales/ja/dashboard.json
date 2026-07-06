@@ -1,0 +1,24 @@
+{
+  "banner": {
+    "text": "テナントのライセンス構成がまだ指定されていません。指定すると利用できない機能が自動的に整理され、不要なエラーを減らせます。",
+    "cta": "ライセンスを構成"
+  },
+  "kpis": {
+    "activeUsers": "アクティブユーザー",
+    "activeUsersFoot": "全体 {{count}}名",
+    "interactions": "総インタラクション",
+    "interactionsFoot": "スレッド {{count}}件",
+    "sessions": "有意義なインタラクション",
+    "sessionsFoot": "プロンプト {{count}}件",
+    "inactiveLicensed": "未使用ライセンス",
+    "inactiveLicensedFoot": "導入率 {{pct}}% · ライセンス {{count}}",
+    "agents": "エージェント",
+    "agentsFoot": "登録・観測エージェント",
+    "riskSignals": "リスクシグナル",
+    "riskSignalsFoot": "ブロック・拒否された監査イベント"
+  },
+  "trend": { "title": "利用トレンド", "subtitle": "過去15日間", "messages": "ターン", "threads": "スレッド", "prompts": "プロンプト" },
+  "credits": { "title": "Power Platform クレジット", "subtitle": "今月", "usedPct": "{{pct}}% 使用", "remaining": "残り{{count}}" },
+  "topUsers": { "title": "上位ユーザー", "subtitle": "インタラクション数" },
+  "appUsage": { "title": "アプリ別利用状況", "subtitle": "上位アプリ" }
+}

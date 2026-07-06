@@ -1,0 +1,4 @@
+{
+  "intro": "Browse the color previews and click a theme you like to apply it instantly. You can also switch quickly from the theme button in the top bar. ({{count}} total)",
+  "mode": { "dark": "Dark", "light": "Light" }
+}

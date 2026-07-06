@@ -1,0 +1,13 @@
+{
+  "collectButton": "ポータルでエージェントリスク分析",
+  "autoLoginDesc": "設定の<strong>ダウンロードアカウント</strong>(eDiscoveryサービスアカウント)でメーカーポータルに自動サインインします。アカウントがない場合はサインイン画面が表示されます。",
+  "band": { "critical": "重大", "high": "高", "medium": "中", "low": "低" },
+  "kpis": { "agents": "エージェント", "high": "高リスク", "highFoot": "スコア ≥ 50", "triggers": "自律トリガー", "environments": "環境" },
+  "table": {
+    "title": "エージェントリスクスコア",
+    "subtitle_other": "リスク順 上位{{count}}件",
+    "columns": { "agent": "エージェント", "env": "環境", "risk": "リスク度", "signals": "シグナル" },
+    "signals": "外部呼び出し {{external}} · ループ {{loops}}",
+    "empty": "まだ分析されたエージェントがありません。上のボタンでメーカーポータルにサインインして収集してください。"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "collectButton": "从门户收集流程运行记录",
+  "autoLoginDesc": "使用设置中的<strong>下载账户</strong>(eDiscovery 服务账户)自动登录制作者门户。如果未配置账户，将显示登录窗口。",
+  "kpis": { "runs": "总运行次数", "failed": "失败", "flows": "流程", "environments": "环境" },
+  "recent": {
+    "title": "最近的流程运行",
+    "subtitle_other": "最新 {{count}} 条",
+    "columns": { "time": "时间", "flow": "流程", "env": "环境", "status": "状态", "reason": "原因" },
+    "empty": "尚未收集到流程运行记录。请使用上方按钮登录制作者门户进行收集。",
+    "rawTitle": "流程运行原始 JSON"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "title": "Cuenta de descarga de eDiscovery (descarga automática ME3)",
+  "status": { "configured": "Configurada", "notConfigured": "Sin configurar" },
+  "desc": "Los inquilinos de eDiscovery Standard (ME3) requieren un inicio de sesión en el navegador para descargar exportaciones. Registrar aquí una cuenta de servicio dedicada sin MFA permite la descarga automática sin solicitud de inicio de sesión. (Las cuentas con MFA aún requieren aprobación manual en la ventana después del autocompletado.) La contraseña se cifra con Windows DPAPI y se almacena solo en este perfil en este equipo.",
+  "userPlaceholder": "Cuenta de servicio (user@tenant)",
+  "passwordPlaceholder": "Contraseña",
+  "save": "Guardar",
+  "delete": "Eliminar",
+  "unknownError": "Error",
+  "messages": {
+    "missingInput": "Ingrese la cuenta de servicio y la contraseña.",
+    "saved": "Guardado — la próxima descarga ME3 se ejecutará automáticamente sin solicitud de inicio de sesión.",
+    "saveFailed": "Error al guardar: {{error}}",
+    "saveError": "Ocurrió un error al guardar.",
+    "cleared": "Credenciales eliminadas.",
+    "clearError": "Ocurrió un error al eliminar."
+  }
+}

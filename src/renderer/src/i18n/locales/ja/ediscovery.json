@@ -1,0 +1,68 @@
+{
+  "stage": {
+    "pending": "待機中",
+    "preflight": "権限確認",
+    "case": "ケース作成",
+    "searching": "検索中",
+    "exporting": "エクスポート中",
+    "downloading": "ダウンロード中",
+    "parsing": "解析中",
+    "done": "完了",
+    "error": "エラー"
+  },
+  "errors": {
+    "no-tenant": "テナント情報がありません。先にオンボーディングしてください。",
+    "no-upn": "対象ユーザーのUPNを入力してください。",
+    "already-running": "すでに収集が実行中です。"
+  },
+  "log": {
+    "resuming": "収集を再開しています…",
+    "starting": "収集開始: {{upn}}",
+    "done_other": "完了 · {{count}}件のインタラクション",
+    "error": "エラー: {{message}}",
+    "stopRequested": "中断をリクエストしました…",
+    "jobAndConvDeleted": "ジョブと会話を削除しました(会話{{interactions}}件・スレッド{{threads}}件)",
+    "jobOnlyDeleted": "ジョブ記録のみ削除されました",
+    "jobDeleteFailed": "ジョブ削除に失敗: {{message}}",
+    "jobDeleteFailedWhileCollecting": "収集中は削除できません。",
+    "jobDeleteError": "ジョブ削除エラー: {{message}}"
+  },
+  "startCard": {
+    "title": "新しい収集を開始",
+    "subtitle": "Purview eDiscovery · オンボーディングサインインを自動再利用",
+    "desc": "対象ユーザー(UPN)と任意の期間を指定して、Copilotのプロンプト/応答をMicrosoft Purview eDiscoveryに収集します。オンボーディングサインインを自動再利用するため追加のサインインは不要です(例外時のみデバイスコードが表示されます)。中断・失敗したジョブは以下の履歴から再開できます。",
+    "upnPlaceholder": "対象ユーザーのUPN (user@tenant)",
+    "startDateTitle": "開始日(任意)",
+    "endDateTitle": "終了日(任意)",
+    "stop": "中断",
+    "start": "収集開始"
+  },
+  "kpis": { "jobs": "ジョブ", "jobsFoot": "累計収集ジョブ", "running": "実行中", "runningFoot": "収集実行中", "items": "取り込んだ項目", "itemsFoot": "会話", "failed": "失敗", "failedFoot": "再試行可能" },
+  "jobHistory": {
+    "title": "収集ジョブ履歴",
+    "count_other": "{{count}}件",
+    "columns": { "target": "対象", "status": "状態", "window": "期間", "added": "追加", "updated": "更新" },
+    "empty": "まだ収集ジョブがありません。上で新しい収集を開始してください。",
+    "resume": "再開",
+    "rawTitle": "ジョブの生データ · {{target}}",
+    "deleteTitle": "ジョブ記録を削除"
+  },
+  "credentials": {
+    "title": "ダウンロードアカウント(ME3自動ダウンロード)",
+    "configured": "設定済み",
+    "notConfigured": "未設定",
+    "desc": "eDiscovery Standard(ME3)テナントはエクスポートのダウンロードにブラウザサインインが必要です。MFAなしの専用サービスアカウントを登録すると、サインイン画面なしで自動的にダウンロードします。(MFAアカウントは自動入力後、画面で直接承認が必要です。)パスワードはWindows DPAPIで暗号化され、このPCのプロファイルにのみ保存されます。",
+    "userPlaceholder": "サービスアカウント (user@tenant)",
+    "passwordPlaceholder": "パスワード",
+    "save": "保存",
+    "delete": "削除",
+    "messages": {
+      "missingInput": "アカウントとパスワードを入力してください。",
+      "saved": "保存しました — 次回のME3ダウンロードからサインイン画面なしで自動実行されます。",
+      "saveFailed": "保存失敗: {{error}}",
+      "saveError": "保存中にエラーが発生しました。",
+      "cleared": "資格情報を削除しました。",
+      "clearError": "削除中にエラーが発生しました。"
+    }
+  }
+}

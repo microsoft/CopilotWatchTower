@@ -1,0 +1,11 @@
+{
+  "collectStart": "Start collection",
+  "status": { "ok": "OK", "forbidden": "Forbidden", "not_found": "Not found", "error": "Error" },
+  "kpis": { "total": "Diagnostic items", "totalFoot": "Admin API probes", "ok": "OK", "okFoot": "Accessible", "forbidden": "Forbidden", "forbiddenFoot": "Consent required", "notFound": "Not found", "notFoundFoot": "No endpoint" },
+  "table": {
+    "title": "Copilot admin API diagnostics",
+    "subtitle_other": "{{count}} endpoints",
+    "columns": { "label": "Item", "endpoint": "Endpoint", "status": "Status", "summary": "Summary", "capturedAt": "Captured at" },
+    "empty": "No diagnostic data yet. Click Start collection."
+  }
+}

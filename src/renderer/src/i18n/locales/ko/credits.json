@@ -1,0 +1,33 @@
+{
+  "collectButton": "포털에서 소비 데이터 수집",
+  "autoLoginDesc": "설정의 <strong>다운로드 계정</strong>(eDiscovery 서비스 계정)으로 Power Platform 관리 센터에 자동 로그인합니다. 계정이 없으면 로그인 창이 표시됩니다.",
+  "trend": { "label": "메시지 소비" },
+  "kpis": {
+    "purchased": "구매 메시지",
+    "consumed": "사용 메시지",
+    "consumedFoot": "구매 {{count}} 중",
+    "remaining": "잔여",
+    "remainingFoot": "{{pct}}% 남음",
+    "projectedMonth": "예상 월 사용량",
+    "projectedMonthFoot": "현재 추세 기준"
+  },
+  "usage": {
+    "title": "크레딧 사용량",
+    "asOf": "as of {{date}}",
+    "usedPct": "{{pct}}% 사용",
+    "remaining": "{{count}} 남음",
+    "agents": "에이전트",
+    "environments": "환경",
+    "users": "사용자"
+  },
+  "dailyTrend": { "title": "일별 소비 추이", "subtitle": "에이전트 메시지" },
+  "detail": {
+    "title": "소비 상세",
+    "scopeLabel": "소비 분류",
+    "agents": "에이전트",
+    "environments": "환경",
+    "users": "사용자",
+    "empty": "수집된 소비 데이터가 없습니다."
+  },
+  "columns": { "agent": "에이전트", "env": "환경", "quantity": "메시지 소비", "user": "사용자", "share": "비중" }
+}

@@ -1,0 +1,11 @@
+{
+  "collectStart": "収集開始",
+  "status": { "ok": "正常", "forbidden": "権限なし", "not_found": "なし", "error": "エラー" },
+  "kpis": { "total": "診断項目", "totalFoot": "管理APIプローブ", "ok": "正常", "okFoot": "アクセス可能", "forbidden": "権限なし", "forbiddenFoot": "同意が必要", "notFound": "未提供", "notFoundFoot": "エンドポイントなし" },
+  "table": {
+    "title": "Copilot管理API診断",
+    "subtitle_other": "{{count}}件のエンドポイント",
+    "columns": { "label": "項目", "endpoint": "エンドポイント", "status": "状態", "summary": "概要", "capturedAt": "取得時刻" },
+    "empty": "まだ診断データがありません。収集開始を押してください。"
+  }
+}

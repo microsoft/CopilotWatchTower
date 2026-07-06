@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Coins, TrendingDown, Wallet, TrendingUp, CloudDownload, Loader2 } from 'lucide-react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Kpi } from '../components/Kpi'
 import { LineChart, type LineSeries } from '../components/LineChart'
 import { DataTable, type Column } from '../components/DataTable'
 import { LiveLog } from '../components/LiveLog'
 import { useCollectionRun, startRun, clearRun } from '../lib/collectRuns'
 import { invoke } from '../lib/api'
+import { useNumberFormat } from '../lib/format'
 
 interface AgentRow {
   name: string
@@ -41,37 +43,33 @@ interface ExplorerData {
 
 type Tab = 'agents' | 'environments' | 'users'
 
-const TREND_SERIES: LineSeries[] = [{ key: 'quantity', color: 'var(--accent)', label: '메시지 소비' }]
-
-function n(value: number): string {
-  return value.toLocaleString('ko-KR')
-}
-
-const AGENT_COLUMNS: Column<AgentRow>[] = [
-  { key: 'name', header: '에이전트', cell: (r) => r.name, sortValue: (r) => r.name.toLowerCase() },
-  { key: 'env', header: '환경', cell: (r) => r.env, sortValue: (r) => r.env.toLowerCase() },
-  { key: 'quantity', header: '메시지 소비', align: 'right', cell: (r) => n(r.quantity), sortValue: (r) => r.quantity }
-]
-const ENV_COLUMNS: Column<EnvRow>[] = [
-  { key: 'env', header: '환경', cell: (r) => r.env, sortValue: (r) => r.env.toLowerCase() },
-  { key: 'quantity', header: '메시지 소비', align: 'right', cell: (r) => n(r.quantity), sortValue: (r) => r.quantity }
-]
-const USER_COLUMNS: Column<UserRow>[] = [
-  { key: 'user', header: '사용자', cell: (r) => r.user, sortValue: (r) => r.user.toLowerCase() },
-  { key: 'quantity', header: '메시지 소비', align: 'right', cell: (r) => n(r.quantity), sortValue: (r) => r.quantity },
-  {
-    key: 'share',
-    header: '비중',
-    cell: (r) => (
-      <div className="minimeter">
-        <span style={{ width: `${Math.min(100, r.share)}%` }} />
-      </div>
-    ),
-    sortValue: (r) => r.share
-  }
-]
-
 export function Credits(): JSX.Element {
+  const { t } = useTranslation('credits')
+  const n = useNumberFormat()
+  const TREND_SERIES: LineSeries[] = [{ key: 'quantity', color: 'var(--accent)', label: t('trend.label') }]
+  const AGENT_COLUMNS: Column<AgentRow>[] = [
+    { key: 'name', header: t('columns.agent'), cell: (r) => r.name, sortValue: (r) => r.name.toLowerCase() },
+    { key: 'env', header: t('columns.env'), cell: (r) => r.env, sortValue: (r) => r.env.toLowerCase() },
+    { key: 'quantity', header: t('columns.quantity'), align: 'right', cell: (r) => n(r.quantity), sortValue: (r) => r.quantity }
+  ]
+  const ENV_COLUMNS: Column<EnvRow>[] = [
+    { key: 'env', header: t('columns.env'), cell: (r) => r.env, sortValue: (r) => r.env.toLowerCase() },
+    { key: 'quantity', header: t('columns.quantity'), align: 'right', cell: (r) => n(r.quantity), sortValue: (r) => r.quantity }
+  ]
+  const USER_COLUMNS: Column<UserRow>[] = [
+    { key: 'user', header: t('columns.user'), cell: (r) => r.user, sortValue: (r) => r.user.toLowerCase() },
+    { key: 'quantity', header: t('columns.quantity'), align: 'right', cell: (r) => n(r.quantity), sortValue: (r) => r.quantity },
+    {
+      key: 'share',
+      header: t('columns.share'),
+      cell: (r) => (
+        <div className="minimeter">
+          <span style={{ width: `${Math.min(100, r.share)}%` }} />
+        </div>
+      ),
+      sortValue: (r) => r.share
+    }
+  ]
   const [data, setData] = useState<ExplorerData | null>(null)
   const [tab, setTab] = useState<Tab>('agents')
   const run = useCollectionRun('consumption')
@@ -102,12 +100,11 @@ export function Credits(): JSX.Element {
       <div className="page-actions">
         <button className="btn primary" onClick={() => startRun('consumption')} disabled={run.running}>
           {run.running ? <Loader2 size={15} className="spin" /> : <CloudDownload size={15} />}
-          포털에서 소비 데이터 수집
+          {t('collectButton')}
         </button>
       </div>
       <p className="ediscovery-desc">
-        설정의 <strong>다운로드 계정</strong>(eDiscovery 서비스 계정)으로 Power Platform 관리 센터에 자동
-        로그인합니다. 계정이 없으면 로그인 창이 표시됩니다.
+        <Trans i18nKey="credits:autoLoginDesc" components={{ strong: <strong /> }} />
       </p>
 
       {(run.running || run.lines.length > 0) && (
@@ -115,25 +112,25 @@ export function Credits(): JSX.Element {
       )}
 
       <div className="kpi-row">
-        <Kpi icon={<Coins />} label="구매 메시지" value={s ? n(s.purchased) : '—'} foot="Copilot Studio" />
+        <Kpi icon={<Coins />} label={t('kpis.purchased')} value={s ? n(s.purchased) : '—'} foot="Copilot Studio" />
         <Kpi
           icon={<Wallet />}
-          label="사용 메시지"
+          label={t('kpis.consumed')}
           value={s ? n(s.consumed) : '—'}
           delta={s ? `${pct}%` : undefined}
-          foot={s ? `구매 ${n(s.purchased)} 중` : ''}
+          foot={s ? t('kpis.consumedFoot', { count: n(s.purchased) }) : ''}
         />
         <Kpi
           icon={<TrendingDown />}
-          label="잔여"
+          label={t('kpis.remaining')}
           value={s ? n(s.remaining) : '—'}
-          foot={s ? `${100 - pct}% 남음` : ''}
+          foot={s ? t('kpis.remainingFoot', { pct: 100 - pct }) : ''}
         />
         <Kpi
           icon={<TrendingUp />}
-          label="예상 월 사용량"
+          label={t('kpis.projectedMonth')}
           value={s ? n(s.projectedMonth) : '—'}
-          foot="현재 추세 기준"
+          foot={t('kpis.projectedMonthFoot')}
           tone="warn"
         />
       </div>
@@ -141,8 +138,8 @@ export function Credits(): JSX.Element {
       <div className="grid-2">
         <div className="card">
           <div className="card-head">
-            <h2>크레딧 사용량</h2>
-            <span className="hint">{s ? `as of ${s.latestDate}` : ''}</span>
+            <h2>{t('usage.title')}</h2>
+            <span className="hint">{s ? t('usage.asOf', { date: s.latestDate }) : ''}</span>
           </div>
           <div className="card-body">
             <div style={{ fontSize: 28, fontWeight: 680, letterSpacing: '-0.02em' }}>
@@ -157,21 +154,21 @@ export function Credits(): JSX.Element {
                 <div className="bar-fill" style={{ width: `${pct}%` }} />
               </div>
               <div className="meter-foot">
-                <span>{pct}% 사용</span>
-                <span>{s ? n(s.remaining) : '—'} 남음</span>
+                <span>{t('usage.usedPct', { pct })}</span>
+                <span>{t('usage.remaining', { count: s ? n(s.remaining) : '—' })}</span>
               </div>
             </div>
             <div className="credit-facts">
               <div>
-                <span className="muted">에이전트</span>
+                <span className="muted">{t('usage.agents')}</span>
                 <strong>{s ? n(s.agentCount) : '—'}</strong>
               </div>
               <div>
-                <span className="muted">환경</span>
+                <span className="muted">{t('usage.environments')}</span>
                 <strong>{s ? n(s.environmentCount) : '—'}</strong>
               </div>
               <div>
-                <span className="muted">사용자</span>
+                <span className="muted">{t('usage.users')}</span>
                 <strong>{s ? n(s.userCount) : '—'}</strong>
               </div>
             </div>
@@ -180,8 +177,8 @@ export function Credits(): JSX.Element {
 
         <div className="card">
           <div className="card-head">
-            <h2>일별 소비 추이</h2>
-            <span className="hint">에이전트 메시지</span>
+            <h2>{t('dailyTrend.title')}</h2>
+            <span className="hint">{t('dailyTrend.subtitle')}</span>
           </div>
           <div className="card-body">
             <LineChart data={data?.trend ?? []} series={TREND_SERIES} height={210} />
@@ -193,20 +190,20 @@ export function Credits(): JSX.Element {
 
       <div className="card">
         <div className="card-head">
-          <h2>소비 상세</h2>
-          <div className="scope-toggle" role="group" aria-label="소비 분류">
+          <h2>{t('detail.title')}</h2>
+          <div className="scope-toggle" role="group" aria-label={t('detail.scopeLabel')}>
             <button type="button" className={tab === 'agents' ? 'active' : ''} onClick={() => setTab('agents')}>
-              에이전트
+              {t('detail.agents')}
             </button>
             <button
               type="button"
               className={tab === 'environments' ? 'active' : ''}
               onClick={() => setTab('environments')}
             >
-              환경
+              {t('detail.environments')}
             </button>
             <button type="button" className={tab === 'users' ? 'active' : ''} onClick={() => setTab('users')}>
-              사용자
+              {t('detail.users')}
             </button>
           </div>
         </div>
@@ -238,7 +235,7 @@ export function Credits(): JSX.Element {
               maxHeight={400}
             />
           )}
-          {rows.length === 0 && <div className="empty-state">수집된 소비 데이터가 없습니다.</div>}
+          {rows.length === 0 && <div className="empty-state">{t('detail.empty')}</div>}
         </div>
       </div>
     </div>

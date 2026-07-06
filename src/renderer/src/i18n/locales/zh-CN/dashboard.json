@@ -1,0 +1,24 @@
+{
+  "banner": {
+    "text": "尚未指定租户的许可证配置。指定后，不可用的功能将自动整理，减少不必要的错误。",
+    "cta": "配置许可证"
+  },
+  "kpis": {
+    "activeUsers": "活跃用户",
+    "activeUsersFoot": "共 {{count}} 人",
+    "interactions": "总互动次数",
+    "interactionsFoot": "{{count}} 个对话线程",
+    "sessions": "有意义的互动",
+    "sessionsFoot": "{{count}} 条提示",
+    "inactiveLicensed": "未使用许可证",
+    "inactiveLicensedFoot": "采用率 {{pct}}% · 许可证 {{count}}",
+    "agents": "代理",
+    "agentsFoot": "已注册/观察到的代理",
+    "riskSignals": "风险信号",
+    "riskSignalsFoot": "被阻止/拒绝的审计事件"
+  },
+  "trend": { "title": "使用趋势", "subtitle": "最近15天", "messages": "轮次", "threads": "线程", "prompts": "提示" },
+  "credits": { "title": "Power Platform 积分", "subtitle": "本月", "usedPct": "已使用 {{pct}}%", "remaining": "剩余 {{count}}" },
+  "topUsers": { "title": "热门用户", "subtitle": "互动次数" },
+  "appUsage": { "title": "按应用使用情况", "subtitle": "热门应用" }
+}

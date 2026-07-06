@@ -1,6 +1,6 @@
 {
   "name": "copilot-watchtower-electron",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "CopilotWatchTower — Electron rewrite (Phase 0 scaffold)",
   "main": "./out/main/index.js",
   "author": "CopilotWatchTower",
@@ -15,10 +15,12 @@
   "dependencies": {
     "@azure/msal-node": "^5.3.0",
     "cfb": "^1.2.2",
+    "i18next": "^26.3.3",
     "koffi": "^3.0.2",
     "lucide-react": "^0.460.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-i18next": "^17.0.8"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",

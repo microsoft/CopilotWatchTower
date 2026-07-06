@@ -1,0 +1,34 @@
+{
+  "title": "Live log",
+  "status": {
+    "running": "Running",
+    "done": "Done",
+    "idle": "Idle"
+  },
+  "lineCount_other": "{{count}} lines",
+  "lineCount_one": "{{count}} line",
+  "copy": "Copy",
+  "copyTitle": "Copy log",
+  "clear": "Clear",
+  "clearTitle": "Clear log",
+  "empty": "Progress will appear here in real time once collection starts.",
+  "runs": {
+    "conversation": { "start": "Starting conversation collection…", "done": "Done: {{users}} users · {{interactions}} new interactions" },
+    "audit": { "start": "Starting audit event collection…", "done": "Done: {{audit}} audit events" },
+    "usage": { "start": "Starting usage report collection…", "done": "Done: {{usage}} snapshot rows" },
+    "diagnostics": { "start": "Starting agent diagnostics…", "done": "Done: {{agents}} agent inventory items" },
+    "transcripts": { "start": "Starting Teams conversation collection…", "done": "Done: {{environments}} environments · {{transcripts}} conversations · {{rows}} turns" },
+    "flowruns": { "start": "Starting flow run collection…", "done": "Done: {{environments}} environments · {{runs}} runs" },
+    "agentdefs": { "start": "Starting agent definition analysis…", "done": "Done: {{environments}} environments · {{agents}} agents scored" },
+    "consumption": { "start": "Starting consumption report collection…", "done": "Done: {{rows}} consumption rows" }
+  },
+  "userScoped": {
+    "start": "Collecting only for {{label}}…",
+    "done": "Done: {{label}} · {{count}} new"
+  },
+  "errors": {
+    "prefix": "Error: {{message}}",
+    "no-credentials": "App registration (credentials) is required. Configure it in Settings.",
+    "already-running": "A collection is already running."
+  }
+}

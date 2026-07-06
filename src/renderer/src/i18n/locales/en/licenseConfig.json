@@ -1,0 +1,31 @@
+{
+  "title": "License configuration",
+  "desc": "Once you set the tenant's Microsoft 365 license configuration, unavailable features (Conversations (API), official reports, official usage, Agents) are locked automatically. Before configuring, all features remain unlocked.",
+  "presetLabel": "Preset",
+  "customOption": "Custom",
+  "presets": {
+    "me3": "ME3 (no Copilot)",
+    "me3_copilot": "ME3 + Copilot",
+    "me5_copilot": "ME5 + Copilot",
+    "agent365": "+ Agent365"
+  },
+  "source": {
+    "default": "Not configured (all features allowed)",
+    "manual": "Manually set",
+    "detected": "Auto-detected"
+  },
+  "detect": "Detect and fill in",
+  "save": "Save",
+  "saving": "Saving…",
+  "unknownError": "Unknown error",
+  "messages": {
+    "saved": "Saved. Sidebar locks will be refreshed.",
+    "saveFailed": "Save failed: {{error}}",
+    "saveError": "An error occurred while saving.",
+    "detecting": "Detecting tenant SKUs…",
+    "detected": "Detection complete — review and click [Save] to apply.",
+    "detectFailedNoCreds": "Onboarding has not been completed.",
+    "detectFailed": "Detection failed: {{error}}",
+    "detectError": "An error occurred while detecting."
+  }
+}

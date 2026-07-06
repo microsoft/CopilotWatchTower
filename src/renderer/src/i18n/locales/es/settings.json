@@ -1,0 +1,28 @@
+{
+  "profiles": {
+    "title": "Administración de perfiles",
+    "count_other": "{{count}}",
+    "active": "Activo",
+    "switch": "Cambiar",
+    "deleteTitle": "Eliminar perfil",
+    "noTenant": "—",
+    "empty": "No hay perfiles registrados.",
+    "add": "Agregar perfil"
+  },
+  "confirm": {
+    "deleteLast": "'{{name}}' es el último perfil.\nAl eliminarlo se borrarán todos los datos, y deberá agregar un nuevo perfil para comenzar de nuevo. ¿Continuar?",
+    "delete": "¿Eliminar el perfil '{{name}}'?\nLos datos (store.db) recopilados en este perfil se eliminarán permanentemente."
+  },
+  "messages": {
+    "deleteFailed": "Error al eliminar: {{error}}",
+    "unknownError": "desconocido"
+  },
+  "systemInfo": {
+    "title": "Información del sistema",
+    "app": "App",
+    "activeProfile": "Perfil activo",
+    "tenant": "Inquilino",
+    "version": "Versión",
+    "theme": "Tema"
+  }
+}

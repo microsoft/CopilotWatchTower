@@ -1,0 +1,31 @@
+{
+  "title": "ライセンス構成",
+  "desc": "テナントのMicrosoft 365ライセンス構成を指定すると、利用できない機能(会話探索(API)・公式レポート・公式利用状況・エージェント)が自動的にロックされます。指定前はすべての機能が利用可能です。",
+  "presetLabel": "プリセット",
+  "customOption": "カスタム",
+  "presets": {
+    "me3": "ME3(Copilotなし)",
+    "me3_copilot": "ME3 + Copilot",
+    "me5_copilot": "ME5 + Copilot",
+    "agent365": "+ Agent365"
+  },
+  "source": {
+    "default": "未設定(すべての機能を許可)",
+    "manual": "手動指定",
+    "detected": "自動検出"
+  },
+  "detect": "検出して入力",
+  "save": "保存",
+  "saving": "保存中…",
+  "unknownError": "不明なエラー",
+  "messages": {
+    "saved": "保存しました。サイドバーのロックが更新されます。",
+    "saveFailed": "保存失敗: {{error}}",
+    "saveError": "保存中にエラーが発生しました。",
+    "detecting": "テナントのSKUを検出中…",
+    "detected": "検出完了 — 確認後、[保存]を押して適用してください。",
+    "detectFailedNoCreds": "オンボーディングが完了していません。",
+    "detectFailed": "検出失敗: {{error}}",
+    "detectError": "検出中にエラーが発生しました。"
+  }
+}

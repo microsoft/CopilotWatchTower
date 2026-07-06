@@ -1,0 +1,12 @@
+{
+  "collectButton": "Collect flow runs via portal",
+  "autoLoginDesc": "Automatically signs in to the maker portal using the <strong>download account</strong> (eDiscovery service account) from Settings. A sign-in window will appear if no account is configured.",
+  "kpis": { "runs": "Total runs", "failed": "Failed", "flows": "Flows", "environments": "Environments" },
+  "recent": {
+    "title": "Recent flow runs",
+    "subtitle_other": "Latest {{count}}",
+    "columns": { "time": "Time", "flow": "Flow", "env": "Environment", "status": "Status", "reason": "Reason" },
+    "empty": "No flow runs collected yet. Use the button above to sign in to the maker portal and collect.",
+    "rawTitle": "Raw flow run JSON"
+  }
+}

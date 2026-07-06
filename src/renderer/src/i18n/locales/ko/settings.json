@@ -1,0 +1,28 @@
+{
+  "profiles": {
+    "title": "프로필 관리",
+    "count_other": "{{count}}개",
+    "active": "활성",
+    "switch": "전환",
+    "deleteTitle": "프로필 삭제",
+    "noTenant": "—",
+    "empty": "등록된 프로필이 없습니다.",
+    "add": "프로필 추가"
+  },
+  "confirm": {
+    "deleteLast": "'{{name}}'은(는) 마지막 프로필입니다.\n삭제하면 모든 데이터가 사라지고, 다시 시작하려면 새 프로필을 추가해야 합니다. 계속할까요?",
+    "delete": "'{{name}}' 프로필을 삭제할까요?\n이 프로필에 수집된 데이터(store.db)가 영구 삭제됩니다."
+  },
+  "messages": {
+    "deleteFailed": "삭제 실패: {{error}}",
+    "unknownError": "unknown"
+  },
+  "systemInfo": {
+    "title": "시스템 정보",
+    "app": "앱",
+    "activeProfile": "활성 프로필",
+    "tenant": "테넌트",
+    "version": "버전",
+    "theme": "테마"
+  }
+}

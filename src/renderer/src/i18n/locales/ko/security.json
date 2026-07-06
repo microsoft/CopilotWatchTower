@@ -1,0 +1,40 @@
+{
+  "sources": {
+    "all": "모든 소스",
+    "purview": "Purview 통합 감사",
+    "entra_audit": "Entra 디렉터리 감사",
+    "entra_signin": "Entra 로그인"
+  },
+  "filters": { "sourceFilter": "소스 필터", "dateFrom": "시작일", "dateTo": "종료일", "searchPlaceholder": "작업 · 사용자 · 앱 검색", "apply": "적용", "reset": "초기화" },
+  "count_other": "{{count}}건",
+  "kpis": {
+    "total": "감사 이벤트",
+    "totalFoot": "필터 결과",
+    "blocked": "차단·거부",
+    "blockedFoot": "result=denied/blocked",
+    "uniqueUsers": "고유 사용자",
+    "uniqueUsersFoot": "행위자 수",
+    "topOperation": "최다 작업",
+    "topOperationFoot_other": "{{count}}건"
+  },
+  "diagnostics": {
+    "title": "관리자 진단",
+    "subtitle": "정상 {{ok}} · 거부 {{forbidden}} · 미존재 {{notFound}}"
+  },
+  "columns": {
+    "diagLabel": "진단",
+    "endpoint": "엔드포인트",
+    "status": "상태",
+    "summary": "요약",
+    "capturedAt": "수집 시각",
+    "time": "시각",
+    "source": "소스",
+    "user": "사용자",
+    "operation": "작업",
+    "workload": "워크로드",
+    "app": "앱",
+    "result": "결과"
+  },
+  "rawAuditEventTitle": "감사 이벤트 원본",
+  "auditEvents": { "title": "감사 이벤트", "subtitle_other": "{{count}}건 · 최신순" }
+}

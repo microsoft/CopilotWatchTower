@@ -1,0 +1,33 @@
+{
+  "collectButton": "Recopilar datos de consumo desde el portal",
+  "autoLoginDesc": "Inicia sesión automáticamente en el centro de administración de Power Platform usando la <strong>cuenta de descarga</strong> (cuenta de servicio de eDiscovery) de Configuración. Aparecerá una ventana de inicio de sesión si no hay una cuenta configurada.",
+  "trend": { "label": "Consumo de mensajes" },
+  "kpis": {
+    "purchased": "Mensajes comprados",
+    "consumed": "Mensajes consumidos",
+    "consumedFoot": "de {{count}} comprados",
+    "remaining": "Restante",
+    "remainingFoot": "{{pct}}% restante",
+    "projectedMonth": "Uso mensual proyectado",
+    "projectedMonthFoot": "Según la tendencia actual"
+  },
+  "usage": {
+    "title": "Uso de créditos",
+    "asOf": "a partir de {{date}}",
+    "usedPct": "{{pct}}% usado",
+    "remaining": "{{count}} restante",
+    "agents": "Agentes",
+    "environments": "Entornos",
+    "users": "Usuarios"
+  },
+  "dailyTrend": { "title": "Tendencia de consumo diario", "subtitle": "Mensajes de agentes" },
+  "detail": {
+    "title": "Detalle de consumo",
+    "scopeLabel": "Desglose de consumo",
+    "agents": "Agentes",
+    "environments": "Entornos",
+    "users": "Usuarios",
+    "empty": "No se han recopilado datos de consumo."
+  },
+  "columns": { "agent": "Agente", "env": "Entorno", "quantity": "Consumo de mensajes", "user": "Usuario", "share": "Participación" }
+}

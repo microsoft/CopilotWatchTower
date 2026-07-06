@@ -1,0 +1,46 @@
+{
+  "stateLabel": { "active": "有効", "stale": "非アクティブ", "never_used": "未使用" },
+  "actionLabel": { "created": "作成", "deleted": "削除", "updated": "更新", "other": "その他" },
+  "columns": {
+    "name": "名前",
+    "source": "ソース",
+    "state": "状態",
+    "usage": "利用イベント",
+    "days": "非アクティブ日数",
+    "last": "最終活動",
+    "time": "時刻",
+    "action": "操作",
+    "agent": "対象",
+    "operation": "操作の種類",
+    "actor": "実行者",
+    "result": "結果"
+  },
+  "filters": {
+    "threshold": "しきい値",
+    "thresholdDays_other": "{{count}}日",
+    "staleOnly": "非アクティブのみ",
+    "searchPlaceholder": "エージェント名・識別子を検索",
+    "apply": "適用"
+  },
+  "count_other": "{{count}}件のエージェント",
+  "kpis": {
+    "total": "全エージェント",
+    "totalFoot": "利用イベント{{count}}件",
+    "active": "有効",
+    "activeFoot": "{{count}}日以内",
+    "stale": "非アクティブ",
+    "staleFoot": "{{count}}日超過",
+    "neverUsed": "未使用",
+    "neverUsedFoot": "活動記録なし"
+  },
+  "inventory": {
+    "title": "エージェントインベントリ",
+    "count_other": "{{count}}件",
+    "emptyTitle": "収集されたエージェントがありません",
+    "emptyDesc": "エージェントインベントリには管理者委任権限(カタログ/登録)の収集が必要です。収集後、この表に表示されます。"
+  },
+  "identityEvents": {
+    "title": "エージェントIDイベント",
+    "subtitle_other": "監査ログ · {{count}}件"
+  }
+}

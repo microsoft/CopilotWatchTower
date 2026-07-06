@@ -1,0 +1,38 @@
+{
+  "brandTagline": "Gobernanza de Copilot",
+  "sections": {
+    "dashboard": "Panel",
+    "usage": "Análisis de uso",
+    "governance": "Gobernanza",
+    "collection": "Recopilación de datos",
+    "management": "Administración"
+  },
+  "locked": "Bloqueado según la configuración de licencia actual",
+  "routes": {
+    "home": { "title": "Panel", "subtitle": "Vea el uso de Copilot y las métricas clave de un vistazo." },
+    "insights": { "title": "Información de uso", "subtitle": "Analice patrones y tendencias de uso." },
+    "conversationsApi": { "title": "Conversaciones (API)", "subtitle": "Explore conversaciones de Copilot recopiladas mediante Graph API." },
+    "conversationsEdiscovery": { "title": "Conversaciones (e-Discovery)", "subtitle": "Explore conversaciones recopiladas mediante e-Discovery." },
+    "conversationsDataverse": { "title": "Conversaciones (Teams)", "subtitle": "Explore conversaciones de Teams (Dataverse)." },
+    "agents": { "title": "Agentes", "subtitle": "Revise la actividad de los agentes y el consumo de créditos." },
+    "security": { "title": "Seguridad / Auditoría", "subtitle": "Revise los registros de auditoría y los eventos de acceso." },
+    "reports": { "title": "Informes oficiales", "subtitle": "Vea los informes oficiales de uso del centro de administración." },
+    "consumption": { "title": "Créditos de Power Platform", "subtitle": "Realice un seguimiento del consumo y la asignación de créditos." },
+    "agentCredit": { "title": "Análisis de créditos por agente", "subtitle": "Analice el consumo de créditos por agente." },
+    "creditAlerts": { "title": "Alertas de crédito", "subtitle": "Administre alertas de crédito basadas en umbrales." },
+    "collectOverview": { "title": "Resumen de recopilación", "subtitle": "Administre el estado y las fuentes de recopilación de datos." },
+    "collectConversation": { "title": "Recopilación de conversaciones (API)", "subtitle": "Vea el estado de recopilación de Graph API y el historial de ejecuciones." },
+    "ediscovery": { "title": "Recopilación de conversaciones (e-Discovery)", "subtitle": "Administre la exportación e importación de e-Discovery." },
+    "collectTranscripts": { "title": "Recopilación de conversaciones (Teams)", "subtitle": "Administre la recopilación de conversaciones de Teams (Dataverse)." },
+    "collectDiagnostics": { "title": "Recopilación de diagnóstico de agentes", "subtitle": "Vea los resultados de diagnóstico de la API de administración de Copilot." },
+    "collectConsumption": { "title": "Recopilación de datos de crédito", "subtitle": "Recopile datos de crédito de Power Platform mediante inicio de sesión en el portal." },
+    "collectFlowRuns": { "title": "Ejecuciones de agentes (flujos)", "subtitle": "Recopile y vea el historial de ejecuciones de flujos." },
+    "collectAgentDefs": { "title": "Análisis de riesgo de agentes", "subtitle": "Analice estáticamente las definiciones de agentes y puntúe el riesgo." },
+    "collectAudit": { "title": "Eventos de auditoría", "subtitle": "Vea el estado de recopilación de eventos de auditoría de Purview/Entra." },
+    "collectUsage": { "title": "Uso oficial", "subtitle": "Vea las instantáneas oficiales de uso del centro de administración." },
+    "backupRestore": { "title": "Copia de seguridad y restauración", "subtitle": "Administre la copia de seguridad y restauración de la base de datos." },
+    "dataExport": { "title": "Exportar", "subtitle": "Exporte los datos recopilados a archivos CSV/JSON." },
+    "theme": { "title": "Tema", "subtitle": "Obtenga una vista previa y elija un tema de color." },
+    "settings": { "title": "Configuración", "subtitle": "Configure perfiles, inquilino y entorno de la aplicación." }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "collectAll": "전체 수집 시작",
+  "collectAllDesc": "전체 사용자를 순회 수집합니다. 개별 수집은 아래 표의 “수집” 버튼.",
+  "collectUserTitle": "이 사용자만 다시 수집",
+  "collectUser": "수집",
+  "kpis": { "interactions": "총 상호작용", "users": "수집 사용자", "threads": "대화 스레드", "lastRun": "마지막 수집" },
+  "userStatus": {
+    "title": "사용자별 수집 현황",
+    "count_other": "{{count}}명",
+    "searchPlaceholder": "사용자 이름·ID 검색",
+    "columns": { "user": "사용자", "count": "상호작용", "last": "워터마크", "backfill": "백필" },
+    "backfill": { "done": "완료", "inProgress": "진행 중" },
+    "emptyTitle": "아직 수집된 대화가 없습니다",
+    "emptyDesc": "위 “전체 수집 시작”을 눌러 수집하세요."
+  },
+  "runHistory": {
+    "title": "수집 실행 이력",
+    "count_other": "{{count}}회",
+    "columns": { "started": "시작", "trigger": "트리거", "users": "사용자", "interactions": "수집", "status": "상태", "log": "로그" },
+    "status": { "done": "완료", "errorCount": "오류 {{count}}", "running": "실행 중" },
+    "logTitle": "실행 로그",
+    "emptyTitle": "실행 기록이 없습니다"
+  }
+}

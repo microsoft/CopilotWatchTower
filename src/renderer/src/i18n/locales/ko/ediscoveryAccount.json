@@ -1,0 +1,18 @@
+{
+  "title": "eDiscovery 다운로드 계정 (ME3 자동 다운로드)",
+  "status": { "configured": "설정됨", "notConfigured": "미설정" },
+  "desc": "eDiscovery Standard(ME3) 테넌트의 내보내기 다운로드는 브라우저 로그인이 필요합니다. MFA가 없는 전용 서비스 계정을 등록하면 로그인 창 없이 자동으로 다운로드합니다. (MFA 계정은 자동 입력 후 창에서 직접 승인해야 합니다.) 비밀번호는 Windows DPAPI로 암호화되어 이 PC의 프로필에만 저장됩니다.",
+  "userPlaceholder": "서비스 계정 (user@tenant)",
+  "passwordPlaceholder": "비밀번호",
+  "save": "저장",
+  "delete": "삭제",
+  "unknownError": "오류",
+  "messages": {
+    "missingInput": "서비스 계정과 비밀번호를 입력하세요.",
+    "saved": "저장됨 — 다음 ME3 다운로드부터 로그인 창 없이 자동 실행됩니다.",
+    "saveFailed": "저장 실패: {{error}}",
+    "saveError": "저장 중 오류가 발생했습니다.",
+    "cleared": "자격 증명을 삭제했습니다.",
+    "clearError": "삭제 중 오류가 발생했습니다."
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "extraLicense": "Additional license",
+  "title": "This feature isn't available under the current license configuration",
+  "desc": "This feature requires <strong>{{label}}</strong>. Once you set the tenant's license configuration in Settings, available features adjust automatically.",
+  "cta": "Configure license in Settings",
+  "foot": "eDiscovery-based conversation browsing/collection, Teams (Dataverse) conversations, Power Platform credits, and audit events remain available regardless of license configuration."
+}

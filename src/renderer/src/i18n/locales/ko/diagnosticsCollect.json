@@ -1,0 +1,11 @@
+{
+  "collectStart": "수집 시작",
+  "status": { "ok": "정상", "forbidden": "권한 없음", "not_found": "없음", "error": "오류" },
+  "kpis": { "total": "진단 항목", "totalFoot": "admin API 프로브", "ok": "정상", "okFoot": "접근 가능", "forbidden": "권한 없음", "forbiddenFoot": "동의 필요", "notFound": "미제공", "notFoundFoot": "엔드포인트 없음" },
+  "table": {
+    "title": "Copilot 관리 API 진단",
+    "subtitle_other": "{{count}}개 엔드포인트",
+    "columns": { "label": "항목", "endpoint": "엔드포인트", "status": "상태", "summary": "요약", "capturedAt": "수집 시각" },
+    "empty": "아직 진단 데이터가 없습니다. 수집 시작을 눌러주세요."
+  }
+}

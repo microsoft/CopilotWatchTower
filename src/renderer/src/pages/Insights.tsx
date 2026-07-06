@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { invoke } from '../lib/api'
 import { Kpi } from '../components/Kpi'
 import { LineChart, type LineSeries } from '../components/LineChart'
 import { DataTable, type Column } from '../components/DataTable'
+import { useNumberFormat } from '../lib/format'
 import { Users, MessagesSquare, Layers, AppWindow } from 'lucide-react'
 
 interface UserRow {
@@ -54,14 +56,7 @@ const EMPTY_DATA: InsightsData = {
   apps: [],
   users: []
 }
-const SERIES: LineSeries[] = [
-  { key: 'messages', color: 'var(--accent)', label: '메시지' },
-  { key: 'threads', color: '#2dd4bf', label: '스레드' }
-]
 
-function n(value: number): string {
-  return value.toLocaleString('ko-KR')
-}
 function dt(iso: string): string {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -73,20 +68,25 @@ function dt(iso: string): string {
   return `${mm}/${dd} ${hh}:${mi}`
 }
 
-const COLUMNS: Column<UserRow>[] = [
-  { key: 'name', header: '사용자', cell: (r) => r.name, sortValue: (r) => r.name.toLowerCase() },
-  { key: 'upn', header: 'UPN', cell: (r) => r.upn || '—', sortValue: (r) => (r.upn ?? '').toLowerCase() },
-  { key: 'activeDays', header: '활동일', align: 'right', cell: (r) => n(r.activeDays), sortValue: (r) => r.activeDays },
-  { key: 'threads', header: '스레드', align: 'right', cell: (r) => n(r.threads), sortValue: (r) => r.threads },
-  { key: 'messages', header: '메시지', align: 'right', cell: (r) => n(r.messages), sortValue: (r) => r.messages },
-  { key: 'prompts', header: '프롬프트', align: 'right', cell: (r) => n(r.prompts), sortValue: (r) => r.prompts },
-  { key: 'responses', header: '응답', align: 'right', cell: (r) => n(r.responses), sortValue: (r) => r.responses },
-  { key: 'apps', header: '앱', align: 'right', cell: (r) => n(r.apps), sortValue: (r) => r.apps },
-  { key: 'topApp', header: '최상위 앱', cell: (r) => r.topApp, sortValue: (r) => r.topApp.toLowerCase() },
-  { key: 'lastActivity', header: '마지막 활동', cell: (r) => dt(r.lastActivity), sortValue: (r) => r.lastActivity }
-]
-
 export function Insights(): JSX.Element {
+  const { t } = useTranslation('insights')
+  const n = useNumberFormat()
+  const SERIES: LineSeries[] = [
+    { key: 'messages', color: 'var(--accent)', label: t('trend.messages') },
+    { key: 'threads', color: '#2dd4bf', label: t('trend.threads') }
+  ]
+  const COLUMNS: Column<UserRow>[] = [
+    { key: 'name', header: t('columns.name'), cell: (r) => r.name, sortValue: (r) => r.name.toLowerCase() },
+    { key: 'upn', header: 'UPN', cell: (r) => r.upn || '—', sortValue: (r) => (r.upn ?? '').toLowerCase() },
+    { key: 'activeDays', header: t('columns.activeDays'), align: 'right', cell: (r) => n(r.activeDays), sortValue: (r) => r.activeDays },
+    { key: 'threads', header: t('columns.threads'), align: 'right', cell: (r) => n(r.threads), sortValue: (r) => r.threads },
+    { key: 'messages', header: t('columns.messages'), align: 'right', cell: (r) => n(r.messages), sortValue: (r) => r.messages },
+    { key: 'prompts', header: t('columns.prompts'), align: 'right', cell: (r) => n(r.prompts), sortValue: (r) => r.prompts },
+    { key: 'responses', header: t('columns.responses'), align: 'right', cell: (r) => n(r.responses), sortValue: (r) => r.responses },
+    { key: 'apps', header: t('columns.apps'), align: 'right', cell: (r) => n(r.apps), sortValue: (r) => r.apps },
+    { key: 'topApp', header: t('columns.topApp'), cell: (r) => r.topApp, sortValue: (r) => r.topApp.toLowerCase() },
+    { key: 'lastActivity', header: t('columns.lastActivity'), cell: (r) => dt(r.lastActivity), sortValue: (r) => r.lastActivity }
+  ]
   const [data, setData] = useState<InsightsData>(EMPTY_DATA)
   const [users, setUsers] = useState<UserOpt[]>([])
   const [apps, setApps] = useState<AppOpt[]>([])
@@ -134,7 +134,7 @@ export function Insights(): JSX.Element {
           value={draft.dateFrom}
           max={draft.dateTo || undefined}
           onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })}
-          title="시작일"
+          title={t('filters.dateFrom')}
         />
         <span className="filter-dash">~</span>
         <input
@@ -143,15 +143,15 @@ export function Insights(): JSX.Element {
           value={draft.dateTo}
           min={draft.dateFrom || undefined}
           onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })}
-          title="종료일"
+          title={t('filters.dateTo')}
         />
         <select
           className="filter-field"
           value={draft.userId}
           onChange={(e) => setDraft({ ...draft, userId: e.target.value })}
-          title="사용자 필터"
+          title={t('filters.userFilter')}
         >
-          <option value="">모든 사용자</option>
+          <option value="">{t('filters.allUsers')}</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
@@ -162,9 +162,9 @@ export function Insights(): JSX.Element {
           className="filter-field"
           value={draft.app}
           onChange={(e) => setDraft({ ...draft, app: e.target.value })}
-          title="앱 필터"
+          title={t('filters.appFilter')}
         >
-          <option value="">모든 앱</option>
+          <option value="">{t('filters.allApps')}</option>
           {apps.map((a) => (
             <option key={a.value} value={a.value}>
               {a.label}
@@ -172,40 +172,40 @@ export function Insights(): JSX.Element {
           ))}
         </select>
         <button type="submit" className={`conv-btn primary${dirty ? ' dirty' : ''}`}>
-          적용
+          {t('filters.apply')}
         </button>
         <button type="button" className="conv-btn ghost" onClick={reset}>
-          초기화
+          {t('filters.reset')}
         </button>
       </form>
 
       <div className="kpi-row">
         <Kpi
           icon={<Users />}
-          label="활성 사용자"
+          label={t('kpis.activeUsers')}
           value={n(k.activeUsers)}
-          foot={`전체 ${n(k.totalUsers)}명`}
+          foot={t('kpis.activeUsersFoot', { count: n(k.totalUsers) })}
         />
-        <Kpi icon={<Layers />} label="스레드" value={n(k.threads)} foot="대화 스레드 수" />
+        <Kpi icon={<Layers />} label={t('kpis.threads')} value={n(k.threads)} foot={t('kpis.threadsFoot')} />
         <Kpi
           icon={<MessagesSquare />}
-          label="메시지"
+          label={t('kpis.messages')}
           value={n(k.messages)}
-          foot={`프롬프트 ${n(k.prompts)}개`}
+          foot={t('kpis.messagesFoot', { count: n(k.prompts) })}
         />
         <Kpi
           icon={<AppWindow />}
-          label="최상위 앱"
+          label={t('kpis.topApp')}
           value={k.topApp ?? '—'}
-          foot={k.topApp ? `${n(k.topAppMessages)}개 메시지` : ''}
+          foot={k.topApp ? t('kpis.topAppFoot', { count: n(k.topAppMessages) }) : ''}
         />
       </div>
 
       <div className="grid-2">
         <div className="card">
           <div className="card-head">
-            <h2>일별 활동 추이</h2>
-            <span className="hint">메시지 · 스레드</span>
+            <h2>{t('trend.title')}</h2>
+            <span className="hint">{t('trend.subtitle')}</span>
           </div>
           <div className="card-body">
             <LineChart data={data.trend} series={SERIES} height={240} />
@@ -214,8 +214,8 @@ export function Insights(): JSX.Element {
 
         <div className="card">
           <div className="card-head">
-            <h2>앱별 메시지</h2>
-            <span className="hint">상위 {data.apps.length}개</span>
+            <h2>{t('appMessages.title')}</h2>
+            <span className="hint">{t('appMessages.subtitle', { count: data.apps.length })}</span>
           </div>
           <div className="card-body">
             <div className="distbars">
@@ -230,7 +230,7 @@ export function Insights(): JSX.Element {
                   <span className="distval">{n(a.messages)}</span>
                 </div>
               ))}
-              {data.apps.length === 0 && <div className="empty-state">데이터 없음</div>}
+              {data.apps.length === 0 && <div className="empty-state">{t('noData', { ns: 'common' })}</div>}
             </div>
           </div>
         </div>
@@ -240,8 +240,8 @@ export function Insights(): JSX.Element {
 
       <div className="card">
         <div className="card-head">
-          <h2>사용자별 활동 요약</h2>
-          <span className="hint">{n(data.users.length)}명</span>
+          <h2>{t('userSummary.title')}</h2>
+          <span className="hint">{t('userSummary.countSuffix', { count: n(data.users.length) })}</span>
         </div>
         <div className="card-body">
           <DataTable<UserRow>

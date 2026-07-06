@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Palette, Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { THEMES, type Theme } from '../lib/theme'
 
 export function ThemePicker({
@@ -9,6 +10,7 @@ export function ThemePicker({
   current: string
   onSelect: (id: string) => void
 }): JSX.Element {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -45,16 +47,16 @@ export function ThemePicker({
 
   return (
     <div className="theme-picker" ref={ref}>
-      <button className="btn" onClick={() => setOpen((o) => !o)} title="색 테마">
+      <button className="btn" onClick={() => setOpen((o) => !o)} title={t('colorTheme')}>
         <Palette size={15} />
         <span className="swatch-dot" style={{ background: active.accent }} />
-        테마
+        {t('theme')}
       </button>
       {open && (
         <div className="theme-menu">
-          <div className="theme-menu-title">다크 · {dark.length}</div>
+          <div className="theme-menu-title">{t('mode.dark', { ns: 'themeGallery' })} · {dark.length}</div>
           {dark.map(row)}
-          <div className="theme-menu-title">라이트 · {light.length}</div>
+          <div className="theme-menu-title">{t('mode.light', { ns: 'themeGallery' })} · {light.length}</div>
           {light.map(row)}
         </div>
       )}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Play } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { invoke } from '../lib/api'
 
 interface Rule {
@@ -27,22 +28,26 @@ const RULES: Rule[] = [
   { name: '잔여 5% 미만', cond: '잔여 ≤ 250', on: true }
 ]
 
-const RULE_LABEL: Record<string, string> = {
-  agent_daily_abs: '에이전트 일일 한도',
-  user_daily_abs: '사용자 일일 한도',
-  spike: '급증 감지',
-  monthly_budget: '월 예산 초과',
-  flow_spike: '플로우 급증',
-  flow_fail_loop: '플로우 실패 루프',
-  runaway_autonomous: '자율 실행 폭주',
-  high_risk_agent: '고위험 에이전트'
-}
+const RULE_LABEL_KEYS = [
+  'agent_daily_abs',
+  'user_daily_abs',
+  'spike',
+  'monthly_budget',
+  'flow_spike',
+  'flow_fail_loop',
+  'runaway_autonomous',
+  'high_risk_agent'
+] as const
 
 function n(v: number | null): string {
   return (v ?? 0).toLocaleString('ko-KR', { maximumFractionDigits: 2 })
 }
 
 export function Alerts(): JSX.Element {
+  const { t } = useTranslation('alerts')
+  const RULE_LABEL: Record<string, string> = Object.fromEntries(
+    RULE_LABEL_KEYS.map((k) => [k, t(`ruleLabel.${k}`)])
+  )
   const [rules, setRules] = useState<Rule[]>(RULES)
   const [alerts, setAlerts] = useState<CreditAlert[]>([])
   const [evaluating, setEvaluating] = useState(false)
@@ -66,10 +71,10 @@ export function Alerts(): JSX.Element {
 
   async function evaluate(): Promise<void> {
     setEvaluating(true)
-    setMsg('규칙을 평가하는 중…')
+    setMsg(t('evaluating'))
     try {
       const r = await invoke<{ ok: boolean; evaluated?: number; newAlerts?: number; error?: string }>('alerts_evaluate')
-      setMsg(r.ok ? `평가 완료: ${r.evaluated ?? 0}건 (신규 ${r.newAlerts ?? 0})` : `오류: ${r.error}`)
+      setMsg(r.ok ? t('evaluated', { count: r.evaluated ?? 0, newCount: r.newAlerts ?? 0 }) : t('error', { error: r.error }))
       load()
     } finally {
       setEvaluating(false)
@@ -81,7 +86,7 @@ export function Alerts(): JSX.Element {
     <div className="content">
       <div className="page-actions">
         <button className="btn primary" onClick={evaluate} disabled={evaluating}>
-          {evaluating ? <Loader2 size={15} className="spin" /> : <Play size={15} />} 지금 평가
+          {evaluating ? <Loader2 size={15} className="spin" /> : <Play size={15} />} {t('evaluateNow')}
         </button>
         {msg && <span className="muted action-status">{msg}</span>}
       </div>
@@ -89,8 +94,8 @@ export function Alerts(): JSX.Element {
       <div className="grid-2">
         <div className="card">
           <div className="card-head">
-            <h2>활성 알림 규칙</h2>
-            <span className="hint">{rules.filter((r) => r.on).length}개 활성</span>
+            <h2>{t('rules.title')}</h2>
+            <span className="hint">{t('rules.activeCount', { count: rules.filter((r) => r.on).length })}</span>
           </div>
           <div className="card-body">
             {rules.map((r) => (
@@ -109,23 +114,23 @@ export function Alerts(): JSX.Element {
 
         <div className="card">
           <div className="card-head">
-            <h2>발생한 알림</h2>
-            <span className="hint">활성 {alerts.length}건</span>
+            <h2>{t('fired.title')}</h2>
+            <span className="hint">{t('fired.activeCount', { count: alerts.length })}</span>
           </div>
           <table className="table">
             <thead>
               <tr>
-                <th>규칙</th>
-                <th>대상</th>
-                <th>값 / 임계</th>
-                <th>심각도</th>
+                <th>{t('columns.rule')}</th>
+                <th>{t('columns.target')}</th>
+                <th>{t('columns.valueVsThreshold')}</th>
+                <th>{t('columns.severity')}</th>
               </tr>
             </thead>
             <tbody>
               {alerts.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="muted">
-                    발생한 알림이 없습니다. 데이터를 수집한 뒤 “지금 평가”를 눌러주세요.
+                    {t('fired.empty')}
                   </td>
                 </tr>
               ) : (
@@ -138,7 +143,7 @@ export function Alerts(): JSX.Element {
                     </td>
                     <td>
                       <span className={`sev ${a.severity === 'danger' ? 'high' : 'med'}`}>
-                        {a.severity === 'danger' ? '위험' : '경고'}
+                        {a.severity === 'danger' ? t('severity.danger') : t('severity.warn')}
                       </span>
                     </td>
                   </tr>

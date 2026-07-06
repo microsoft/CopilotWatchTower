@@ -1,0 +1,24 @@
+{
+  "banner": {
+    "text": "테넌트의 라이선스 구성이 아직 지정되지 않았습니다. 지정하면 사용할 수 없는 기능이 자동으로 정리되어 불필요한 오류를 줄일 수 있습니다.",
+    "cta": "라이선스 구성"
+  },
+  "kpis": {
+    "activeUsers": "활성 사용자",
+    "activeUsersFoot": "전체 {{count}}명",
+    "interactions": "총 상호작용",
+    "interactionsFoot": "스레드 {{count}}개",
+    "sessions": "의미 있는 상호작용",
+    "sessionsFoot": "프롬프트 {{count}}개",
+    "inactiveLicensed": "미사용 라이선스",
+    "inactiveLicensedFoot": "도입률 {{pct}}% · 라이선스 {{count}}",
+    "agents": "에이전트",
+    "agentsFoot": "등록·관찰 에이전트",
+    "riskSignals": "위험 신호",
+    "riskSignalsFoot": "차단·거부 감사 이벤트"
+  },
+  "trend": { "title": "사용 추이", "subtitle": "최근 15일", "messages": "턴", "threads": "스레드", "prompts": "프롬프트" },
+  "credits": { "title": "파워플랫폼 크레딧", "subtitle": "이번 달", "usedPct": "{{pct}}% 사용", "remaining": "{{count}} 남음" },
+  "topUsers": { "title": "상위 사용자", "subtitle": "상호작용 수" },
+  "appUsage": { "title": "앱별 사용량", "subtitle": "상위 앱" }
+}

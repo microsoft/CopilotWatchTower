@@ -1,0 +1,19 @@
+{
+  "kpis": { "dbSize": "Tamaño de la BD", "totalRecords": "Registros totales", "totalRecordsFoot_other": "{{count}} tablas", "backup": "Copia de seguridad", "backupValue": "Instantánea", "backupFoot": "Copia segura", "restore": "Restaurar", "restoreValue": "Reemplazar", "restoreFoot": "Use con precaución" },
+  "actions": { "backup": "Respaldar base de datos", "restore": "Restaurar desde copia de seguridad", "wipe": "Borrar datos" },
+  "confirm": {
+    "restore": "Esto sobrescribirá la base de datos actual con el archivo de copia de seguridad seleccionado. ¿Continuar?",
+    "wipe": "Esto eliminará todos los datos recopilados en este perfil. Las credenciales y las reglas de alerta se conservarán.\n¿Continuar?"
+  },
+  "messages": {
+    "chooseBackupLocation": "Elija una ubicación de copia de seguridad…",
+    "backupDone": "Copia de seguridad completa → {{path}} ({{size}})",
+    "canceled": "Cancelado",
+    "error": "Error: {{error}}",
+    "chooseRestoreFile": "Elija un archivo de copia de seguridad para restaurar…",
+    "restoreDone": "Restauración completa. Actualizando…",
+    "wiping": "Eliminando datos…",
+    "wipeDone_other": "Restablecimiento completo: {{count}} filas eliminadas. Actualizando…"
+  },
+  "location": { "title": "Ubicación de la base de datos", "lastModified": "Última modificación: {{date}}" }
+}

@@ -1,0 +1,48 @@
+{
+  "stateLabel": { "active": "Activo", "stale": "Inactivo", "never_used": "Nunca usado" },
+  "actionLabel": { "created": "Creado", "deleted": "Eliminado", "updated": "Actualizado", "other": "Otro" },
+  "columns": {
+    "name": "Nombre",
+    "source": "Fuente",
+    "state": "Estado",
+    "usage": "Eventos de uso",
+    "days": "Días inactivo",
+    "last": "Última actividad",
+    "time": "Hora",
+    "action": "Acción",
+    "agent": "Destino",
+    "operation": "Tipo de operación",
+    "actor": "Actor",
+    "result": "Resultado"
+  },
+  "filters": {
+    "threshold": "Umbral",
+    "thresholdDays_other": "{{count}} días",
+    "thresholdDays_one": "{{count}} día",
+    "staleOnly": "Solo inactivos",
+    "searchPlaceholder": "Buscar nombre/identificador de agente",
+    "apply": "Aplicar"
+  },
+  "count_other": "{{count}} agentes",
+  "count_one": "{{count}} agente",
+  "kpis": {
+    "total": "Total de agentes",
+    "totalFoot": "{{count}} eventos de uso",
+    "active": "Activo",
+    "activeFoot": "dentro de {{count}} días",
+    "stale": "Inactivo",
+    "staleFoot": "más de {{count}} días",
+    "neverUsed": "Nunca usado",
+    "neverUsedFoot": "Sin actividad registrada"
+  },
+  "inventory": {
+    "title": "Inventario de agentes",
+    "count_other": "{{count}}",
+    "emptyTitle": "No se han recopilado agentes",
+    "emptyDesc": "El inventario de agentes requiere recopilar permisos delegados de administrador (catálogo/registro). Aparecerá en esta tabla después de la recopilación."
+  },
+  "identityEvents": {
+    "title": "Eventos de identidad de agentes",
+    "subtitle_other": "Registro de auditoría · {{count}}"
+  }
+}

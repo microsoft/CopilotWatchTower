@@ -1,0 +1,48 @@
+{
+  "stateLabel": { "active": "Active", "stale": "Stale", "never_used": "Never used" },
+  "actionLabel": { "created": "Created", "deleted": "Deleted", "updated": "Updated", "other": "Other" },
+  "columns": {
+    "name": "Name",
+    "source": "Source",
+    "state": "State",
+    "usage": "Usage events",
+    "days": "Inactive days",
+    "last": "Last activity",
+    "time": "Time",
+    "action": "Action",
+    "agent": "Target",
+    "operation": "Operation type",
+    "actor": "Actor",
+    "result": "Result"
+  },
+  "filters": {
+    "threshold": "Threshold",
+    "thresholdDays_other": "{{count}} days",
+    "thresholdDays_one": "{{count}} day",
+    "staleOnly": "Stale only",
+    "searchPlaceholder": "Search agent name/identifier",
+    "apply": "Apply"
+  },
+  "count_other": "{{count}} agents",
+  "count_one": "{{count}} agent",
+  "kpis": {
+    "total": "Total agents",
+    "totalFoot": "{{count}} usage events",
+    "active": "Active",
+    "activeFoot": "within {{count}} days",
+    "stale": "Stale",
+    "staleFoot": "over {{count}} days",
+    "neverUsed": "Never used",
+    "neverUsedFoot": "No activity recorded"
+  },
+  "inventory": {
+    "title": "Agent inventory",
+    "count_other": "{{count}}",
+    "emptyTitle": "No agents collected",
+    "emptyDesc": "The agent inventory requires collecting admin-delegated permissions (catalog/registration). It will appear in this table after collection."
+  },
+  "identityEvents": {
+    "title": "Agent identity events",
+    "subtitle_other": "Audit log · {{count}}"
+  }
+}

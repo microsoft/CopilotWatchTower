@@ -1,0 +1,24 @@
+{
+  "banner": {
+    "text": "The tenant's license configuration has not been set yet. Setting it automatically hides unavailable features and reduces unnecessary errors.",
+    "cta": "Configure license"
+  },
+  "kpis": {
+    "activeUsers": "Active users",
+    "activeUsersFoot": "{{count}} total",
+    "interactions": "Total interactions",
+    "interactionsFoot": "{{count}} threads",
+    "sessions": "Meaningful interactions",
+    "sessionsFoot": "{{count}} prompts",
+    "inactiveLicensed": "Unused licenses",
+    "inactiveLicensedFoot": "Adoption {{pct}}% · {{count}} licensed",
+    "agents": "Agents",
+    "agentsFoot": "Registered/observed agents",
+    "riskSignals": "Risk signals",
+    "riskSignalsFoot": "Blocked/denied audit events"
+  },
+  "trend": { "title": "Usage trend", "subtitle": "Last 15 days", "messages": "Turns", "threads": "Threads", "prompts": "Prompts" },
+  "credits": { "title": "Power Platform credits", "subtitle": "This month", "usedPct": "{{pct}}% used", "remaining": "{{count}} remaining" },
+  "topUsers": { "title": "Top users", "subtitle": "Interaction count" },
+  "appUsage": { "title": "Usage by app", "subtitle": "Top apps" }
+}

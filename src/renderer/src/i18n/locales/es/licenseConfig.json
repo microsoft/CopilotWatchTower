@@ -1,0 +1,31 @@
+{
+  "title": "Configuración de licencia",
+  "desc": "Una vez que configure la licencia de Microsoft 365 del inquilino, las funciones no disponibles (Conversaciones (API), informes oficiales, uso oficial, Agentes) se bloquean automáticamente. Antes de configurar, todas las funciones permanecen desbloqueadas.",
+  "presetLabel": "Preajuste",
+  "customOption": "Personalizado",
+  "presets": {
+    "me3": "ME3 (sin Copilot)",
+    "me3_copilot": "ME3 + Copilot",
+    "me5_copilot": "ME5 + Copilot",
+    "agent365": "+ Agent365"
+  },
+  "source": {
+    "default": "Sin configurar (todas las funciones permitidas)",
+    "manual": "Configurado manualmente",
+    "detected": "Detectado automáticamente"
+  },
+  "detect": "Detectar y completar",
+  "save": "Guardar",
+  "saving": "Guardando…",
+  "unknownError": "Error desconocido",
+  "messages": {
+    "saved": "Guardado. Los bloqueos de la barra lateral se actualizarán.",
+    "saveFailed": "Error al guardar: {{error}}",
+    "saveError": "Ocurrió un error al guardar.",
+    "detecting": "Detectando SKU del inquilino…",
+    "detected": "Detección completa — revise y haga clic en [Guardar] para aplicar.",
+    "detectFailedNoCreds": "La incorporación no se ha completado.",
+    "detectFailed": "Error de detección: {{error}}",
+    "detectError": "Ocurrió un error al detectar."
+  }
+}

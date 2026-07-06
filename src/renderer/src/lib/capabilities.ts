@@ -7,6 +7,7 @@
  */
 import { useSyncExternalStore } from 'react'
 import { invoke } from './api'
+import i18n from '../i18n'
 
 export type CapabilityKey = 'copilot_seats' | 'e5' | 'agent_inventory'
 
@@ -102,9 +103,7 @@ export function gateFor(navKey: string, p: CapabilityProfile): CapabilityGate {
   return { locked: !p[required], required }
 }
 
-/** Human-readable Korean label for a capability requirement. */
-export const CAPABILITY_LABEL: Record<CapabilityKey, string> = {
-  copilot_seats: 'Microsoft 365 Copilot 라이선스',
-  e5: 'Microsoft 365 E5',
-  agent_inventory: 'Agent365 (에이전트 인벤토리)'
+/** Localized label for a capability requirement (reactively follows the active language). */
+export function capabilityLabel(key: CapabilityKey): string {
+  return i18n.t(`capabilities:label.${key}`)
 }

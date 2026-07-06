@@ -1,0 +1,101 @@
+{
+  "overview": { "title": "数据收集概览" },
+  "intro": "CopilotWatchTower 从多个来源收集 Microsoft 365 Copilot 活动，并在同一处进行分析。每个收集菜单在<strongData>收集的数据</strongData>、<strongTech>使用的技术</strongTech>、所需的<strongPerm>权限</strongPerm>以及<strongConstraint>限制/范围</strongConstraint>方面各不相同。请在下方查看各来源的特点，然后在左侧菜单中执行单独的收集。",
+  "authMethod": {
+    "title": "身份验证方式",
+    "bootstrapLabel": "引导(委托 · 设备代码)",
+    "bootstrapDesc": " — 仅需一次。创建 Entra 应用注册，并通过租户管理员同意授予所需权限。",
+    "appOnlyLabel": "仅应用(client credentials)",
+    "appOnlyDesc": " — 用于日常收集。使用签发的密钥(有效期 180 天)调用 Graph API。部分 eDiscovery/Teams/积分路径使用委托或 Web 自动化登录。",
+    "noteLabel": "设置 → 升级权限",
+    "noteDesc": "如果权限不足，请在<1>{{label}}</1>中重新同意缺失的权限，或创建新的配置文件以使用最新权限重新生成应用。"
+  },
+  "specLabels": { "technology": "技术", "data": "收集的数据", "permissions": "所需权限", "constraints": "限制/范围" },
+  "viewIn": "查看位置: ",
+  "sources": {
+    "api": {
+      "title": "对话收集(API)",
+      "summary": "通过 Microsoft Graph API 直接按用户收集 Copilot 对话正文。",
+      "technology": "Microsoft Graph (beta) · getAllEnterpriseInteractions · 仅应用(client credentials)令牌",
+      "data": ["提示/响应正文文本", "应用来源(BizChat、Word、Teams、Excel、PowerPoint、Outlook、Loop 等)", "附件/链接/提及元数据、原始 JSON"],
+      "permissions": ["AiEnterpriseInteraction.Read.All", "User.Read.All", "Organization.Read.All"],
+      "constraints": [
+        "仅面向拥有 Copilot 许可证的用户(根据范围设置为全体/许可/组/指定用户)",
+        "beta 终结点 · 按用户/时间段分页(@odata.nextLink)",
+        "无许可证用户的正文通过 eDiscovery 路径单独收集"
+      ],
+      "viewIn": "对话浏览(API)"
+    },
+    "ediscovery": {
+      "title": "对话收集(e-Discovery)",
+      "summary": "通过 Purview eDiscovery 恢复 Copilot 正文，包括无许可证用户。",
+      "technology": "Purview eDiscovery (Graph) · 委托身份验证",
+      "data": ["包含无许可证用户的 Copilot 对话正文", "从案例/搜索/导出产物中恢复的消息"],
+      "permissions": ["eDiscovery.ReadWrite.All (委托)", "执行账户需要 eDiscovery Manager 角色"],
+      "constraints": [
+        "仅应用身份验证仅限 Premium，因此使用委托身份验证",
+        "以异步阶段进行: 创建案例 → 搜索 → 估算 → 导出 → 下载 → 解析",
+        "支持按阶段恢复 — 中断后可重新开始"
+      ],
+      "viewIn": "对话浏览(e-Discovery)"
+    },
+    "teams": {
+      "title": "对话收集(Teams)",
+      "summary": "从 Dataverse 收集 Copilot Studio 自定义代理的 Teams 对话记录。",
+      "technology": "Dataverse 自动登录(Web 自动化) · 记录表",
+      "data": ["Copilot Studio 自定义代理的 Teams 对话历史(记录)", "按代理/环境划分的对话会话"],
+      "permissions": ["按环境的 Dataverse 访问权限(系统管理员角色)", "PPAC/Dataverse 自动登录账户"],
+      "constraints": [
+        "需要按环境的访问权限 — 无权限的环境通过“自动将我添加为系统管理员”选项处理",
+        "基于浏览器自动登录，因此会受 MFA/会话策略影响"
+      ],
+      "viewIn": "对话浏览(Teams)"
+    },
+    "agents": {
+      "title": "代理",
+      "summary": "从 Copilot 管理 API 和审计日志收集代理清单和实际使用信号。",
+      "technology": "Microsoft Graph Copilot 管理 API(代理注册/目录) + 审计日志",
+      "data": ["代理清单(注册信息/目录包)", "策略设置信号", "基于审计日志的实际使用信号"],
+      "permissions": ["AgentRegistration.Read.All", "CopilotPackages.Read.All", "CopilotPolicySettings.Read"],
+      "constraints": [
+        "使用信号基于审计日志，因此越早收集审计事件越准确",
+        "根据管理 API 的可用范围(租户配置)，部分项目可能为空"
+      ],
+      "viewIn": "代理"
+    },
+    "consumption": {
+      "title": "Power Platform 积分",
+      "summary": "下载 PPAC 消耗报告，跟踪消息、AI Builder、API 请求的使用情况。",
+      "technology": "Power Platform 管理中心(PPAC)自动登录 · 消耗报告下载",
+      "data": ["Copilot Studio 消息消耗量", "AI Builder 积分消耗量", "Power Platform 请求(API)消耗量"],
+      "permissions": ["Power Platform 管理员权限", "PPAC 自动登录账户"],
+      "constraints": ["基于 Web 自动化 — 依赖 PPAC UI/报告可用性", "仅在报告提供的汇总周期/单位范围内收集"],
+      "viewIn": "Power Platform 积分"
+    },
+    "audit": {
+      "title": "审计事件",
+      "summary": "从 Purview 统一审计日志和 Entra 审计/登录收集安全和访问事件。",
+      "technology": "Graph security.auditLog.queries(异步 Purview 统一日志) + Entra 审计/sign-in",
+      "data": ["阻止/拒绝等安全事件", "敏感资料访问记录", "访问/策略相关审计事件"],
+      "permissions": ["AuditLog.Read.All (Entra 审计/登录)", "AuditLogsQuery.Read.All (Purview 统一日志)", "另外需要 Purview/Exchange roleManagement 角色"],
+      "constraints": [
+        "仅可查询 Purview 审计日志保留期内的数据",
+        "统一日志查询为异步方式(提交 → 轮询 → 结果)",
+        "如果 auditLog 查询返回 404，将自动禁用 Purview 路径，仅使用 Entra 路径"
+      ],
+      "viewIn": "安全/审计"
+    },
+    "usage": {
+      "title": "官方使用情况",
+      "summary": "收集 Microsoft 365 Copilot 官方使用情况报告快照。",
+      "technology": "Microsoft Graph Reports API(Copilot 使用情况 CSV)",
+      "data": ["M365 Copilot 官方使用情况报告快照", "按周期(D7/D30/D90/D180)汇总的使用情况"],
+      "permissions": ["Reports.Read.All", "ReportSettings.ReadWrite.All(去匿名化设置)"],
+      "constraints": [
+        "受 Microsoft 报告匿名化设置影响 — 如需用户识别，请通过 ReportSettings 去匿名化",
+        "仅按 Microsoft 提供的报告周期粒度收集"
+      ],
+      "viewIn": "官方报告"
+    }
+  }
+}

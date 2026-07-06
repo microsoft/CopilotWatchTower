@@ -1,0 +1,31 @@
+{
+  "modalTitle": "新建配置文件 · 租户入驻",
+  "idle": {
+    "intro": "使用管理员账户登录后，将自动为该租户注册收集用 Entra 应用并进行管理员同意。",
+    "nameLabel": "配置文件名称(可选)",
+    "namePlaceholder": "例如: contoso",
+    "edUserLabel": "eDiscovery 下载账户(可选 · ME3 自动下载)",
+    "edUserPlaceholder": "服务账户 (user@tenant)",
+    "edPasswordPlaceholder": "密码(无 MFA 的账户)",
+    "hint": "ME3 租户需要浏览器登录才能下载 eDiscovery 导出。注册后无需登录窗口即可自动下载。您也可以稍后在设置中添加。",
+    "start": "开始入驻"
+  },
+  "running": {
+    "deviceCodeIntro": "输入以下代码，以管理员身份登录并完成权限同意。",
+    "copy": "复制",
+    "openLogin": "打开登录页面",
+    "preparing": "正在准备登录…"
+  },
+  "done": {
+    "title": "入驻完成",
+    "desc": "正在切换到新配置文件…"
+  },
+  "retry": "重试",
+  "errors": {
+    "consent-denied": "管理员同意被拒绝，或应用注册可能尚未传播完成。请稍后点击“重试”。在同意屏幕上必须点击“接受”，且必须使用全局管理员账户。",
+    "consent-access_denied": "管理员同意被拒绝。请以全局管理员账户在同意屏幕上点击“接受”。",
+    "consent-timeout": "同意等待时间(5分钟)已超时。请重试。",
+    "consent-state-mismatch": "安全验证(state)失败。请重试。",
+    "already-running": "入驻已在进行中。"
+  }
+}

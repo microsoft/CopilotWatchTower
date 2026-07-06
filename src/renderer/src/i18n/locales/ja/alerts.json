@@ -1,0 +1,24 @@
+{
+  "evaluateNow": "今すぐ評価",
+  "evaluating": "ルールを評価中…",
+  "evaluated": "評価完了: {{count}}件(新規{{newCount}})",
+  "error": "エラー: {{error}}",
+  "ruleLabel": {
+    "agent_daily_abs": "エージェント日次上限",
+    "user_daily_abs": "ユーザー日次上限",
+    "spike": "急増検出",
+    "monthly_budget": "月間予算超過",
+    "flow_spike": "フロー急増",
+    "flow_fail_loop": "フロー失敗ループ",
+    "runaway_autonomous": "自律実行の暴走",
+    "high_risk_agent": "高リスクエージェント"
+  },
+  "rules": { "title": "有効なアラートルール", "activeCount_other": "{{count}}件有効" },
+  "fired": {
+    "title": "発生したアラート",
+    "activeCount_other": "有効{{count}}件",
+    "empty": "発生したアラートはありません。データを収集後「今すぐ評価」を押してください。"
+  },
+  "columns": { "rule": "ルール", "target": "対象", "valueVsThreshold": "値 / しきい値", "severity": "重大度" },
+  "severity": { "danger": "危険", "warn": "警告" }
+}

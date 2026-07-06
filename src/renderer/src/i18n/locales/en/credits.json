@@ -1,0 +1,33 @@
+{
+  "collectButton": "Collect consumption data via portal",
+  "autoLoginDesc": "Automatically signs in to the Power Platform admin center using the <strong>download account</strong> (eDiscovery service account) from Settings. A sign-in window will appear if no account is configured.",
+  "trend": { "label": "Message consumption" },
+  "kpis": {
+    "purchased": "Purchased messages",
+    "consumed": "Consumed messages",
+    "consumedFoot": "of {{count}} purchased",
+    "remaining": "Remaining",
+    "remainingFoot": "{{pct}}% remaining",
+    "projectedMonth": "Projected monthly usage",
+    "projectedMonthFoot": "Based on current trend"
+  },
+  "usage": {
+    "title": "Credit usage",
+    "asOf": "as of {{date}}",
+    "usedPct": "{{pct}}% used",
+    "remaining": "{{count}} remaining",
+    "agents": "Agents",
+    "environments": "Environments",
+    "users": "Users"
+  },
+  "dailyTrend": { "title": "Daily consumption trend", "subtitle": "Agent messages" },
+  "detail": {
+    "title": "Consumption detail",
+    "scopeLabel": "Consumption breakdown",
+    "agents": "Agents",
+    "environments": "Environments",
+    "users": "Users",
+    "empty": "No consumption data has been collected."
+  },
+  "columns": { "agent": "Agent", "env": "Environment", "quantity": "Message consumption", "user": "User", "share": "Share" }
+}

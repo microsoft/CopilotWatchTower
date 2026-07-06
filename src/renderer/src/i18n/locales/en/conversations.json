@@ -1,0 +1,31 @@
+{
+  "scope": { "all": "All", "title": "Title", "body": "Body" },
+  "searchPlaceholder": {
+    "title": "Search conversation titles",
+    "body": "Search conversation body",
+    "all": "Search conversation title/body",
+    "restoredTitle": "Search restored conversation titles",
+    "restoredBody": "Search restored conversation body",
+    "restoredAll": "Search restored conversation title/body"
+  },
+  "filters": {
+    "dateFrom": "Start date",
+    "dateTo": "End date",
+    "searchScope": "Search scope",
+    "userFilter": "User filter",
+    "allUsers": "All users",
+    "restoredAllUsers": "All restored users",
+    "appFilter": "App filter",
+    "allApps": "All apps",
+    "apply": "Apply",
+    "reset": "Reset"
+  },
+  "count_other": "{{count}} conversations",
+  "count_one": "{{count}} conversation",
+  "noMatch": "No matching conversations.",
+  "messageCount_other": "{{count}} messages",
+  "messageCount_one": "{{count}} message",
+  "noMessages": "No messages to display.",
+  "rawInteractionTitle": "Raw interaction JSON",
+  "empty": { "title": "Select a conversation", "desc": "Select a conversation from the list on the left to see the full messages here." }
+}

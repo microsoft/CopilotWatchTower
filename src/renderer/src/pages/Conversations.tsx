@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Search, MessagesSquare } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { RawJsonButton } from '../components/RawJsonModal'
 import { invoke } from '../lib/api'
 import type { PageProps } from '../types'
@@ -38,16 +39,6 @@ interface Filters {
   dateTo: string
 }
 const EMPTY_FILTERS: Filters = { search: '', scope: 'all', userId: '', app: '', dateFrom: '', dateTo: '' }
-
-function scopeLabel(s: Scope): string {
-  return s === 'all' ? '전체' : s === 'title' ? '제목' : '본문'
-}
-function scopePlaceholder(scope: Scope, source?: string): string {
-  const restored = source === 'ediscovery'
-  if (scope === 'title') return restored ? '복원된 대화 제목 검색' : '대화 제목 검색'
-  if (scope === 'body') return restored ? '복원된 대화 본문 검색' : '대화 본문 검색'
-  return restored ? '복원된 대화 제목·본문 검색' : '대화 제목·본문 검색'
-}
 
 const THREADS: Record<string, Turn[]> = {
   '밀라노 쇼핑 일정 짜줘': [
@@ -117,6 +108,16 @@ function buildThread(c: Conversation): Turn[] {
 }
 
 export function Conversations({ source }: PageProps): JSX.Element {
+  const { t } = useTranslation('conversations')
+  function scopeLabel(s: Scope): string {
+    return t(`scope.${s}`)
+  }
+  function scopePlaceholder(scope: Scope, src?: string): string {
+    const restored = src === 'ediscovery'
+    if (scope === 'title') return t(restored ? 'searchPlaceholder.restoredTitle' : 'searchPlaceholder.title')
+    if (scope === 'body') return t(restored ? 'searchPlaceholder.restoredBody' : 'searchPlaceholder.body')
+    return t(restored ? 'searchPlaceholder.restoredAll' : 'searchPlaceholder.all')
+  }
   const [rows, setRows] = useState<Conversation[]>([])
   const [users, setUsers] = useState<UserOpt[]>([])
   const [apps, setApps] = useState<AppOpt[]>([])
@@ -193,7 +194,7 @@ export function Conversations({ source }: PageProps): JSX.Element {
           value={draft.dateFrom}
           max={draft.dateTo || undefined}
           onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })}
-          title="시작일"
+          title={t('filters.dateFrom')}
         />
         <span className="filter-dash">~</span>
         <input
@@ -202,7 +203,7 @@ export function Conversations({ source }: PageProps): JSX.Element {
           value={draft.dateTo}
           min={draft.dateFrom || undefined}
           onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })}
-          title="종료일"
+          title={t('filters.dateTo')}
         />
         <div className="search filter-search">
           <Search size={15} />
@@ -212,7 +213,7 @@ export function Conversations({ source }: PageProps): JSX.Element {
             placeholder={scopePlaceholder(draft.scope, source)}
           />
         </div>
-        <div className="scope-toggle" role="group" aria-label="검색 범위">
+        <div className="scope-toggle" role="group" aria-label={t('filters.searchScope')}>
           {(['all', 'title', 'body'] as Scope[]).map((s) => (
             <button
               type="button"
@@ -228,9 +229,9 @@ export function Conversations({ source }: PageProps): JSX.Element {
           className="filter-field"
           value={draft.userId}
           onChange={(e) => setDraft({ ...draft, userId: e.target.value })}
-          title="사용자 필터"
+          title={t('filters.userFilter')}
         >
-          <option value="">{source === 'ediscovery' ? '복원된 모든 사용자' : '모든 사용자'}</option>
+          <option value="">{source === 'ediscovery' ? t('filters.restoredAllUsers') : t('filters.allUsers')}</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
@@ -241,9 +242,9 @@ export function Conversations({ source }: PageProps): JSX.Element {
           className="filter-field"
           value={draft.app}
           onChange={(e) => setDraft({ ...draft, app: e.target.value })}
-          title="앱 필터"
+          title={t('filters.appFilter')}
         >
-          <option value="">모든 앱</option>
+          <option value="">{t('filters.allApps')}</option>
           {apps.map((a) => (
             <option key={a.value} value={a.value}>
               {a.label}
@@ -251,12 +252,12 @@ export function Conversations({ source }: PageProps): JSX.Element {
           ))}
         </select>
         <button type="submit" className={`conv-btn primary${dirty ? ' dirty' : ''}`}>
-          적용
+          {t('filters.apply')}
         </button>
         <button type="button" className="conv-btn ghost" onClick={reset}>
-          초기화
+          {t('filters.reset')}
         </button>
-        <span className="muted conv-count">{rows.length}개 대화</span>
+        <span className="muted conv-count">{t('count', { count: rows.length })}</span>
       </form>
 
       <div className="conv-explorer">
@@ -277,7 +278,7 @@ export function Conversations({ source }: PageProps): JSX.Element {
             ))}
             {rows.length === 0 && (
               <div className="muted" style={{ padding: '20px', textAlign: 'center' }}>
-                일치하는 대화가 없습니다.
+                {t('noMatch')}
               </div>
             )}
           </div>
@@ -289,22 +290,22 @@ export function Conversations({ source }: PageProps): JSX.Element {
               <div className="conv-detail-head">
                 <div className="conv-detail-title">{selected.title}</div>
                 <div className="conv-detail-meta">
-                  {[selected.agent, selected.app, selected.user, selected.when, `${thread.length}개 메시지`]
+                  {[selected.agent, selected.app, selected.user, selected.when, t('messageCount', { count: thread.length })]
                     .filter(Boolean)
                     .join(' · ')}
                 </div>
               </div>
               <div className="thread">
                 {thread.length === 0 ? (
-                  <div className="muted">표시할 메시지가 없습니다.</div>
+                  <div className="muted">{t('noMessages')}</div>
                 ) : (
-                  thread.map((t, i) => (
-                    <div key={i} className={`turn ${t.role}`}>
+                  thread.map((t2, i) => (
+                    <div key={i} className={`turn ${t2.role}`}>
                       <div>
-                        <div className="bubble">{t.text}</div>
+                        <div className="bubble">{t2.text}</div>
                         <div className="turn-meta">
-                          {t.role === 'user' ? selected.user : selected.agent || 'Copilot'}
-                          {t.raw ? <RawJsonButton data={t.raw} title="원본 상호작용 JSON" /> : null}
+                          {t2.role === 'user' ? selected.user : selected.agent || 'Copilot'}
+                          {t2.raw ? <RawJsonButton data={t2.raw} title={t('rawInteractionTitle')} /> : null}
                         </div>
                       </div>
                     </div>
@@ -317,8 +318,8 @@ export function Conversations({ source }: PageProps): JSX.Element {
               <div className="empty-icon">
                 <MessagesSquare size={24} />
               </div>
-              <div className="empty-title">대화를 선택하세요</div>
-              <div className="empty-desc">왼쪽 목록에서 대화를 선택하면 전체 메시지가 여기에 표시됩니다.</div>
+              <div className="empty-title">{t('empty.title')}</div>
+              <div className="empty-desc">{t('empty.desc')}</div>
             </div>
           )}
         </div>

@@ -1,0 +1,24 @@
+{
+  "evaluateNow": "지금 평가",
+  "evaluating": "규칙을 평가하는 중…",
+  "evaluated": "평가 완료: {{count}}건 (신규 {{newCount}})",
+  "error": "오류: {{error}}",
+  "ruleLabel": {
+    "agent_daily_abs": "에이전트 일일 한도",
+    "user_daily_abs": "사용자 일일 한도",
+    "spike": "급증 감지",
+    "monthly_budget": "월 예산 초과",
+    "flow_spike": "플로우 급증",
+    "flow_fail_loop": "플로우 실패 루프",
+    "runaway_autonomous": "자율 실행 폭주",
+    "high_risk_agent": "고위험 에이전트"
+  },
+  "rules": { "title": "활성 알림 규칙", "activeCount_other": "{{count}}개 활성" },
+  "fired": {
+    "title": "발생한 알림",
+    "activeCount_other": "활성 {{count}}건",
+    "empty": "발생한 알림이 없습니다. 데이터를 수집한 뒤 “지금 평가”를 눌러주세요."
+  },
+  "columns": { "rule": "규칙", "target": "대상", "valueVsThreshold": "값 / 임계", "severity": "심각도" },
+  "severity": { "danger": "위험", "warn": "경고" }
+}

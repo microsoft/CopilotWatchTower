@@ -1,0 +1,11 @@
+{
+  "kpis": {
+    "agents": "消费代理",
+    "messages": "总消息数",
+    "messagesFoot": "消耗量",
+    "environments": "环境",
+    "top": "最多消耗"
+  },
+  "table": { "title": "按代理统计消息消耗", "subtitle_other": "前 {{count}} 个", "empty": "暂无代理消耗数据。请先运行积分数据收集(门户)。" },
+  "columns": { "agent": "代理", "env": "环境", "messages": "消息", "share": "占比" }
+}

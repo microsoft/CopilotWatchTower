@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Workflow, XCircle, Boxes, CloudDownload, Loader2 } from 'lucide-react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Kpi } from '../components/Kpi'
 import { LiveLog } from '../components/LiveLog'
 import { RawJsonButton } from '../components/RawJsonModal'
 import { useCollectionRun, startRun, clearRun } from '../lib/collectRuns'
 import { invoke } from '../lib/api'
+import { useNumberFormat } from '../lib/format'
 
 interface Recent {
   time: string
@@ -22,11 +24,9 @@ interface DTO {
 
 const FALLBACK: DTO = { kpis: { runs: 0, failed: 0, flows: 0, environments: 0 }, recent: [] }
 
-function n(v: number): string {
-  return v.toLocaleString('ko-KR')
-}
-
 export function FlowRunsCollect(): JSX.Element {
+  const { t } = useTranslation('flowRunsCollect')
+  const n = useNumberFormat()
   const [d, setD] = useState<DTO>(FALLBACK)
   const run = useCollectionRun('flowruns')
 
@@ -51,12 +51,11 @@ export function FlowRunsCollect(): JSX.Element {
     <div className="content">
       <div className="page-actions">
         <button className="btn primary" onClick={() => startRun('flowruns')} disabled={run.running}>
-          {run.running ? <Loader2 size={15} className="spin" /> : <CloudDownload size={15} />} 포털에서 플로우 실행 수집
+          {run.running ? <Loader2 size={15} className="spin" /> : <CloudDownload size={15} />} {t('collectButton')}
         </button>
       </div>
       <p className="ediscovery-desc">
-        설정의 <strong>다운로드 계정</strong>(eDiscovery 서비스 계정)으로 메이커 포털에 자동 로그인합니다. 계정이
-        없으면 로그인 창이 표시됩니다.
+        <Trans i18nKey="flowRunsCollect:autoLoginDesc" components={{ strong: <strong /> }} />
       </p>
 
       {(run.running || run.lines.length > 0) && (
@@ -64,32 +63,32 @@ export function FlowRunsCollect(): JSX.Element {
       )}
 
       <div className="kpi-row">
-        <Kpi icon={<Workflow />} label="총 실행" value={n(d.kpis.runs)} foot="flow_runs" />
-        <Kpi icon={<XCircle />} label="실패" value={n(d.kpis.failed)} foot="failed" />
-        <Kpi icon={<Workflow />} label="플로우" value={n(d.kpis.flows)} foot="distinct" />
-        <Kpi icon={<Boxes />} label="환경" value={n(d.kpis.environments)} foot="environments" />
+        <Kpi icon={<Workflow />} label={t('kpis.runs')} value={n(d.kpis.runs)} foot="flow_runs" />
+        <Kpi icon={<XCircle />} label={t('kpis.failed')} value={n(d.kpis.failed)} foot="failed" />
+        <Kpi icon={<Workflow />} label={t('kpis.flows')} value={n(d.kpis.flows)} foot="distinct" />
+        <Kpi icon={<Boxes />} label={t('kpis.environments')} value={n(d.kpis.environments)} foot="environments" />
       </div>
 
       <div className="card">
         <div className="card-head">
-          <h2>최근 플로우 실행</h2>
-          <span className="hint">최신 {d.recent.length}건</span>
+          <h2>{t('recent.title')}</h2>
+          <span className="hint">{t('recent.subtitle', { count: d.recent.length })}</span>
         </div>
         <table className="table">
           <thead>
             <tr>
-              <th>시각</th>
-              <th>플로우</th>
-              <th>환경</th>
-              <th>상태</th>
-              <th>사유</th>
+              <th>{t('recent.columns.time')}</th>
+              <th>{t('recent.columns.flow')}</th>
+              <th>{t('recent.columns.env')}</th>
+              <th>{t('recent.columns.status')}</th>
+              <th>{t('recent.columns.reason')}</th>
             </tr>
           </thead>
           <tbody>
             {d.recent.length === 0 ? (
               <tr>
                 <td colSpan={5} className="muted">
-                  아직 수집된 플로우 실행이 없습니다. 위 버튼으로 메이커 포털에 로그인해 수집하세요.
+                  {t('recent.empty')}
                 </td>
               </tr>
             ) : (
@@ -103,7 +102,7 @@ export function FlowRunsCollect(): JSX.Element {
                   </td>
                   <td className="muted fr-reason">
                     {r.error ? <span title={r.error}>{r.error}</span> : '—'}
-                    {r.raw ? <RawJsonButton data={r.raw} title="플로우 실행 원본 JSON" /> : null}
+                    {r.raw ? <RawJsonButton data={r.raw} title={t('recent.rawTitle')} /> : null}
                   </td>
                 </tr>
               ))

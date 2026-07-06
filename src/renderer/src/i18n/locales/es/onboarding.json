@@ -1,0 +1,31 @@
+{
+  "modalTitle": "Nuevo perfil · Incorporación de inquilino",
+  "idle": {
+    "intro": "Al iniciar sesión con una cuenta de administrador se registra automáticamente una app de Entra de recopilación para este inquilino y se inicia el consentimiento del administrador.",
+    "nameLabel": "Nombre del perfil (opcional)",
+    "namePlaceholder": "p. ej., contoso",
+    "edUserLabel": "Cuenta de descarga de eDiscovery (opcional · descarga automática ME3)",
+    "edUserPlaceholder": "Cuenta de servicio (user@tenant)",
+    "edPasswordPlaceholder": "Contraseña (cuenta sin MFA)",
+    "hint": "Los inquilinos ME3 requieren un inicio de sesión en el navegador para descargar las exportaciones de eDiscovery. Si registra una cuenta aquí, la descarga será automática sin solicitud de inicio de sesión. También puede agregarla más tarde en Configuración.",
+    "start": "Iniciar incorporación"
+  },
+  "running": {
+    "deviceCodeIntro": "Ingrese el siguiente código, inicie sesión como administrador y complete el consentimiento.",
+    "copy": "Copiar",
+    "openLogin": "Abrir página de inicio de sesión",
+    "preparing": "Preparando el inicio de sesión…"
+  },
+  "done": {
+    "title": "Incorporación completada",
+    "desc": "Cambiando al nuevo perfil…"
+  },
+  "retry": "Reintentar",
+  "errors": {
+    "consent-denied": "El consentimiento del administrador fue denegado, o el registro de la app aún no se ha propagado. Espere un momento y presione “Reintentar”. En la pantalla de consentimiento debe hacer clic en “Aceptar” y debe ser un administrador global.",
+    "consent-access_denied": "Se denegó el consentimiento del administrador. Inicie sesión como administrador global y haga clic en “Aceptar” en la pantalla de consentimiento.",
+    "consent-timeout": "El tiempo de espera del consentimiento (5 minutos) ha expirado. Vuelva a intentarlo.",
+    "consent-state-mismatch": "Falló la verificación de seguridad (state). Vuelva a intentarlo.",
+    "already-running": "La incorporación ya está en curso."
+  }
+}

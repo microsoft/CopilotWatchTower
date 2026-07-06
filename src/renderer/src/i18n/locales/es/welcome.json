@@ -1,0 +1,6 @@
+{
+  "title": "CopilotWatchTower",
+  "desc": "Agregue primero un perfil de inquilino para recopilar y analizar el uso de Microsoft 365 Copilot. Al iniciar sesión con un código de dispositivo de administrador se gestionan automáticamente el registro de la app y el consentimiento.",
+  "addStart": "Agregar un perfil para empezar",
+  "foot": "Las credenciales se cifran con Windows DPAPI y se almacenan solo en este equipo."
+}

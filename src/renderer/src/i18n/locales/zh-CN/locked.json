@@ -1,0 +1,7 @@
+{
+  "extraLicense": "额外许可证",
+  "title": "此功能在当前许可配置下不可用",
+  "desc": "此功能需要 <strong>{{label}}</strong>。在设置中指定租户的许可配置后，可用功能将自动调整。",
+  "cta": "在设置中配置许可证",
+  "foot": "基于 e-Discovery 的对话浏览/收集、Teams(Dataverse)对话、Power Platform 积分和审计事件不受许可配置影响，始终可用。"
+}

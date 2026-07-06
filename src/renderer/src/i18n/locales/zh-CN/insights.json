@@ -1,0 +1,36 @@
+{
+  "filters": {
+    "dateFrom": "开始日期",
+    "dateTo": "结束日期",
+    "userFilter": "用户筛选",
+    "allUsers": "所有用户",
+    "appFilter": "应用筛选",
+    "allApps": "所有应用",
+    "apply": "应用",
+    "reset": "重置"
+  },
+  "kpis": {
+    "activeUsers": "活跃用户",
+    "activeUsersFoot": "共 {{count}} 人",
+    "threads": "对话线程",
+    "threadsFoot": "对话线程数",
+    "messages": "消息",
+    "messagesFoot": "{{count}} 条提示",
+    "topApp": "热门应用",
+    "topAppFoot": "{{count}} 条消息"
+  },
+  "trend": { "title": "每日活动趋势", "subtitle": "消息 · 线程", "messages": "消息", "threads": "线程" },
+  "appMessages": { "title": "按应用统计消息", "subtitle": "前 {{count}} 个" },
+  "userSummary": { "title": "用户活动摘要", "countSuffix": "{{count}} 人" },
+  "columns": {
+    "name": "用户",
+    "activeDays": "活跃天数",
+    "threads": "线程",
+    "messages": "消息",
+    "prompts": "提示",
+    "responses": "回复",
+    "apps": "应用",
+    "topApp": "热门应用",
+    "lastActivity": "最后活动"
+  }
+}

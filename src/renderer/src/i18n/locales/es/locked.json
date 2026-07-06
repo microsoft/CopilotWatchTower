@@ -1,0 +1,7 @@
+{
+  "extraLicense": "Licencia adicional",
+  "title": "Esta función no está disponible con la configuración de licencia actual",
+  "desc": "Esta función requiere <strong>{{label}}</strong>. Una vez que configure la licencia del inquilino en Configuración, las funciones disponibles se ajustarán automáticamente.",
+  "cta": "Configurar licencia en Configuración",
+  "foot": "La exploración/recopilación de conversaciones basada en e-Discovery, las conversaciones de Teams (Dataverse), los créditos de Power Platform y los eventos de auditoría siguen disponibles independientemente de la configuración de licencia."
+}

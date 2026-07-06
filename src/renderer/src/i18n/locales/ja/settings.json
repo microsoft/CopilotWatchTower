@@ -1,0 +1,28 @@
+{
+  "profiles": {
+    "title": "プロファイル管理",
+    "count_other": "{{count}}件",
+    "active": "有効",
+    "switch": "切り替え",
+    "deleteTitle": "プロファイルを削除",
+    "noTenant": "—",
+    "empty": "登録されたプロファイルがありません。",
+    "add": "プロファイルを追加"
+  },
+  "confirm": {
+    "deleteLast": "「{{name}}」は最後のプロファイルです。\n削除するとすべてのデータが失われ、再開するには新しいプロファイルを追加する必要があります。続行しますか？",
+    "delete": "「{{name}}」プロファイルを削除しますか？\nこのプロファイルに収集されたデータ(store.db)は完全に削除されます。"
+  },
+  "messages": {
+    "deleteFailed": "削除失敗: {{error}}",
+    "unknownError": "unknown"
+  },
+  "systemInfo": {
+    "title": "システム情報",
+    "app": "アプリ",
+    "activeProfile": "有効なプロファイル",
+    "tenant": "テナント",
+    "version": "バージョン",
+    "theme": "テーマ"
+  }
+}

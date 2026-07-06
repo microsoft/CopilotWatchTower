@@ -1,0 +1,38 @@
+{
+  "brandTagline": "Copilot Governance",
+  "sections": {
+    "dashboard": "Dashboard",
+    "usage": "Usage analytics",
+    "governance": "Governance",
+    "collection": "Data collection",
+    "management": "Management"
+  },
+  "locked": "Locked under the current license configuration",
+  "routes": {
+    "home": { "title": "Dashboard", "subtitle": "See Copilot usage and key metrics at a glance." },
+    "insights": { "title": "Usage insights", "subtitle": "Analyze usage patterns and trends." },
+    "conversationsApi": { "title": "Conversations (API)", "subtitle": "Browse Copilot conversations collected via Graph API." },
+    "conversationsEdiscovery": { "title": "Conversations (e-Discovery)", "subtitle": "Browse conversations collected via e-Discovery." },
+    "conversationsDataverse": { "title": "Conversations (Teams)", "subtitle": "Browse Teams (Dataverse) conversations." },
+    "agents": { "title": "Agents", "subtitle": "Review agent activity and credit consumption." },
+    "security": { "title": "Security / Audit", "subtitle": "Review audit logs and access events." },
+    "reports": { "title": "Official reports", "subtitle": "View official admin center usage reports." },
+    "consumption": { "title": "Power Platform credits", "subtitle": "Track credit consumption and allocation." },
+    "agentCredit": { "title": "Agent credit analysis", "subtitle": "Analyze credit consumption per agent." },
+    "creditAlerts": { "title": "Credit alerts", "subtitle": "Manage threshold-based credit alerts." },
+    "collectOverview": { "title": "Collection overview", "subtitle": "Manage data collection status and sources." },
+    "collectConversation": { "title": "Conversation collection (API)", "subtitle": "View Graph API conversation collection status and run history." },
+    "ediscovery": { "title": "Conversation collection (e-Discovery)", "subtitle": "Manage e-Discovery export and import." },
+    "collectTranscripts": { "title": "Conversation collection (Teams)", "subtitle": "Manage Teams conversation (Dataverse) collection." },
+    "collectDiagnostics": { "title": "Agent diagnostics collection", "subtitle": "View Copilot admin API diagnostic results." },
+    "collectConsumption": { "title": "Credit data collection", "subtitle": "Collect Power Platform credit data via portal sign-in." },
+    "collectFlowRuns": { "title": "Agent runs (flows)", "subtitle": "Collect and view flow run history." },
+    "collectAgentDefs": { "title": "Agent risk analysis", "subtitle": "Statically analyze agent definitions and score risk." },
+    "collectAudit": { "title": "Audit events", "subtitle": "View Purview/Entra audit event collection status." },
+    "collectUsage": { "title": "Official usage", "subtitle": "View official admin center usage snapshots." },
+    "backupRestore": { "title": "Backup & restore", "subtitle": "Manage database backup and restore." },
+    "dataExport": { "title": "Export", "subtitle": "Export collected data to CSV/JSON files." },
+    "theme": { "title": "Theme", "subtitle": "Preview and choose a color theme." },
+    "settings": { "title": "Settings", "subtitle": "Configure profiles, tenant, and app environment." }
+  }
+}

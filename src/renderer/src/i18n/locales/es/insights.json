@@ -1,0 +1,36 @@
+{
+  "filters": {
+    "dateFrom": "Fecha de inicio",
+    "dateTo": "Fecha de fin",
+    "userFilter": "Filtro de usuario",
+    "allUsers": "Todos los usuarios",
+    "appFilter": "Filtro de app",
+    "allApps": "Todas las apps",
+    "apply": "Aplicar",
+    "reset": "Restablecer"
+  },
+  "kpis": {
+    "activeUsers": "Usuarios activos",
+    "activeUsersFoot": "{{count}} en total",
+    "threads": "Hilos",
+    "threadsFoot": "Cantidad de hilos de conversación",
+    "messages": "Mensajes",
+    "messagesFoot": "{{count}} solicitudes",
+    "topApp": "App principal",
+    "topAppFoot": "{{count}} mensajes"
+  },
+  "trend": { "title": "Tendencia de actividad diaria", "subtitle": "Mensajes · Hilos", "messages": "Mensajes", "threads": "Hilos" },
+  "appMessages": { "title": "Mensajes por app", "subtitle": "Top {{count}}" },
+  "userSummary": { "title": "Resumen de actividad por usuario", "countSuffix": "{{count}}" },
+  "columns": {
+    "name": "Usuario",
+    "activeDays": "Días activos",
+    "threads": "Hilos",
+    "messages": "Mensajes",
+    "prompts": "Solicitudes",
+    "responses": "Respuestas",
+    "apps": "Apps",
+    "topApp": "App principal",
+    "lastActivity": "Última actividad"
+  }
+}

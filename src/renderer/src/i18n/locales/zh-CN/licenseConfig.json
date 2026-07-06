@@ -1,0 +1,31 @@
+{
+  "title": "许可证配置",
+  "desc": "指定租户的 Microsoft 365 许可证配置后，不可用的功能(对话浏览(API)、官方报告、官方使用情况、代理)将自动锁定。指定之前，所有功能均可用。",
+  "presetLabel": "预设",
+  "customOption": "自定义",
+  "presets": {
+    "me3": "ME3(无 Copilot)",
+    "me3_copilot": "ME3 + Copilot",
+    "me5_copilot": "ME5 + Copilot",
+    "agent365": "+ Agent365"
+  },
+  "source": {
+    "default": "未配置(允许所有功能)",
+    "manual": "手动指定",
+    "detected": "自动检测"
+  },
+  "detect": "检测并填充",
+  "save": "保存",
+  "saving": "保存中…",
+  "unknownError": "未知错误",
+  "messages": {
+    "saved": "已保存。侧边栏锁定状态将刷新。",
+    "saveFailed": "保存失败: {{error}}",
+    "saveError": "保存时发生错误。",
+    "detecting": "正在检测租户 SKU…",
+    "detected": "检测完成 — 请查看后点击[保存]以应用。",
+    "detectFailedNoCreds": "入驻尚未完成。",
+    "detectFailed": "检测失败: {{error}}",
+    "detectError": "检测时发生错误。"
+  }
+}

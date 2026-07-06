@@ -1,0 +1,33 @@
+{
+  "title": "リアルタイムログ",
+  "status": {
+    "running": "実行中",
+    "done": "完了",
+    "idle": "待機中"
+  },
+  "lineCount_other": "{{count}}行",
+  "copy": "コピー",
+  "copyTitle": "ログをコピー",
+  "clear": "クリア",
+  "clearTitle": "ログをクリア",
+  "empty": "収集を開始すると、進行ログがリアルタイムで表示されます。",
+  "runs": {
+    "conversation": { "start": "会話の収集を開始します…", "done": "完了: ユーザー {{users}}名 · 新規インタラクション {{interactions}}件" },
+    "audit": { "start": "監査イベントの収集を開始します…", "done": "完了: 監査イベント {{audit}}件" },
+    "usage": { "start": "利用レポートの収集を開始します…", "done": "完了: スナップショット {{usage}}行" },
+    "diagnostics": { "start": "エージェント診断を開始します…", "done": "完了: エージェントインベントリ {{agents}}件" },
+    "transcripts": { "start": "Teams会話の収集を開始します…", "done": "完了: 環境 {{environments}} · 会話 {{transcripts}} · ターン {{rows}}" },
+    "flowruns": { "start": "フロー実行の収集を開始します…", "done": "完了: 環境 {{environments}} · 実行 {{runs}}件" },
+    "agentdefs": { "start": "エージェント定義の分析を開始します…", "done": "完了: 環境 {{environments}} · エージェント {{agents}}件をスコア化" },
+    "consumption": { "start": "消費レポートの収集を開始します…", "done": "完了: 消費量 {{rows}}行" }
+  },
+  "userScoped": {
+    "start": "{{label}}ユーザーのみ収集します…",
+    "done": "完了: {{label}} · 新規 {{count}}件"
+  },
+  "errors": {
+    "prefix": "エラー: {{message}}",
+    "no-credentials": "アプリ登録(資格情報)が必要です。設定で構成してください。",
+    "already-running": "すでに収集が実行中です。"
+  }
+}

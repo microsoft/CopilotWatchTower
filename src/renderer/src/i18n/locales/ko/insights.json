@@ -1,0 +1,36 @@
+{
+  "filters": {
+    "dateFrom": "시작일",
+    "dateTo": "종료일",
+    "userFilter": "사용자 필터",
+    "allUsers": "모든 사용자",
+    "appFilter": "앱 필터",
+    "allApps": "모든 앱",
+    "apply": "적용",
+    "reset": "초기화"
+  },
+  "kpis": {
+    "activeUsers": "활성 사용자",
+    "activeUsersFoot": "전체 {{count}}명",
+    "threads": "스레드",
+    "threadsFoot": "대화 스레드 수",
+    "messages": "메시지",
+    "messagesFoot": "프롬프트 {{count}}개",
+    "topApp": "최상위 앱",
+    "topAppFoot": "{{count}}개 메시지"
+  },
+  "trend": { "title": "일별 활동 추이", "subtitle": "메시지 · 스레드", "messages": "메시지", "threads": "스레드" },
+  "appMessages": { "title": "앱별 메시지", "subtitle": "상위 {{count}}개" },
+  "userSummary": { "title": "사용자별 활동 요약", "countSuffix": "{{count}}명" },
+  "columns": {
+    "name": "사용자",
+    "activeDays": "활동일",
+    "threads": "스레드",
+    "messages": "메시지",
+    "prompts": "프롬프트",
+    "responses": "응답",
+    "apps": "앱",
+    "topApp": "최상위 앱",
+    "lastActivity": "마지막 활동"
+  }
+}

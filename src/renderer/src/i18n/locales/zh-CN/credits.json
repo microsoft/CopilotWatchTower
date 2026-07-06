@@ -1,0 +1,33 @@
+{
+  "collectButton": "从门户收集消费数据",
+  "autoLoginDesc": "使用设置中的<strong>下载账户</strong>(eDiscovery 服务账户)自动登录 Power Platform 管理中心。如果未配置账户，将显示登录窗口。",
+  "trend": { "label": "消息消耗" },
+  "kpis": {
+    "purchased": "已购消息",
+    "consumed": "已用消息",
+    "consumedFoot": "占已购 {{count}} 的比例",
+    "remaining": "剩余",
+    "remainingFoot": "剩余 {{pct}}%",
+    "projectedMonth": "预计月使用量",
+    "projectedMonthFoot": "基于当前趋势"
+  },
+  "usage": {
+    "title": "积分使用情况",
+    "asOf": "截至 {{date}}",
+    "usedPct": "已使用 {{pct}}%",
+    "remaining": "剩余 {{count}}",
+    "agents": "代理",
+    "environments": "环境",
+    "users": "用户"
+  },
+  "dailyTrend": { "title": "每日消耗趋势", "subtitle": "代理消息" },
+  "detail": {
+    "title": "消耗详情",
+    "scopeLabel": "消耗分类",
+    "agents": "代理",
+    "environments": "环境",
+    "users": "用户",
+    "empty": "尚未收集到消耗数据。"
+  },
+  "columns": { "agent": "代理", "env": "环境", "quantity": "消息消耗", "user": "用户", "share": "占比" }
+}

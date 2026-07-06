@@ -1,0 +1,24 @@
+{
+  "evaluateNow": "Evaluar ahora",
+  "evaluating": "Evaluando reglas…",
+  "evaluated": "Evaluación completa: {{count}} (nuevas {{newCount}})",
+  "error": "Error: {{error}}",
+  "ruleLabel": {
+    "agent_daily_abs": "Límite diario de agente",
+    "user_daily_abs": "Límite diario de usuario",
+    "spike": "Detección de picos",
+    "monthly_budget": "Presupuesto mensual excedido",
+    "flow_spike": "Pico de flujo",
+    "flow_fail_loop": "Bucle de fallos de flujo",
+    "runaway_autonomous": "Ejecución autónoma descontrolada",
+    "high_risk_agent": "Agente de alto riesgo"
+  },
+  "rules": { "title": "Reglas de alerta activas", "activeCount_other": "{{count}} activas" },
+  "fired": {
+    "title": "Alertas generadas",
+    "activeCount_other": "{{count}} activas",
+    "empty": "No se han generado alertas. Recopile datos y luego haga clic en “Evaluar ahora”."
+  },
+  "columns": { "rule": "Regla", "target": "Destino", "valueVsThreshold": "Valor / umbral", "severity": "Gravedad" },
+  "severity": { "danger": "Peligro", "warn": "Advertencia" }
+}

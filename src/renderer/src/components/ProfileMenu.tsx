@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, Plus, ChevronDown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { invoke } from '../lib/api'
 import type { SystemInfo } from '../types'
 
@@ -16,6 +17,7 @@ export function ProfileMenu({
   info: SystemInfo | null
   onAddProfile: () => void
 }): JSX.Element {
+  const { t } = useTranslation('profileMenu')
   const [open, setOpen] = useState(false)
   const [profiles, setProfiles] = useState<ProfileEntry[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -54,10 +56,10 @@ export function ProfileMenu({
         <div className="avatar">{(info?.profile ?? 'C').slice(0, 1).toUpperCase()}</div>
         <div className="profile-meta">
           <div className="profile-name" title={info?.profile ?? ''}>
-            {info?.profile ?? '프로필'}
+            {info?.profile ?? t('unnamed')}
           </div>
           <div className="profile-tenant" title={info?.tenant ?? ''}>
-            {info?.tenant ?? '—'}
+            {info?.tenant ?? t('noTenant')}
           </div>
         </div>
         <ChevronDown size={14} className="profile-caret" />
@@ -65,7 +67,7 @@ export function ProfileMenu({
 
       {open && (
         <div className="profile-pop">
-          <div className="profile-pop-title">프로필</div>
+          <div className="profile-pop-title">{t('title')}</div>
           {profiles.map((p) => (
             <button key={p.id} className={`profile-row${p.id === activeId ? ' active' : ''}`} onClick={() => switchTo(p.id)}>
               <div className="avatar sm">{p.name.slice(0, 1).toUpperCase()}</div>
@@ -83,7 +85,7 @@ export function ProfileMenu({
               onAddProfile()
             }}
           >
-            <Plus size={15} /> 프로필 추가
+            <Plus size={15} /> {t('add')}
           </button>
         </div>
       )}

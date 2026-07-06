@@ -1,0 +1,40 @@
+{
+  "sources": {
+    "all": "All sources",
+    "purview": "Purview unified audit",
+    "entra_audit": "Entra directory audit",
+    "entra_signin": "Entra sign-in"
+  },
+  "filters": { "sourceFilter": "Source filter", "dateFrom": "Start date", "dateTo": "End date", "searchPlaceholder": "Search operation/user/app", "apply": "Apply", "reset": "Reset" },
+  "count_other": "{{count}}",
+  "kpis": {
+    "total": "Audit events",
+    "totalFoot": "Filtered results",
+    "blocked": "Blocked/denied",
+    "blockedFoot": "result=denied/blocked",
+    "uniqueUsers": "Unique users",
+    "uniqueUsersFoot": "Distinct actors",
+    "topOperation": "Top operation",
+    "topOperationFoot_other": "{{count}}"
+  },
+  "diagnostics": {
+    "title": "Admin diagnostics",
+    "subtitle": "OK {{ok}} · Forbidden {{forbidden}} · Not found {{notFound}}"
+  },
+  "columns": {
+    "diagLabel": "Diagnostic",
+    "endpoint": "Endpoint",
+    "status": "Status",
+    "summary": "Summary",
+    "capturedAt": "Captured at",
+    "time": "Time",
+    "source": "Source",
+    "user": "User",
+    "operation": "Operation",
+    "workload": "Workload",
+    "app": "App",
+    "result": "Result"
+  },
+  "rawAuditEventTitle": "Raw audit event",
+  "auditEvents": { "title": "Audit events", "subtitle_other": "{{count}} · Latest first" }
+}

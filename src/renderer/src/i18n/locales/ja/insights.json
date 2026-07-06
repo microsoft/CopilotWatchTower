@@ -1,0 +1,36 @@
+{
+  "filters": {
+    "dateFrom": "開始日",
+    "dateTo": "終了日",
+    "userFilter": "ユーザーフィルター",
+    "allUsers": "すべてのユーザー",
+    "appFilter": "アプリフィルター",
+    "allApps": "すべてのアプリ",
+    "apply": "適用",
+    "reset": "リセット"
+  },
+  "kpis": {
+    "activeUsers": "アクティブユーザー",
+    "activeUsersFoot": "全体 {{count}}名",
+    "threads": "スレッド",
+    "threadsFoot": "会話スレッド数",
+    "messages": "メッセージ",
+    "messagesFoot": "プロンプト {{count}}件",
+    "topApp": "最上位アプリ",
+    "topAppFoot": "{{count}}件のメッセージ"
+  },
+  "trend": { "title": "日別アクティビティ推移", "subtitle": "メッセージ · スレッド", "messages": "メッセージ", "threads": "スレッド" },
+  "appMessages": { "title": "アプリ別メッセージ", "subtitle": "上位{{count}}件" },
+  "userSummary": { "title": "ユーザー別アクティビティ概要", "countSuffix": "{{count}}名" },
+  "columns": {
+    "name": "ユーザー",
+    "activeDays": "活動日数",
+    "threads": "スレッド",
+    "messages": "メッセージ",
+    "prompts": "プロンプト",
+    "responses": "応答",
+    "apps": "アプリ",
+    "topApp": "最上位アプリ",
+    "lastActivity": "最終活動"
+  }
+}

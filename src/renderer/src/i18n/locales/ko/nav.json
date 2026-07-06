@@ -1,0 +1,38 @@
+{
+  "brandTagline": "Copilot 거버넌스",
+  "sections": {
+    "dashboard": "대시보드",
+    "usage": "사용량 분석",
+    "governance": "거버넌스",
+    "collection": "데이터 수집",
+    "management": "관리"
+  },
+  "locked": "현재 라이선스 구성에서 잠김",
+  "routes": {
+    "home": { "title": "대시보드", "subtitle": "Copilot 사용 현황 및 주요 지표를 한눈에 확인하세요." },
+    "insights": { "title": "사용 인사이트", "subtitle": "사용 패턴과 추세를 분석합니다." },
+    "conversationsApi": { "title": "대화 탐색(API)", "subtitle": "Graph API로 수집된 Copilot 대화를 살펴봅니다." },
+    "conversationsEdiscovery": { "title": "대화 탐색(e-Discovery)", "subtitle": "e-Discovery로 수집된 대화를 살펴봅니다." },
+    "conversationsDataverse": { "title": "대화 탐색(Teams)", "subtitle": "Teams(Dataverse) 대화를 살펴봅니다." },
+    "agents": { "title": "에이전트", "subtitle": "에이전트 활동과 크레딧 소비를 확인합니다." },
+    "security": { "title": "보안 / 감사", "subtitle": "감사 로그와 접근 이벤트를 검토합니다." },
+    "reports": { "title": "공식 보고서", "subtitle": "관리 센터 공식 사용 보고서를 확인합니다." },
+    "consumption": { "title": "파워플랫폼 크레딧", "subtitle": "크레딧 소비와 할당을 추적합니다." },
+    "agentCredit": { "title": "에이전트 크레딧 분석", "subtitle": "에이전트별 크레딧 소비를 분석합니다." },
+    "creditAlerts": { "title": "크레딧 알람", "subtitle": "임계값 기반 크레딧 알림을 관리합니다." },
+    "collectOverview": { "title": "수집 개요", "subtitle": "데이터 수집 상태와 소스를 관리합니다." },
+    "collectConversation": { "title": "대화 수집(API)", "subtitle": "Graph API 대화 수집 현황과 실행 기록을 확인합니다." },
+    "ediscovery": { "title": "대화 수집(e-Discovery)", "subtitle": "e-Discovery 내보내기와 가져오기를 관리합니다." },
+    "collectTranscripts": { "title": "대화 수집(Teams)", "subtitle": "Teams 대화(Dataverse) 수집을 관리합니다." },
+    "collectDiagnostics": { "title": "에이전트 진단 수집", "subtitle": "Copilot 관리 API 진단 결과를 확인합니다." },
+    "collectConsumption": { "title": "크레딧 데이터 수집", "subtitle": "포털 로그인으로 파워플랫폼 크레딧 데이터를 수집합니다." },
+    "collectFlowRuns": { "title": "에이전트 실행(플로우)", "subtitle": "플로우 실행 기록을 수집·확인합니다." },
+    "collectAgentDefs": { "title": "에이전트 위험 분석", "subtitle": "에이전트 정의를 정적 분석해 위험도를 점수화합니다." },
+    "collectAudit": { "title": "감사 이벤트", "subtitle": "Purview·Entra 감사 이벤트 수집 상태를 확인합니다." },
+    "collectUsage": { "title": "공식 사용량", "subtitle": "관리 센터 공식 사용량 스냅샷을 확인합니다." },
+    "backupRestore": { "title": "백업·복원", "subtitle": "데이터베이스 백업과 복원을 관리합니다." },
+    "dataExport": { "title": "내보내기", "subtitle": "수집한 데이터를 CSV/JSON 파일로 내보냅니다." },
+    "theme": { "title": "테마", "subtitle": "색 테마를 미리보고 선택합니다." },
+    "settings": { "title": "설정", "subtitle": "프로필, 테넌트, 앱 환경을 구성합니다." }
+  }
+}

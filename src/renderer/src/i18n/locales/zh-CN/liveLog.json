@@ -1,0 +1,33 @@
+{
+  "title": "实时日志",
+  "status": {
+    "running": "进行中",
+    "done": "完成",
+    "idle": "空闲"
+  },
+  "lineCount_other": "{{count}}行",
+  "copy": "复制",
+  "copyTitle": "复制日志",
+  "clear": "清除",
+  "clearTitle": "清除日志",
+  "empty": "开始收集后，进度日志将实时显示在此处。",
+  "runs": {
+    "conversation": { "start": "开始收集对话…", "done": "完成: 用户 {{users}} 人 · 新增交互 {{interactions}} 条" },
+    "audit": { "start": "开始收集审计事件…", "done": "完成: 审计事件 {{audit}} 条" },
+    "usage": { "start": "开始收集使用情况报告…", "done": "完成: 快照 {{usage}} 行" },
+    "diagnostics": { "start": "开始代理诊断…", "done": "完成: 代理清单 {{agents}} 个" },
+    "transcripts": { "start": "开始收集 Teams 对话…", "done": "完成: 环境 {{environments}} · 对话 {{transcripts}} · 轮次 {{rows}}" },
+    "flowruns": { "start": "开始收集流程运行…", "done": "完成: 环境 {{environments}} · 运行 {{runs}} 次" },
+    "agentdefs": { "start": "开始分析代理定义…", "done": "完成: 环境 {{environments}} · 代理 {{agents}} 个已评分" },
+    "consumption": { "start": "开始收集消耗报告…", "done": "完成: 消耗 {{rows}} 行" }
+  },
+  "userScoped": {
+    "start": "仅收集 {{label}} 用户…",
+    "done": "完成: {{label}} · 新增 {{count}} 条"
+  },
+  "errors": {
+    "prefix": "错误: {{message}}",
+    "no-credentials": "需要应用注册(凭据)。请在设置中配置。",
+    "already-running": "收集已在进行中。"
+  }
+}

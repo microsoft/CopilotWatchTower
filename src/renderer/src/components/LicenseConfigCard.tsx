@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { ScanSearch, Save, Lock, Unlock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { invoke } from '../lib/api'
 import {
-  CAPABILITY_LABEL,
+  capabilityLabel,
   setCapabilitiesLocal,
   useCapabilities,
   type CapabilityKey,
@@ -11,37 +12,33 @@ import {
 
 type Flags = { copilot_seats: boolean; e5: boolean; agent_inventory: boolean }
 
-const PRESET_OPTIONS: Array<{ key: string; label: string; flags: Flags }> = [
-  { key: 'me3', label: 'ME3 (Copilot 없음)', flags: { copilot_seats: false, e5: false, agent_inventory: false } },
-  { key: 'me3_copilot', label: 'ME3 + Copilot', flags: { copilot_seats: true, e5: false, agent_inventory: false } },
-  { key: 'me5_copilot', label: 'ME5 + Copilot', flags: { copilot_seats: true, e5: true, agent_inventory: false } },
-  { key: 'agent365', label: '+ Agent365', flags: { copilot_seats: true, e5: true, agent_inventory: true } }
-]
+const PRESET_FLAGS: Record<string, Flags> = {
+  me3: { copilot_seats: false, e5: false, agent_inventory: false },
+  me3_copilot: { copilot_seats: true, e5: false, agent_inventory: false },
+  me5_copilot: { copilot_seats: true, e5: true, agent_inventory: false },
+  agent365: { copilot_seats: true, e5: true, agent_inventory: true }
+}
+const PRESET_KEYS = ['me3', 'me3_copilot', 'me5_copilot', 'agent365'] as const
 
 const CAPS: CapabilityKey[] = ['copilot_seats', 'e5', 'agent_inventory']
 
 function presetForFlags(f: Flags): string {
-  const hit = PRESET_OPTIONS.find(
-    (p) =>
-      p.flags.copilot_seats === f.copilot_seats &&
-      p.flags.e5 === f.e5 &&
-      p.flags.agent_inventory === f.agent_inventory
+  const hit = PRESET_KEYS.find(
+    (k) =>
+      PRESET_FLAGS[k].copilot_seats === f.copilot_seats &&
+      PRESET_FLAGS[k].e5 === f.e5 &&
+      PRESET_FLAGS[k].agent_inventory === f.agent_inventory
   )
-  return hit?.key ?? 'custom'
-}
-
-const SOURCE_LABEL: Record<string, string> = {
-  default: '미설정 (모든 기능 허용)',
-  manual: '수동 지정',
-  detected: '자동 감지'
+  return hit ?? 'custom'
 }
 
 /**
  * Settings card to choose the tenant's M365 license configuration. The choice
- * is the source of truth for feature gating (capabilities.py parity). "감지하여
- * 채우기" pre-fills from subscribedSkus but never auto-saves.
+ * is the source of truth for feature gating (capabilities.py parity). Detect
+ * pre-fills from subscribedSkus but never auto-saves.
  */
 export function LicenseConfigCard(): JSX.Element {
+  const { t } = useTranslation('licenseConfig')
   const profile = useCapabilities()
   const [draft, setDraft] = useState<Flags>({
     copilot_seats: profile.copilot_seats,
@@ -58,8 +55,8 @@ export function LicenseConfigCard(): JSX.Element {
   const presetKey = presetForFlags(draft)
 
   function applyPreset(k: string): void {
-    const o = PRESET_OPTIONS.find((p) => p.key === k)
-    if (o) setDraft({ ...o.flags })
+    const flags = PRESET_FLAGS[k]
+    if (flags) setDraft({ ...flags })
     setMsg('')
   }
   function toggle(cap: CapabilityKey): void {
@@ -74,30 +71,34 @@ export function LicenseConfigCard(): JSX.Element {
       })
       if (r.ok && r.capabilities) {
         setCapabilitiesLocal(r.capabilities)
-        setMsg('저장되었습니다. 사이드바 잠금이 갱신됩니다.')
+        setMsg(t('messages.saved'))
       } else {
-        setMsg(`저장 실패: ${r.error ?? '알 수 없는 오류'}`)
+        setMsg(t('messages.saveFailed', { error: r.error ?? t('unknownError') }))
       }
     } catch {
-      setMsg('저장 중 오류가 발생했습니다.')
+      setMsg(t('messages.saveError'))
     } finally {
       setBusy('idle')
     }
   }
   async function detect(): Promise<void> {
     setBusy('detecting')
-    setMsg('테넌트 SKU를 감지하는 중…')
+    setMsg(t('messages.detecting'))
     try {
       const r = await invoke<{ ok: boolean; capabilities?: CapabilityProfile; error?: string }>('capabilities_suggest')
       if (r.ok && r.capabilities) {
         const c = r.capabilities
         setDraft({ copilot_seats: c.copilot_seats, e5: c.e5, agent_inventory: c.agent_inventory })
-        setMsg('감지 완료 — 검토 후 [저장]을 눌러 적용하세요.')
+        setMsg(t('messages.detected'))
       } else {
-        setMsg(`감지 실패: ${r.error === 'no-credentials' ? '온보딩이 완료되지 않았습니다.' : r.error ?? '오류'}`)
+        setMsg(
+          t('messages.detectFailed', {
+            error: r.error === 'no-credentials' ? t('messages.detectFailedNoCreds') : r.error ?? t('unknownError')
+          })
+        )
       }
     } catch {
-      setMsg('감지 중 오류가 발생했습니다.')
+      setMsg(t('messages.detectError'))
     } finally {
       setBusy('idle')
     }
@@ -106,27 +107,24 @@ export function LicenseConfigCard(): JSX.Element {
   return (
     <div className="card">
       <div className="card-head">
-        <h2>라이선스 구성</h2>
+        <h2>{t('title')}</h2>
         <span className={`hint cap-source cap-source-${profile.source}`}>
           {profile.source === 'default' ? <Unlock size={13} /> : <Lock size={13} />}
-          {SOURCE_LABEL[profile.source] ?? profile.source}
+          {t(`source.${profile.source}`, { defaultValue: profile.source })}
         </span>
       </div>
       <div className="card-body">
-        <p className="muted cap-desc">
-          테넌트의 Microsoft 365 라이선스 구성을 지정하면, 사용할 수 없는 기능(대화 탐색(API)·공식 보고서·공식 사용량·에이전트)이
-          자동으로 잠깁니다. 지정 전에는 모든 기능이 열려 있습니다.
-        </p>
+        <p className="muted cap-desc">{t('desc')}</p>
 
         <label className="cap-field">
-          <span className="cap-label">프리셋</span>
+          <span className="cap-label">{t('presetLabel')}</span>
           <select className="cap-select" value={presetKey} onChange={(e) => applyPreset(e.target.value)}>
-            {PRESET_OPTIONS.map((p) => (
-              <option key={p.key} value={p.key}>
-                {p.label}
+            {PRESET_KEYS.map((k) => (
+              <option key={k} value={k}>
+                {t(`presets.${k}`)}
               </option>
             ))}
-            <option value="custom">사용자 지정</option>
+            <option value="custom">{t('customOption')}</option>
           </select>
         </label>
 
@@ -134,7 +132,7 @@ export function LicenseConfigCard(): JSX.Element {
           {CAPS.map((cap) => (
             <label key={cap} className="cap-toggle">
               <input type="checkbox" checked={draft[cap]} onChange={() => toggle(cap)} />
-              <span>{CAPABILITY_LABEL[cap]}</span>
+              <span>{capabilityLabel(cap)}</span>
             </label>
           ))}
         </div>
@@ -142,11 +140,11 @@ export function LicenseConfigCard(): JSX.Element {
         <div className="cap-actions">
           <button className="btn" onClick={detect} disabled={busy !== 'idle'} type="button">
             <ScanSearch size={15} />
-            감지하여 채우기
+            {t('detect')}
           </button>
           <button className="btn primary" onClick={save} disabled={busy !== 'idle'} type="button">
             <Save size={15} />
-            {busy === 'saving' ? '저장 중…' : '저장'}
+            {busy === 'saving' ? t('saving') : t('save')}
           </button>
           {msg && <span className="cap-msg muted">{msg}</span>}
         </div>

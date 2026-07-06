@@ -1,0 +1,16 @@
+{
+  "collectStart": "収集開始",
+  "kpis": { "total": "総監査イベント", "purview": "Purview", "purviewFoot": "統合監査", "entraAudit": "Entra監査", "entraAuditFoot": "ディレクトリ", "entraSignin": "Entraサインイン" },
+  "sourceStatus": {
+    "title": "収集ソース状態",
+    "count_other": "{{count}}件のソース",
+    "columns": { "source": "ソース", "status": "状態", "last": "最終収集", "count": "件数" },
+    "status": { "error": "エラー", "active": "有効", "inactive": "無効" }
+  },
+  "recent": {
+    "title": "最近の監査イベント",
+    "subtitle_other": "最新{{count}}件",
+    "columns": { "time": "時刻", "source": "ソース", "operation": "操作", "actor": "行為者" },
+    "empty": "まだ収集された監査イベントがありません。収集開始を押してください。"
+  }
+}

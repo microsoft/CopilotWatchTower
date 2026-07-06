@@ -1,0 +1,33 @@
+{
+  "collectButton": "ポータルから消費データを収集",
+  "autoLoginDesc": "設定の<strong>ダウンロードアカウント</strong>(eDiscoveryサービスアカウント)でPower Platform管理センターに自動サインインします。アカウントがない場合はサインイン画面が表示されます。",
+  "trend": { "label": "メッセージ消費" },
+  "kpis": {
+    "purchased": "購入メッセージ",
+    "consumed": "使用メッセージ",
+    "consumedFoot": "購入{{count}}中",
+    "remaining": "残り",
+    "remainingFoot": "残り{{pct}}%",
+    "projectedMonth": "予想月間使用量",
+    "projectedMonthFoot": "現在の傾向に基づく"
+  },
+  "usage": {
+    "title": "クレジット使用量",
+    "asOf": "{{date}}時点",
+    "usedPct": "{{pct}}% 使用",
+    "remaining": "残り{{count}}",
+    "agents": "エージェント",
+    "environments": "環境",
+    "users": "ユーザー"
+  },
+  "dailyTrend": { "title": "日別消費推移", "subtitle": "エージェントメッセージ" },
+  "detail": {
+    "title": "消費詳細",
+    "scopeLabel": "消費分類",
+    "agents": "エージェント",
+    "environments": "環境",
+    "users": "ユーザー",
+    "empty": "収集された消費データがありません。"
+  },
+  "columns": { "agent": "エージェント", "env": "環境", "quantity": "メッセージ消費", "user": "ユーザー", "share": "比率" }
+}

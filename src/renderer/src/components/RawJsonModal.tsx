@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Code2, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 function pretty(data: unknown): string {
   if (data == null) return ''
@@ -13,7 +14,9 @@ function pretty(data: unknown): string {
   return JSON.stringify(data, null, 2)
 }
 
-export function RawJsonButton({ data, title = '원본 JSON' }: { data: unknown; title?: string }): JSX.Element {
+export function RawJsonButton({ data, title }: { data: unknown; title?: string }): JSX.Element {
+  const { t } = useTranslation('rawJson')
+  const resolvedTitle = title ?? t('defaultTitle')
   const [open, setOpen] = useState(false)
   const text = pretty(data)
   return (
@@ -21,7 +24,7 @@ export function RawJsonButton({ data, title = '원본 JSON' }: { data: unknown; 
       <button
         type="button"
         className="rawjson-btn"
-        title={title}
+        title={resolvedTitle}
         onClick={(e) => {
           e.stopPropagation()
           setOpen(true)
@@ -37,12 +40,12 @@ export function RawJsonButton({ data, title = '원본 JSON' }: { data: unknown; 
         >
           <div className="rawjson-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <div className="rawjson-head">
-              <span>{title}</span>
+              <span>{resolvedTitle}</span>
               <button type="button" className="rawjson-close" onClick={() => setOpen(false)}>
                 <X size={16} />
               </button>
             </div>
-            <pre className="rawjson-body">{text || '(비어 있음)'}</pre>
+            <pre className="rawjson-body">{text || t('empty')}</pre>
           </div>
         </div>
       )}

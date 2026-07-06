@@ -1,0 +1,24 @@
+{
+  "collectAll": "Start full collection",
+  "collectAllDesc": "Iterates through all users. Use the “Collect” button in the table below for individual users.",
+  "collectUserTitle": "Recollect this user only",
+  "collectUser": "Collect",
+  "kpis": { "interactions": "Total interactions", "users": "Collected users", "threads": "Conversation threads", "lastRun": "Last collection" },
+  "userStatus": {
+    "title": "Per-user collection status",
+    "count_other": "{{count}}",
+    "searchPlaceholder": "Search user name/ID",
+    "columns": { "user": "User", "count": "Interactions", "last": "Watermark", "backfill": "Backfill" },
+    "backfill": { "done": "Done", "inProgress": "In progress" },
+    "emptyTitle": "No conversations collected yet",
+    "emptyDesc": "Click “Start full collection” above to collect."
+  },
+  "runHistory": {
+    "title": "Collection run history",
+    "count_other": "{{count}} runs",
+    "columns": { "started": "Started", "trigger": "Trigger", "users": "Users", "interactions": "Collected", "status": "Status", "log": "Log" },
+    "status": { "done": "Done", "errorCount": "{{count}} errors", "running": "Running" },
+    "logTitle": "Run log",
+    "emptyTitle": "No run history"
+  }
+}

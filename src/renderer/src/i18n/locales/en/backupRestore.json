@@ -1,0 +1,19 @@
+{
+  "kpis": { "dbSize": "DB size", "totalRecords": "Total records", "totalRecordsFoot_other": "{{count}} tables", "backup": "Backup", "backupValue": "Snapshot", "backupFoot": "Safe copy", "restore": "Restore", "restoreValue": "Replace", "restoreFoot": "Use with caution" },
+  "actions": { "backup": "Backup database", "restore": "Restore from backup", "wipe": "Wipe data" },
+  "confirm": {
+    "restore": "This will overwrite the current database with the selected backup file. Continue?",
+    "wipe": "This will delete all data collected in this profile. Credentials and alert rules are kept.\nContinue?"
+  },
+  "messages": {
+    "chooseBackupLocation": "Choose a backup location…",
+    "backupDone": "Backup complete → {{path}} ({{size}})",
+    "canceled": "Canceled",
+    "error": "Error: {{error}}",
+    "chooseRestoreFile": "Choose a backup file to restore…",
+    "restoreDone": "Restore complete. Refreshing…",
+    "wiping": "Deleting data…",
+    "wipeDone_other": "Reset complete: {{count}} rows deleted. Refreshing…"
+  },
+  "location": { "title": "Database location", "lastModified": "Last modified: {{date}}" }
+}

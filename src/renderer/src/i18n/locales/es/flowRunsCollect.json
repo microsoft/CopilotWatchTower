@@ -1,0 +1,12 @@
+{
+  "collectButton": "Recopilar ejecuciones de flujo desde el portal",
+  "autoLoginDesc": "Inicia sesión automáticamente en el portal de creación usando la <strong>cuenta de descarga</strong> (cuenta de servicio de eDiscovery) de Configuración. Aparecerá una ventana de inicio de sesión si no hay una cuenta configurada.",
+  "kpis": { "runs": "Ejecuciones totales", "failed": "Fallidas", "flows": "Flujos", "environments": "Entornos" },
+  "recent": {
+    "title": "Ejecuciones de flujo recientes",
+    "subtitle_other": "Últimas {{count}}",
+    "columns": { "time": "Hora", "flow": "Flujo", "env": "Entorno", "status": "Estado", "reason": "Motivo" },
+    "empty": "Aún no se han recopilado ejecuciones de flujo. Use el botón de arriba para iniciar sesión en el portal de creación y recopilar.",
+    "rawTitle": "JSON sin procesar de la ejecución de flujo"
+  }
+}

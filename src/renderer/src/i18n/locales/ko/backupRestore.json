@@ -1,0 +1,19 @@
+{
+  "kpis": { "dbSize": "DB 크기", "totalRecords": "총 레코드", "totalRecordsFoot_other": "{{count}} 테이블", "backup": "백업", "backupValue": "스냅샷", "backupFoot": "안전한 복사본", "restore": "복원", "restoreValue": "교체", "restoreFoot": "주의 필요" },
+  "actions": { "backup": "데이터베이스 백업", "restore": "백업에서 복원", "wipe": "데이터 초기화" },
+  "confirm": {
+    "restore": "현재 데이터베이스를 선택한 백업 파일로 덮어씁니다. 계속할까요?",
+    "wipe": "이 프로필에 수집된 모든 데이터를 삭제합니다. 자격 증명과 알람 규칙은 유지됩니다.\n계속할까요?"
+  },
+  "messages": {
+    "chooseBackupLocation": "백업 위치를 선택하세요…",
+    "backupDone": "백업 완료 → {{path}} ({{size}})",
+    "canceled": "취소됨",
+    "error": "오류: {{error}}",
+    "chooseRestoreFile": "복원할 백업 파일을 선택하세요…",
+    "restoreDone": "복원 완료. 새로고침합니다…",
+    "wiping": "데이터를 삭제하는 중…",
+    "wipeDone_other": "초기화 완료: {{count}}행 삭제됨. 새로고침합니다…"
+  },
+  "location": { "title": "데이터베이스 위치", "lastModified": "마지막 수정: {{date}}" }
+}

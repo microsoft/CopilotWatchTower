@@ -1,0 +1,18 @@
+{
+  "title": "eDiscovery download account (ME3 auto-download)",
+  "status": { "configured": "Configured", "notConfigured": "Not configured" },
+  "desc": "eDiscovery Standard (ME3) tenants require a browser sign-in to download exports. Registering a dedicated non-MFA service account here enables automatic download with no sign-in prompt. (MFA accounts still require manual approval in the window after auto-fill.) The password is encrypted with Windows DPAPI and stored only in this profile on this PC.",
+  "userPlaceholder": "Service account (user@tenant)",
+  "passwordPlaceholder": "Password",
+  "save": "Save",
+  "delete": "Delete",
+  "unknownError": "Error",
+  "messages": {
+    "missingInput": "Enter the service account and password.",
+    "saved": "Saved — the next ME3 download will run automatically with no sign-in prompt.",
+    "saveFailed": "Save failed: {{error}}",
+    "saveError": "An error occurred while saving.",
+    "cleared": "Credentials removed.",
+    "clearError": "An error occurred while deleting."
+  }
+}

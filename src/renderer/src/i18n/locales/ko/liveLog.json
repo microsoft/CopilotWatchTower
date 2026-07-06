@@ -1,0 +1,33 @@
+{
+  "title": "실시간 로그",
+  "status": {
+    "running": "진행 중",
+    "done": "완료",
+    "idle": "대기"
+  },
+  "lineCount_other": "{{count}}줄",
+  "copy": "복사",
+  "copyTitle": "로그 복사",
+  "clear": "지우기",
+  "clearTitle": "로그 지우기",
+  "empty": "수집을 시작하면 진행 로그가 실시간으로 표시됩니다.",
+  "runs": {
+    "conversation": { "start": "대화 수집을 시작합니다…", "done": "완료: 사용자 {{users}}명 · 신규 상호작용 {{interactions}}건" },
+    "audit": { "start": "감사 이벤트 수집을 시작합니다…", "done": "완료: 감사 이벤트 {{audit}}건" },
+    "usage": { "start": "사용 리포트 수집을 시작합니다…", "done": "완료: 스냅샷 {{usage}}행" },
+    "diagnostics": { "start": "에이전트 진단을 시작합니다…", "done": "완료: 에이전트 인벤토리 {{agents}}개" },
+    "transcripts": { "start": "Teams 대화 수집을 시작합니다…", "done": "완료: 환경 {{environments}} · 대화 {{transcripts}} · 턴 {{rows}}" },
+    "flowruns": { "start": "플로우 실행 수집을 시작합니다…", "done": "완료: 환경 {{environments}} · 실행 {{runs}}건" },
+    "agentdefs": { "start": "에이전트 정의 분석을 시작합니다…", "done": "완료: 환경 {{environments}} · 에이전트 {{agents}}개 점수화" },
+    "consumption": { "start": "소비량 리포트 수집을 시작합니다…", "done": "완료: 소비량 {{rows}}행" }
+  },
+  "userScoped": {
+    "start": "{{label}} 사용자만 수집합니다…",
+    "done": "완료: {{label}} · 신규 {{count}}건"
+  },
+  "errors": {
+    "prefix": "오류: {{message}}",
+    "no-credentials": "앱 등록(자격 증명)이 필요합니다. 설정에서 구성하세요.",
+    "already-running": "이미 수집이 실행 중입니다."
+  }
+}

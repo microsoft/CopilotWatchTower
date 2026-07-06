@@ -1,0 +1,68 @@
+{
+  "stage": {
+    "pending": "Pendiente",
+    "preflight": "Comprobando permisos",
+    "case": "Creando caso",
+    "searching": "Buscando",
+    "exporting": "Exportando",
+    "downloading": "Descargando",
+    "parsing": "Analizando",
+    "done": "Completado",
+    "error": "Error"
+  },
+  "errors": {
+    "no-tenant": "No hay información del inquilino. Complete primero la incorporación.",
+    "no-upn": "Ingrese el UPN del usuario objetivo.",
+    "already-running": "Ya hay una recopilación en curso."
+  },
+  "log": {
+    "resuming": "Reanudando la recopilación…",
+    "starting": "Iniciando recopilación: {{upn}}",
+    "done_other": "Completado · {{count}} interacciones",
+    "error": "Error: {{message}}",
+    "stopRequested": "Detención solicitada…",
+    "jobAndConvDeleted": "Trabajo y conversaciones eliminados ({{interactions}} conversaciones · {{threads}} hilos)",
+    "jobOnlyDeleted": "Solo se eliminó el registro del trabajo",
+    "jobDeleteFailed": "Error al eliminar el trabajo: {{message}}",
+    "jobDeleteFailedWhileCollecting": "No se puede eliminar mientras se recopila.",
+    "jobDeleteError": "Error al eliminar el trabajo: {{message}}"
+  },
+  "startCard": {
+    "title": "Iniciar nueva recopilación",
+    "subtitle": "Purview eDiscovery · Reutiliza automáticamente el inicio de sesión de incorporación",
+    "desc": "Recopile las solicitudes/respuestas de Copilot en Microsoft Purview eDiscovery especificando un usuario objetivo (UPN) y un rango de fechas opcional. Reutiliza automáticamente el inicio de sesión de incorporación, por lo que no se necesita iniciar sesión adicionalmente (el código de dispositivo solo aparece como respaldo). Los trabajos detenidos o fallidos se pueden reanudar desde el historial de abajo.",
+    "upnPlaceholder": "UPN del usuario objetivo (user@tenant)",
+    "startDateTitle": "Fecha de inicio (opcional)",
+    "endDateTitle": "Fecha de fin (opcional)",
+    "stop": "Detener",
+    "start": "Iniciar recopilación"
+  },
+  "kpis": { "jobs": "Trabajos", "jobsFoot": "Trabajos de recopilación acumulados", "running": "En curso", "runningFoot": "Recopilación en progreso", "items": "Elementos importados", "itemsFoot": "Conversaciones", "failed": "Fallidos", "failedFoot": "Se pueden reintentar" },
+  "jobHistory": {
+    "title": "Historial de trabajos de recopilación",
+    "count_other": "{{count}}",
+    "columns": { "target": "Destino", "status": "Estado", "window": "Rango", "added": "Agregado", "updated": "Actualizado" },
+    "empty": "Aún no hay trabajos de recopilación. Inicie una nueva recopilación arriba.",
+    "resume": "Reanudar",
+    "rawTitle": "Trabajo sin procesar · {{target}}",
+    "deleteTitle": "Eliminar registro del trabajo"
+  },
+  "credentials": {
+    "title": "Cuenta de descarga (descarga automática ME3)",
+    "configured": "Configurada",
+    "notConfigured": "Sin configurar",
+    "desc": "Los inquilinos de eDiscovery Standard (ME3) requieren un inicio de sesión en el navegador para descargar exportaciones. Registrar una cuenta de servicio dedicada sin MFA permite la descarga automática sin solicitud de inicio de sesión. (Las cuentas con MFA aún requieren aprobación manual en la ventana después del autocompletado.) La contraseña se cifra con Windows DPAPI y se almacena solo en este perfil en este equipo.",
+    "userPlaceholder": "Cuenta de servicio (user@tenant)",
+    "passwordPlaceholder": "Contraseña",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "messages": {
+      "missingInput": "Ingrese la cuenta y la contraseña.",
+      "saved": "Guardado — la próxima descarga ME3 se ejecutará automáticamente sin solicitud de inicio de sesión.",
+      "saveFailed": "Error al guardar: {{error}}",
+      "saveError": "Ocurrió un error al guardar.",
+      "cleared": "Credenciales eliminadas.",
+      "clearError": "Ocurrió un error al eliminar."
+    }
+  }
+}

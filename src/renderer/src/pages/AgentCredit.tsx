@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Bot, Coins, Boxes, Crown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Kpi } from '../components/Kpi'
 import { invoke } from '../lib/api'
+import { useNumberFormat } from '../lib/format'
 
 interface AgentRow {
   name: string
@@ -19,11 +21,9 @@ const FALLBACK: DTO = {
   agents: []
 }
 
-function n(v: number): string {
-  return v.toLocaleString('ko-KR')
-}
-
 export function AgentCredit(): JSX.Element {
+  const { t } = useTranslation('agentCredit')
+  const n = useNumberFormat()
   const [d, setD] = useState<DTO>(FALLBACK)
   useEffect(() => {
     invoke<DTO | null>('agent_credit_overview')
@@ -36,31 +36,31 @@ export function AgentCredit(): JSX.Element {
   return (
     <div className="content">
       <div className="kpi-row">
-        <Kpi icon={<Bot />} label="소비 에이전트" value={n(d.kpis.agents)} foot="MCSMessages" />
-        <Kpi icon={<Coins />} label="총 메시지" value={n(d.kpis.messages)} foot="소비량" />
-        <Kpi icon={<Boxes />} label="환경" value={n(d.kpis.environments)} foot="environments" />
-        <Kpi icon={<Crown />} label="최다 소비" value={d.kpis.top} foot="top agent" />
+        <Kpi icon={<Bot />} label={t('kpis.agents')} value={n(d.kpis.agents)} foot="MCSMessages" />
+        <Kpi icon={<Coins />} label={t('kpis.messages')} value={n(d.kpis.messages)} foot={t('kpis.messagesFoot')} />
+        <Kpi icon={<Boxes />} label={t('kpis.environments')} value={n(d.kpis.environments)} foot="environments" />
+        <Kpi icon={<Crown />} label={t('kpis.top')} value={d.kpis.top} foot="top agent" />
       </div>
 
       <div className="card">
         <div className="card-head">
-          <h2>에이전트별 메시지 소비</h2>
-          <span className="hint">상위 {d.agents.length}개</span>
+          <h2>{t('table.title')}</h2>
+          <span className="hint">{t('table.subtitle', { count: d.agents.length })}</span>
         </div>
         <table className="table">
           <thead>
             <tr>
-              <th>에이전트</th>
-              <th>환경</th>
-              <th>메시지</th>
-              <th>비중</th>
+              <th>{t('columns.agent')}</th>
+              <th>{t('columns.env')}</th>
+              <th>{t('columns.messages')}</th>
+              <th>{t('columns.share')}</th>
             </tr>
           </thead>
           <tbody>
             {d.agents.length === 0 ? (
               <tr>
                 <td colSpan={4} className="muted">
-                  에이전트 소비 데이터가 없습니다. 크레딧 데이터 수집(포털)을 먼저 실행하세요.
+                  {t('table.empty')}
                 </td>
               </tr>
             ) : (

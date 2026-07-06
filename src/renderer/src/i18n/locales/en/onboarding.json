@@ -1,0 +1,31 @@
+{
+  "modalTitle": "New profile · Tenant onboarding",
+  "idle": {
+    "intro": "Signing in with an admin account automatically registers a collection Entra app for this tenant and starts admin consent.",
+    "nameLabel": "Profile name (optional)",
+    "namePlaceholder": "e.g. contoso",
+    "edUserLabel": "eDiscovery download account (optional · ME3 auto-download)",
+    "edUserPlaceholder": "Service account (user@tenant)",
+    "edPasswordPlaceholder": "Password (non-MFA account)",
+    "hint": "ME3 tenants require a browser sign-in to download eDiscovery exports. Registering an account here enables automatic download with no sign-in prompt. You can also add it later in Settings.",
+    "start": "Start onboarding"
+  },
+  "running": {
+    "deviceCodeIntro": "Enter the code below, sign in as an admin, and complete the consent prompt.",
+    "copy": "Copy",
+    "openLogin": "Open sign-in page",
+    "preparing": "Preparing sign-in…"
+  },
+  "done": {
+    "title": "Onboarding complete",
+    "desc": "Switching to the new profile…"
+  },
+  "retry": "Retry",
+  "errors": {
+    "consent-denied": "Admin consent was denied, or app registration may not have propagated yet. Please wait a moment and press “Retry”. On the consent screen you must click “Accept”, and you must be a Global Administrator.",
+    "consent-access_denied": "Admin consent was denied. Please sign in as a Global Administrator and click “Accept” on the consent screen.",
+    "consent-timeout": "The consent wait time (5 minutes) has expired. Please try again.",
+    "consent-state-mismatch": "Security verification (state) failed. Please try again.",
+    "already-running": "Onboarding is already in progress."
+  }
+}

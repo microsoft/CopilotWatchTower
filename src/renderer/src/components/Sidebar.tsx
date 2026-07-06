@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Home,
   BarChart3,
@@ -29,63 +30,57 @@ import { useCapabilities, gateFor } from '../lib/capabilities'
 
 interface Item {
   key: string
-  label: string
   icon: LucideIcon
 }
 interface Section {
   id: string
-  title: string
   items: Item[]
 }
 
 const SECTIONS: Section[] = [
-  { id: 'dashboard', title: '대시보드', items: [{ key: 'home', label: '대시보드', icon: Home }] },
+  { id: 'dashboard', items: [{ key: 'home', icon: Home }] },
   {
     id: 'usage',
-    title: '사용량 분석',
     items: [
-      { key: 'insights', label: '사용 인사이트', icon: BarChart3 },
-      { key: 'conversationsApi', label: '대화 탐색(API)', icon: MessageSquareText },
-      { key: 'conversationsEdiscovery', label: '대화 탐색(e-Discovery)', icon: SearchCheck },
-      { key: 'conversationsDataverse', label: '대화 탐색(Teams)', icon: Bot },
-      { key: 'agents', label: '에이전트', icon: Bot }
+      { key: 'insights', icon: BarChart3 },
+      { key: 'conversationsApi', icon: MessageSquareText },
+      { key: 'conversationsEdiscovery', icon: SearchCheck },
+      { key: 'conversationsDataverse', icon: Bot },
+      { key: 'agents', icon: Bot }
     ]
   },
   {
     id: 'governance',
-    title: '거버넌스',
     items: [
-      { key: 'security', label: '보안/감사', icon: ShieldCheck },
-      { key: 'reports', label: '공식 보고서', icon: ClipboardList },
-      { key: 'consumption', label: '파워플랫폼 크레딧', icon: Coins },
-      { key: 'agentCredit', label: '에이전트 크레딧 분석', icon: BarChart3 },
-      { key: 'creditAlerts', label: '크레딧 알람', icon: AlertTriangle }
+      { key: 'security', icon: ShieldCheck },
+      { key: 'reports', icon: ClipboardList },
+      { key: 'consumption', icon: Coins },
+      { key: 'agentCredit', icon: BarChart3 },
+      { key: 'creditAlerts', icon: AlertTriangle }
     ]
   },
   {
     id: 'collection',
-    title: '데이터 수집',
     items: [
-      { key: 'collectOverview', label: '개요', icon: Info },
-      { key: 'collectConversation', label: '대화 수집(API)', icon: MessageSquareText },
-      { key: 'ediscovery', label: '대화 수집(e-Discovery)', icon: FileSearch },
-      { key: 'collectTranscripts', label: '대화 수집(Teams)', icon: Bot },
-      { key: 'collectDiagnostics', label: '에이전트', icon: Bot },
-      { key: 'collectConsumption', label: '파워플랫폼 크레딧', icon: Coins },
-      { key: 'collectFlowRuns', label: '에이전트 실행(플로우)', icon: Workflow },
-      { key: 'collectAgentDefs', label: '에이전트 위험 분석', icon: ShieldAlert },
-      { key: 'collectAudit', label: '감사 이벤트', icon: ShieldAlert },
-      { key: 'collectUsage', label: '공식 사용량', icon: Activity }
+      { key: 'collectOverview', icon: Info },
+      { key: 'collectConversation', icon: MessageSquareText },
+      { key: 'ediscovery', icon: FileSearch },
+      { key: 'collectTranscripts', icon: Bot },
+      { key: 'collectDiagnostics', icon: Bot },
+      { key: 'collectConsumption', icon: Coins },
+      { key: 'collectFlowRuns', icon: Workflow },
+      { key: 'collectAgentDefs', icon: ShieldAlert },
+      { key: 'collectAudit', icon: ShieldAlert },
+      { key: 'collectUsage', icon: Activity }
     ]
   },
   {
     id: 'management',
-    title: '관리',
     items: [
-      { key: 'backupRestore', label: '백업·복원', icon: DatabaseBackup },
-      { key: 'dataExport', label: '내보내기', icon: Download },
-      { key: 'theme', label: '테마', icon: Palette },
-      { key: 'settings', label: '설정', icon: Settings }
+      { key: 'backupRestore', icon: DatabaseBackup },
+      { key: 'dataExport', icon: Download },
+      { key: 'theme', icon: Palette },
+      { key: 'settings', icon: Settings }
     ]
   }
 ]
@@ -100,6 +95,7 @@ interface Props {
 const SIDEBAR_OPEN_KEY = 'cwt-sidebar-open'
 
 export function Sidebar({ active, onSelect, info, onAddProfile }: Props): JSX.Element {
+  const { t } = useTranslation('nav')
   const caps = useCapabilities()
   const [open, setOpen] = useState<Set<string>>(() => {
     try {
@@ -133,7 +129,7 @@ export function Sidebar({ active, onSelect, info, onAddProfile }: Props): JSX.El
         </div>
         <div>
           <div className="brand-name">CopilotWatchTower</div>
-          <div className="brand-sub">Copilot 거버넌스</div>
+          <div className="brand-sub">{t('brandTagline')}</div>
         </div>
       </div>
 
@@ -142,7 +138,7 @@ export function Sidebar({ active, onSelect, info, onAddProfile }: Props): JSX.El
         return (
           <div className="nav-section" key={section.id}>
             <button className="nav-section-header" onClick={() => toggle(section.id)} type="button">
-              <span>{section.title}</span>
+              <span>{t(`sections.${section.id}`)}</span>
               <ChevronRight className={`nav-chevron${isOpen ? ' open' : ''}`} size={14} />
             </button>
             {isOpen && (
@@ -155,10 +151,10 @@ export function Sidebar({ active, onSelect, info, onAddProfile }: Props): JSX.El
                       key={item.key}
                       className={`nav-item${active === item.key ? ' active' : ''}${locked ? ' locked' : ''}`}
                       onClick={() => onSelect(item.key)}
-                      title={locked ? '현재 라이선스 구성에서 잠김' : undefined}
+                      title={locked ? t('locked') : undefined}
                     >
                       <Icon />
-                      <span>{item.label}</span>
+                      <span>{t(`routes.${item.key}.title`)}</span>
                       {locked && <Lock className="nav-lock" size={13} />}
                     </button>
                   )

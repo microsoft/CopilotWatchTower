@@ -1,0 +1,24 @@
+{
+  "evaluateNow": "Evaluate now",
+  "evaluating": "Evaluating rules…",
+  "evaluated": "Evaluation complete: {{count}} (new {{newCount}})",
+  "error": "Error: {{error}}",
+  "ruleLabel": {
+    "agent_daily_abs": "Agent daily limit",
+    "user_daily_abs": "User daily limit",
+    "spike": "Spike detection",
+    "monthly_budget": "Monthly budget exceeded",
+    "flow_spike": "Flow spike",
+    "flow_fail_loop": "Flow failure loop",
+    "runaway_autonomous": "Runaway autonomous execution",
+    "high_risk_agent": "High-risk agent"
+  },
+  "rules": { "title": "Active alert rules", "activeCount_other": "{{count}} active" },
+  "fired": {
+    "title": "Fired alerts",
+    "activeCount_other": "{{count}} active",
+    "empty": "No alerts have fired. Collect data, then click “Evaluate now”."
+  },
+  "columns": { "rule": "Rule", "target": "Target", "valueVsThreshold": "Value / threshold", "severity": "Severity" },
+  "severity": { "danger": "Danger", "warn": "Warning" }
+}

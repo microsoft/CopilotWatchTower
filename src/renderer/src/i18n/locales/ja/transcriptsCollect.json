@@ -1,0 +1,15 @@
+{
+  "collectButton": "ポータルから会話を収集",
+  "teamsOnly": "Teamsチャネルのみ収集(オフにするとウェブチャット・Direct Lineなど全チャネル)",
+  "addAdmin": "アクセス権限のない環境では自分をシステム管理者として自動追加",
+  "autoLoginDesc": "設定の<strong1>ダウンロードアカウント</strong1>(eDiscoveryサービスアカウント)で自動サインインします。アカウントがない場合はサインイン画面が表示されます。既定では<strong2>すべてのチャネル</strong2>(Teams・ウェブチャット・Direct Lineなど)の会話を収集し、「Teamsチャネルのみ」をオンにするとTeams会話のみ残ります。「自分をシステム管理者として自動追加」をオンにすると、アクセス権限のない環境に限り管理センターで自分をシステム管理者として追加してから再試行します。",
+  "kpis": { "interactions": "収集ターン", "interactionsFoot": "Dataverse会話", "users": "ユーザー", "threads": "スレッド", "apps": "チャネル" },
+  "history": {
+    "title": "収集実行履歴",
+    "subtitle_other": "直近{{count}}回",
+    "columns": { "started": "開始", "trigger": "トリガー", "environments": "環境", "transcripts": "会話", "rows": "ターン", "status": "状態", "log": "ログ" },
+    "status": { "done": "完了", "errorCount": "エラー{{count}}", "running": "実行中" },
+    "logTitle": "実行ログ",
+    "empty": "まだ収集実行履歴がありません。上のボタンで収集を開始してください。"
+  }
+}

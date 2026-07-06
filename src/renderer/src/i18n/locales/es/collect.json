@@ -1,0 +1,101 @@
+{
+  "overview": { "title": "Resumen de recopilación de datos" },
+  "intro": "CopilotWatchTower recopila la actividad de Microsoft 365 Copilot desde varias fuentes y la analiza en un solo lugar. Cada menú de recopilación difiere en los <strongData>datos que recopila</strongData>, la <strongTech>tecnología que utiliza</strongTech>, los <strongPerm>permisos</strongPerm> que necesita y sus <strongConstraint>restricciones/alcance</strongConstraint>. Revise las características de cada fuente a continuación y luego ejecute recopilaciones individuales desde el menú de la izquierda.",
+  "authMethod": {
+    "title": "Métodos de autenticación",
+    "bootstrapLabel": "Arranque (delegado · código de dispositivo)",
+    "bootstrapDesc": " — Solo una vez. Crea un registro de app de Entra y otorga los permisos necesarios mediante el consentimiento del administrador del inquilino.",
+    "appOnlyLabel": "Solo app (client credentials)",
+    "appOnlyDesc": " — Para la recopilación diaria. Llama a la API de Graph con el secreto emitido (válido 180 días). Algunas rutas de eDiscovery/Teams/créditos usan inicio de sesión delegado o de automatización web.",
+    "noteLabel": "Configuración → Actualizar permisos",
+    "noteDesc": "Si los permisos son insuficientes, vuelva a otorgar el consentimiento a los permisos faltantes en <1>{{label}}</1>, o cree un nuevo perfil para regenerar la app con los permisos más recientes."
+  },
+  "specLabels": { "technology": "Tecnología", "data": "Datos recopilados", "permissions": "Permisos requeridos", "constraints": "Restricciones/alcance" },
+  "viewIn": "Ver en: ",
+  "sources": {
+    "api": {
+      "title": "Recopilación de conversaciones (API)",
+      "summary": "Recopila el texto de las conversaciones de Copilot directamente por usuario mediante la API de Microsoft Graph.",
+      "technology": "Microsoft Graph (beta) · getAllEnterpriseInteractions · token solo de app (client credentials)",
+      "data": ["Texto de solicitudes/respuestas", "Origen de la app (BizChat, Word, Teams, Excel, PowerPoint, Outlook, Loop, etc.)", "Metadatos de archivos adjuntos/enlaces/menciones, JSON sin procesar"],
+      "permissions": ["AiEnterpriseInteraction.Read.All", "User.Read.All", "Organization.Read.All"],
+      "constraints": [
+        "Solo se dirige a usuarios con licencia de Copilot (todos/con licencia/grupo/usuarios específicos según la configuración de alcance)",
+        "Endpoint beta · paginado por usuario/período (@odata.nextLink)",
+        "El texto de los usuarios sin licencia se recopila por separado mediante la ruta de eDiscovery"
+      ],
+      "viewIn": "Conversaciones (API)"
+    },
+    "ediscovery": {
+      "title": "Recopilación de conversaciones (e-Discovery)",
+      "summary": "Restaura el texto de Copilot mediante Purview eDiscovery, incluidos los usuarios sin licencia.",
+      "technology": "Purview eDiscovery (Graph) · autenticación delegada",
+      "data": ["Texto de conversaciones de Copilot, incluidos usuarios sin licencia", "Mensajes restaurados de artefactos de casos/búsquedas/exportaciones"],
+      "permissions": ["eDiscovery.ReadWrite.All (delegado)", "La cuenta de ejecución necesita el rol de eDiscovery Manager"],
+      "constraints": [
+        "La autenticación solo de app es exclusiva de Premium, por lo que se usa autenticación delegada",
+        "Se ejecuta de forma asíncrona: crear caso → buscar → estimar → exportar → descargar → analizar",
+        "Admite reanudación por etapa — se puede reiniciar después de detenerse"
+      ],
+      "viewIn": "Conversaciones (e-Discovery)"
+    },
+    "teams": {
+      "title": "Recopilación de conversaciones (Teams)",
+      "summary": "Recopila transcripciones de conversaciones de Teams de agentes personalizados de Copilot Studio mediante Dataverse.",
+      "technology": "Inicio de sesión automático de Dataverse (automatización web) · tabla de transcripciones",
+      "data": ["Historial de conversaciones de Teams (transcripciones) de agentes personalizados de Copilot Studio", "Sesiones de conversación por agente/entorno"],
+      "permissions": ["Acceso a Dataverse por entorno (rol de Administrador global)", "Cuenta de inicio de sesión automático de PPAC/Dataverse"],
+      "constraints": [
+        "Requiere acceso por entorno — los entornos sin acceso se gestionan con la opción 'Agregarme como Administrador global'",
+        "Se basa en el inicio de sesión automático del navegador, por lo que se ve afectado por las políticas de MFA/sesión"
+      ],
+      "viewIn": "Conversaciones (Teams)"
+    },
+    "agents": {
+      "title": "Agentes",
+      "summary": "Recopila el inventario de agentes y señales de uso real desde la API de administración de Copilot y los registros de auditoría.",
+      "technology": "API de administración de Copilot de Microsoft Graph (registro/catálogo de agentes) + registros de auditoría",
+      "data": ["Inventario de agentes (información de registro/paquetes de catálogo)", "Señales de configuración de políticas", "Señales de uso real basadas en registros de auditoría"],
+      "permissions": ["AgentRegistration.Read.All", "CopilotPackages.Read.All", "CopilotPolicySettings.Read"],
+      "constraints": [
+        "Las señales de uso se basan en registros de auditoría, por lo que la precisión mejora cuanto antes se recopilen los eventos de auditoría",
+        "Algunos elementos pueden estar vacíos según la disponibilidad de la API de administración (configuración del inquilino)"
+      ],
+      "viewIn": "Agentes"
+    },
+    "consumption": {
+      "title": "Créditos de Power Platform",
+      "summary": "Descarga los informes de consumo de PPAC para rastrear el uso de mensajes/AI Builder/solicitudes de API.",
+      "technology": "Inicio de sesión automático del centro de administración de Power Platform (PPAC) · descarga de informes de consumo",
+      "data": ["Consumo de mensajes de Copilot Studio", "Consumo de créditos de AI Builder", "Consumo de solicitudes (API) de Power Platform"],
+      "permissions": ["Rol de administrador de Power Platform", "Cuenta de inicio de sesión automático de PPAC"],
+      "constraints": ["Basado en automatización web — depende de la disponibilidad de la interfaz/informes de PPAC", "Solo se recopila dentro del período/unidad de agregación que proporciona el informe"],
+      "viewIn": "Créditos de Power Platform"
+    },
+    "audit": {
+      "title": "Eventos de auditoría",
+      "summary": "Recopila eventos de seguridad/acceso del registro de auditoría unificado de Purview y de auditoría/inicio de sesión de Entra.",
+      "technology": "Graph security.auditLog.queries (registro unificado de Purview asíncrono) + auditoría/sign-in de Entra",
+      "data": ["Eventos de seguridad bloqueados/denegados", "Registros de acceso a datos confidenciales", "Eventos de auditoría relacionados con acceso/políticas"],
+      "permissions": ["AuditLog.Read.All (auditoría/inicio de sesión de Entra)", "AuditLogsQuery.Read.All (registro unificado de Purview)", "También requiere un rol de roleManagement de Purview/Exchange"],
+      "constraints": [
+        "Solo se pueden consultar datos dentro del período de retención del registro de auditoría de Purview",
+        "Las consultas de registro unificado son asíncronas (enviar → sondear → resultado)",
+        "Si la consulta de auditLog devuelve 404, la ruta de Purview se deshabilita automáticamente y solo se usa la ruta de Entra"
+      ],
+      "viewIn": "Seguridad/Auditoría"
+    },
+    "usage": {
+      "title": "Uso oficial",
+      "summary": "Recopila instantáneas del informe oficial de uso de Microsoft 365 Copilot.",
+      "technology": "API de informes de Microsoft Graph (CSV de uso de Copilot)",
+      "data": ["Instantáneas del informe oficial de uso de M365 Copilot", "Agregados de uso por período (D7/D30/D90/D180)"],
+      "permissions": ["Reports.Read.All", "ReportSettings.ReadWrite.All (configuración de desanonimización)"],
+      "constraints": [
+        "Afectado por la configuración de anonimización del informe de Microsoft — desanonimice mediante ReportSettings si se necesita identificar usuarios",
+        "Solo se recopila en la granularidad de período de informe que proporciona Microsoft"
+      ],
+      "viewIn": "Informes oficiales"
+    }
+  }
+}

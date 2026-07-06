@@ -1,0 +1,15 @@
+{
+  "tableLabels": {
+    "interactions": "インタラクション",
+    "conversation_threads": "会話スレッド",
+    "audit_events": "監査イベント",
+    "copilot_usage_snapshots": "利用状況スナップショット",
+    "power_platform_consumption": "クレジット消費",
+    "copilot_agents": "エージェント",
+    "copilot_admin_diagnostics": "管理診断",
+    "users": "ユーザー"
+  },
+  "format": "形式",
+  "messages": { "chooseLocation": "保存先を選択してください…", "exported_other": "{{table}} {{count}}行をエクスポートしました → {{path}}", "canceled": "キャンセルされました", "error": "エラー: {{error}}" },
+  "table": { "title": "テーブルをエクスポート", "columns": { "table": "テーブル", "records": "レコード" }, "exportButton": "エクスポート" }
+}

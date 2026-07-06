@@ -1,0 +1,16 @@
+{
+  "collectStart": "Iniciar recopilación",
+  "kpis": { "total": "Total de eventos de auditoría", "purview": "Purview", "purviewFoot": "Auditoría unificada", "entraAudit": "Auditoría de Entra", "entraAuditFoot": "Directorio", "entraSignin": "Inicio de sesión de Entra" },
+  "sourceStatus": {
+    "title": "Estado de las fuentes de recopilación",
+    "count_other": "{{count}} fuentes",
+    "columns": { "source": "Fuente", "status": "Estado", "last": "Última recopilación", "count": "Cantidad" },
+    "status": { "error": "Error", "active": "Activo", "inactive": "Inactivo" }
+  },
+  "recent": {
+    "title": "Eventos de auditoría recientes",
+    "subtitle_other": "Últimos {{count}}",
+    "columns": { "time": "Hora", "source": "Fuente", "operation": "Operación", "actor": "Actor" },
+    "empty": "Aún no se han recopilado eventos de auditoría. Haga clic en Iniciar recopilación."
+  }
+}

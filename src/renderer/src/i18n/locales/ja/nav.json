@@ -1,0 +1,38 @@
+{
+  "brandTagline": "Copilot ガバナンス",
+  "sections": {
+    "dashboard": "ダッシュボード",
+    "usage": "利用状況分析",
+    "governance": "ガバナンス",
+    "collection": "データ収集",
+    "management": "管理"
+  },
+  "locked": "現在のライセンス構成ではロックされています",
+  "routes": {
+    "home": { "title": "ダッシュボード", "subtitle": "Copilotの利用状況と主要指標を一目で確認できます。" },
+    "insights": { "title": "利用インサイト", "subtitle": "利用パターンと傾向を分析します。" },
+    "conversationsApi": { "title": "会話探索(API)", "subtitle": "Graph APIで収集したCopilotの会話を確認します。" },
+    "conversationsEdiscovery": { "title": "会話探索(e-Discovery)", "subtitle": "e-Discoveryで収集した会話を確認します。" },
+    "conversationsDataverse": { "title": "会話探索(Teams)", "subtitle": "Teams(Dataverse)の会話を確認します。" },
+    "agents": { "title": "エージェント", "subtitle": "エージェントの活動とクレジット消費を確認します。" },
+    "security": { "title": "セキュリティ/監査", "subtitle": "監査ログとアクセスイベントを確認します。" },
+    "reports": { "title": "公式レポート", "subtitle": "管理センターの公式利用レポートを確認します。" },
+    "consumption": { "title": "Power Platform クレジット", "subtitle": "クレジットの消費と割り当てを追跡します。" },
+    "agentCredit": { "title": "エージェント別クレジット分析", "subtitle": "エージェントごとのクレジット消費を分析します。" },
+    "creditAlerts": { "title": "クレジットアラート", "subtitle": "しきい値ベースのクレジットアラートを管理します。" },
+    "collectOverview": { "title": "収集概要", "subtitle": "データ収集の状態とソースを管理します。" },
+    "collectConversation": { "title": "会話収集(API)", "subtitle": "Graph APIの会話収集状況と実行履歴を確認します。" },
+    "ediscovery": { "title": "会話収集(e-Discovery)", "subtitle": "e-Discoveryのエクスポートとインポートを管理します。" },
+    "collectTranscripts": { "title": "会話収集(Teams)", "subtitle": "Teams会話(Dataverse)の収集を管理します。" },
+    "collectDiagnostics": { "title": "エージェント診断収集", "subtitle": "Copilot管理APIの診断結果を確認します。" },
+    "collectConsumption": { "title": "クレジットデータ収集", "subtitle": "ポータルサインインでPower Platformのクレジットデータを収集します。" },
+    "collectFlowRuns": { "title": "エージェント実行(フロー)", "subtitle": "フロー実行履歴を収集・確認します。" },
+    "collectAgentDefs": { "title": "エージェントリスク分析", "subtitle": "エージェント定義を静的解析してリスクをスコア化します。" },
+    "collectAudit": { "title": "監査イベント", "subtitle": "Purview・Entraの監査イベント収集状況を確認します。" },
+    "collectUsage": { "title": "公式利用状況", "subtitle": "管理センターの公式利用状況スナップショットを確認します。" },
+    "backupRestore": { "title": "バックアップ・復元", "subtitle": "データベースのバックアップと復元を管理します。" },
+    "dataExport": { "title": "エクスポート", "subtitle": "収集したデータをCSV/JSONファイルにエクスポートします。" },
+    "theme": { "title": "テーマ", "subtitle": "カラーテーマをプレビューして選択します。" },
+    "settings": { "title": "設定", "subtitle": "プロファイル・テナント・アプリ環境を構成します。" }
+  }
+}

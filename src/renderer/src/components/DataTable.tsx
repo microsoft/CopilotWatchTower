@@ -1,4 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useNumberFormat } from '../lib/format'
 
 export interface Column<T> {
   key: string
@@ -34,6 +36,8 @@ export function DataTable<T>({
   selectedRowKey?: string | null
   pageSize?: number
 }): JSX.Element {
+  const { t } = useTranslation()
+  const n = useNumberFormat()
   const [sort, setSort] = useState<SortState | undefined>(initialSort)
   const [page, setPage] = useState(0)
 
@@ -105,7 +109,7 @@ export function DataTable<T>({
           {sorted.length === 0 && (
             <tr>
               <td colSpan={columns.length} className="dt-empty">
-                데이터 없음
+                {t('noData')}
               </td>
             </tr>
           )}
@@ -114,14 +118,14 @@ export function DataTable<T>({
       {pageSize != null && sorted.length > pageSize && (
         <div className="dt-pager">
           <button className="btn-sm" disabled={curPage === 0} onClick={() => setPage(curPage - 1)}>
-            이전
+            {t('previous')}
           </button>
           <span className="dt-pager-info">
             {curPage * pageSize + 1}–{Math.min(sorted.length, (curPage + 1) * pageSize)} /{' '}
-            {sorted.length.toLocaleString('ko-KR')}
+            {n(sorted.length)}
           </span>
           <button className="btn-sm" disabled={curPage >= pageCount - 1} onClick={() => setPage(curPage + 1)}>
-            다음
+            {t('next')}
           </button>
         </div>
       )}

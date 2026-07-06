@@ -1,0 +1,46 @@
+{
+  "stateLabel": { "active": "활성", "stale": "비활성", "never_used": "미사용" },
+  "actionLabel": { "created": "생성", "deleted": "삭제", "updated": "수정", "other": "기타" },
+  "columns": {
+    "name": "이름",
+    "source": "소스",
+    "state": "상태",
+    "usage": "사용 이벤트",
+    "days": "비활성 일수",
+    "last": "마지막 활동",
+    "time": "시각",
+    "action": "작업",
+    "agent": "대상",
+    "operation": "작업 유형",
+    "actor": "행위자",
+    "result": "결과"
+  },
+  "filters": {
+    "threshold": "임계값",
+    "thresholdDays_other": "{{count}}일",
+    "staleOnly": "비활성만",
+    "searchPlaceholder": "에이전트 이름·식별자 검색",
+    "apply": "적용"
+  },
+  "count_other": "{{count}}개 에이전트",
+  "kpis": {
+    "total": "전체 에이전트",
+    "totalFoot": "사용 이벤트 {{count}}건",
+    "active": "활성",
+    "activeFoot": "{{count}}일 이내",
+    "stale": "비활성",
+    "staleFoot": "{{count}}일 초과",
+    "neverUsed": "미사용",
+    "neverUsedFoot": "활동 기록 없음"
+  },
+  "inventory": {
+    "title": "에이전트 인벤토리",
+    "count_other": "{{count}}개",
+    "emptyTitle": "수집된 에이전트가 없습니다",
+    "emptyDesc": "에이전트 인벤토리는 관리자 위임 권한(카탈로그/등록) 수집이 필요합니다. 수집 후 이 표에 표시됩니다."
+  },
+  "identityEvents": {
+    "title": "에이전트 ID 이벤트",
+    "subtitle_other": "감사 로그 · {{count}}건"
+  }
+}

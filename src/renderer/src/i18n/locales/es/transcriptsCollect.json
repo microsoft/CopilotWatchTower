@@ -1,0 +1,15 @@
+{
+  "collectButton": "Recopilar conversaciones desde el portal",
+  "teamsOnly": "Recopilar solo el canal de Teams (desactivado = todos los canales, incluidos webchat/Direct Line)",
+  "addAdmin": "Agregarme automáticamente como Administrador global en entornos a los que no tengo acceso",
+  "autoLoginDesc": "Inicia sesión automáticamente usando la <strong1>cuenta de descarga</strong1> (cuenta de servicio de eDiscovery) de Configuración. Aparecerá una ventana de inicio de sesión si no hay una cuenta configurada. De forma predeterminada recopila conversaciones de <strong2>todos los canales</strong2> (Teams, webchat, Direct Line, etc.); active “Solo Teams” para conservar únicamente las conversaciones de Teams. Al activar “Agregarme como Administrador global”, solo en los entornos sin acceso, se le agregará como Administrador global en el centro de administración y se reintentará.",
+  "kpis": { "interactions": "Turnos recopilados", "interactionsFoot": "Conversaciones de Dataverse", "users": "Usuarios", "threads": "Hilos", "apps": "Canales" },
+  "history": {
+    "title": "Historial de ejecuciones de recopilación",
+    "subtitle_other": "Últimas {{count}} ejecuciones",
+    "columns": { "started": "Iniciado", "trigger": "Disparador", "environments": "Entornos", "transcripts": "Conversaciones", "rows": "Turnos", "status": "Estado", "log": "Registro" },
+    "status": { "done": "Completo", "errorCount": "{{count}} errores", "running": "En ejecución" },
+    "logTitle": "Registro de ejecución",
+    "empty": "Aún no hay ejecuciones de recopilación. Use el botón de arriba para comenzar a recopilar."
+  }
+}

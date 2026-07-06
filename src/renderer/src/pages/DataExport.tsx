@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { FileDown, FileJson, FileSpreadsheet } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { invoke } from '../lib/api'
+import { useNumberFormat } from '../lib/format'
 
 interface Stat {
   tables: Array<{ name: string; rows: number }>
@@ -12,18 +14,19 @@ interface ExportResult {
   rows?: number
 }
 
-const LABELS: Record<string, string> = {
-  interactions: '상호작용',
-  conversation_threads: '대화 스레드',
-  audit_events: '감사 이벤트',
-  copilot_usage_snapshots: '사용량 스냅샷',
-  power_platform_consumption: '크레딧 소비',
-  copilot_agents: '에이전트',
-  copilot_admin_diagnostics: '관리 진단',
-  users: '사용자'
-}
-
 export function DataExport(): JSX.Element {
+  const { t } = useTranslation('dataExport')
+  const n = useNumberFormat()
+  const LABELS: Record<string, string> = {
+    interactions: t('tableLabels.interactions'),
+    conversation_threads: t('tableLabels.conversation_threads'),
+    audit_events: t('tableLabels.audit_events'),
+    copilot_usage_snapshots: t('tableLabels.copilot_usage_snapshots'),
+    power_platform_consumption: t('tableLabels.power_platform_consumption'),
+    copilot_agents: t('tableLabels.copilot_agents'),
+    copilot_admin_diagnostics: t('tableLabels.copilot_admin_diagnostics'),
+    users: t('tableLabels.users')
+  }
   const [stat, setStat] = useState<Stat | null>(null)
   const [fmt, setFmt] = useState<'csv' | 'json'>('csv')
   const [msg, setMsg] = useState<string | null>(null)
@@ -37,15 +40,15 @@ export function DataExport(): JSX.Element {
 
   async function exportTable(table: string): Promise<void> {
     setBusy(table)
-    setMsg('저장 위치를 선택하세요…')
+    setMsg(t('messages.chooseLocation'))
     try {
       const r = await invoke<ExportResult>('export_table', table, fmt)
       setMsg(
         r.ok
-          ? `${LABELS[table] || table} ${r.rows}행 내보냄 → ${r.path}`
+          ? t('messages.exported', { table: LABELS[table] || table, count: r.rows, path: r.path })
           : r.error === 'canceled'
-            ? '취소됨'
-            : `오류: ${r.error}`
+            ? t('messages.canceled')
+            : t('messages.error', { error: r.error })
       )
     } finally {
       setBusy(null)
@@ -55,7 +58,7 @@ export function DataExport(): JSX.Element {
   return (
     <div className="content">
       <div className="page-actions">
-        <span className="muted">형식</span>
+        <span className="muted">{t('format')}</span>
         <button className={`btn ${fmt === 'csv' ? 'primary' : ''}`} onClick={() => setFmt('csv')}>
           <FileSpreadsheet size={15} /> CSV
         </button>
@@ -67,25 +70,25 @@ export function DataExport(): JSX.Element {
 
       <div className="card">
         <div className="card-head">
-          <h2>테이블 내보내기</h2>
+          <h2>{t('table.title')}</h2>
           <span className="hint">{fmt.toUpperCase()}</span>
         </div>
         <table className="table">
           <thead>
             <tr>
-              <th>테이블</th>
-              <th>레코드</th>
+              <th>{t('table.columns.table')}</th>
+              <th>{t('table.columns.records')}</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {(stat?.tables ?? []).map((t) => (
-              <tr key={t.name}>
-                <td className="ttl">{LABELS[t.name] || t.name}</td>
-                <td className="muted">{t.rows.toLocaleString('ko-KR')}</td>
+            {(stat?.tables ?? []).map((t2) => (
+              <tr key={t2.name}>
+                <td className="ttl">{LABELS[t2.name] || t2.name}</td>
+                <td className="muted">{n(t2.rows)}</td>
                 <td>
-                  <button className="btn" onClick={() => exportTable(t.name)} disabled={busy === t.name || t.rows === 0}>
-                    <FileDown size={14} /> 내보내기
+                  <button className="btn" onClick={() => exportTable(t2.name)} disabled={busy === t2.name || t2.rows === 0}>
+                    <FileDown size={14} /> {t('table.exportButton')}
                   </button>
                 </td>
               </tr>

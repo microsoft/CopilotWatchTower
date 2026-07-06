@@ -1,0 +1,11 @@
+{
+  "collectStart": "开始收集",
+  "status": { "ok": "正常", "forbidden": "无权限", "not_found": "不存在", "error": "错误" },
+  "kpis": { "total": "诊断项目", "totalFoot": "管理 API 探测", "ok": "正常", "okFoot": "可访问", "forbidden": "无权限", "forbiddenFoot": "需要同意", "notFound": "未提供", "notFoundFoot": "无此终结点" },
+  "table": {
+    "title": "Copilot 管理 API 诊断",
+    "subtitle_other": "{{count}} 个终结点",
+    "columns": { "label": "项目", "endpoint": "终结点", "status": "状态", "summary": "摘要", "capturedAt": "采集时间" },
+    "empty": "尚无诊断数据。请点击开始收集。"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "kpis": {
+    "agents": "소비 에이전트",
+    "messages": "총 메시지",
+    "messagesFoot": "소비량",
+    "environments": "환경",
+    "top": "최다 소비"
+  },
+  "table": { "title": "에이전트별 메시지 소비", "subtitle_other": "상위 {{count}}개", "empty": "에이전트 소비 데이터가 없습니다. 크레딧 데이터 수집(포털)을 먼저 실행하세요." },
+  "columns": { "agent": "에이전트", "env": "환경", "messages": "메시지", "share": "비중" }
+}

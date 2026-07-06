@@ -1,0 +1,31 @@
+{
+  "scope": { "all": "Todo", "title": "Título", "body": "Cuerpo" },
+  "searchPlaceholder": {
+    "title": "Buscar títulos de conversación",
+    "body": "Buscar cuerpo de conversación",
+    "all": "Buscar título/cuerpo de conversación",
+    "restoredTitle": "Buscar títulos de conversaciones restauradas",
+    "restoredBody": "Buscar cuerpo de conversaciones restauradas",
+    "restoredAll": "Buscar título/cuerpo de conversaciones restauradas"
+  },
+  "filters": {
+    "dateFrom": "Fecha de inicio",
+    "dateTo": "Fecha de fin",
+    "searchScope": "Ámbito de búsqueda",
+    "userFilter": "Filtro de usuario",
+    "allUsers": "Todos los usuarios",
+    "restoredAllUsers": "Todos los usuarios restaurados",
+    "appFilter": "Filtro de app",
+    "allApps": "Todas las apps",
+    "apply": "Aplicar",
+    "reset": "Restablecer"
+  },
+  "count_other": "{{count}} conversaciones",
+  "count_one": "{{count}} conversación",
+  "noMatch": "No hay conversaciones coincidentes.",
+  "messageCount_other": "{{count}} mensajes",
+  "messageCount_one": "{{count}} mensaje",
+  "noMessages": "No hay mensajes para mostrar.",
+  "rawInteractionTitle": "JSON de interacción sin procesar",
+  "empty": { "title": "Seleccione una conversación", "desc": "Seleccione una conversación de la lista de la izquierda para ver todos los mensajes aquí." }
+}

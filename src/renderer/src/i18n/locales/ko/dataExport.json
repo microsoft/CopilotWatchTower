@@ -1,0 +1,15 @@
+{
+  "tableLabels": {
+    "interactions": "상호작용",
+    "conversation_threads": "대화 스레드",
+    "audit_events": "감사 이벤트",
+    "copilot_usage_snapshots": "사용량 스냅샷",
+    "power_platform_consumption": "크레딧 소비",
+    "copilot_agents": "에이전트",
+    "copilot_admin_diagnostics": "관리 진단",
+    "users": "사용자"
+  },
+  "format": "형식",
+  "messages": { "chooseLocation": "저장 위치를 선택하세요…", "exported_other": "{{table}} {{count}}행 내보냄 → {{path}}", "canceled": "취소됨", "error": "오류: {{error}}" },
+  "table": { "title": "테이블 내보내기", "columns": { "table": "테이블", "records": "레코드" }, "exportButton": "내보내기" }
+}

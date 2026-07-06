@@ -1,0 +1,24 @@
+{
+  "collectAll": "Iniciar recopilación completa",
+  "collectAllDesc": "Recorre todos los usuarios. Use el botón “Recopilar” en la tabla de abajo para usuarios individuales.",
+  "collectUserTitle": "Volver a recopilar solo este usuario",
+  "collectUser": "Recopilar",
+  "kpis": { "interactions": "Interacciones totales", "users": "Usuarios recopilados", "threads": "Hilos de conversación", "lastRun": "Última recopilación" },
+  "userStatus": {
+    "title": "Estado de recopilación por usuario",
+    "count_other": "{{count}}",
+    "searchPlaceholder": "Buscar nombre/ID de usuario",
+    "columns": { "user": "Usuario", "count": "Interacciones", "last": "Marca de agua", "backfill": "Relleno" },
+    "backfill": { "done": "Completo", "inProgress": "En progreso" },
+    "emptyTitle": "Aún no se han recopilado conversaciones",
+    "emptyDesc": "Haga clic en “Iniciar recopilación completa” arriba para recopilar."
+  },
+  "runHistory": {
+    "title": "Historial de ejecuciones de recopilación",
+    "count_other": "{{count}} ejecuciones",
+    "columns": { "started": "Iniciado", "trigger": "Disparador", "users": "Usuarios", "interactions": "Recopilado", "status": "Estado", "log": "Registro" },
+    "status": { "done": "Completo", "errorCount": "{{count}} errores", "running": "En ejecución" },
+    "logTitle": "Registro de ejecución",
+    "emptyTitle": "Sin historial de ejecuciones"
+  }
+}

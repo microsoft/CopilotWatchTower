@@ -1,0 +1,34 @@
+{
+  "title": "Registro en vivo",
+  "status": {
+    "running": "En curso",
+    "done": "Completado",
+    "idle": "Inactivo"
+  },
+  "lineCount_other": "{{count}} líneas",
+  "lineCount_one": "{{count}} línea",
+  "copy": "Copiar",
+  "copyTitle": "Copiar registro",
+  "clear": "Borrar",
+  "clearTitle": "Borrar registro",
+  "empty": "El progreso aparecerá aquí en tiempo real cuando comience la recopilación.",
+  "runs": {
+    "conversation": { "start": "Iniciando la recopilación de conversaciones…", "done": "Listo: {{users}} usuarios · {{interactions}} nuevas interacciones" },
+    "audit": { "start": "Iniciando la recopilación de eventos de auditoría…", "done": "Listo: {{audit}} eventos de auditoría" },
+    "usage": { "start": "Iniciando la recopilación de informes de uso…", "done": "Listo: {{usage}} filas de instantáneas" },
+    "diagnostics": { "start": "Iniciando el diagnóstico de agentes…", "done": "Listo: {{agents}} elementos de inventario de agentes" },
+    "transcripts": { "start": "Iniciando la recopilación de conversaciones de Teams…", "done": "Listo: {{environments}} entornos · {{transcripts}} conversaciones · {{rows}} turnos" },
+    "flowruns": { "start": "Iniciando la recopilación de ejecuciones de flujo…", "done": "Listo: {{environments}} entornos · {{runs}} ejecuciones" },
+    "agentdefs": { "start": "Iniciando el análisis de definiciones de agentes…", "done": "Listo: {{environments}} entornos · {{agents}} agentes puntuados" },
+    "consumption": { "start": "Iniciando la recopilación de informes de consumo…", "done": "Listo: {{rows}} filas de consumo" }
+  },
+  "userScoped": {
+    "start": "Recopilando solo para {{label}}…",
+    "done": "Listo: {{label}} · {{count}} nuevos"
+  },
+  "errors": {
+    "prefix": "Error: {{message}}",
+    "no-credentials": "Se requiere el registro de la app (credenciales). Configúrelo en Configuración.",
+    "already-running": "Ya hay una recopilación en curso."
+  }
+}

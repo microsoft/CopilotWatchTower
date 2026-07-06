@@ -1,0 +1,15 @@
+{
+  "tableLabels": {
+    "interactions": "互动",
+    "conversation_threads": "对话线程",
+    "audit_events": "审计事件",
+    "copilot_usage_snapshots": "使用情况快照",
+    "power_platform_consumption": "积分消耗",
+    "copilot_agents": "代理",
+    "copilot_admin_diagnostics": "管理诊断",
+    "users": "用户"
+  },
+  "format": "格式",
+  "messages": { "chooseLocation": "请选择保存位置…", "exported_other": "已导出 {{table}} {{count}} 行 → {{path}}", "canceled": "已取消", "error": "错误: {{error}}" },
+  "table": { "title": "导出表", "columns": { "table": "表", "records": "记录" }, "exportButton": "导出" }
+}

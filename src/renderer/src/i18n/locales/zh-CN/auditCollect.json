@@ -1,0 +1,16 @@
+{
+  "collectStart": "开始收集",
+  "kpis": { "total": "总审计事件", "purview": "Purview", "purviewFoot": "统一审计", "entraAudit": "Entra 审计", "entraAuditFoot": "目录", "entraSignin": "Entra 登录" },
+  "sourceStatus": {
+    "title": "收集来源状态",
+    "count_other": "{{count}} 个来源",
+    "columns": { "source": "来源", "status": "状态", "last": "最后收集", "count": "数量" },
+    "status": { "error": "错误", "active": "活跃", "inactive": "不活跃" }
+  },
+  "recent": {
+    "title": "最近的审计事件",
+    "subtitle_other": "最新 {{count}} 条",
+    "columns": { "time": "时间", "source": "来源", "operation": "操作", "actor": "操作者" },
+    "empty": "尚未收集到审计事件。请点击开始收集。"
+  }
+}
