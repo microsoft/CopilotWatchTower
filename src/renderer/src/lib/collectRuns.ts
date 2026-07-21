@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { invoke, subscribe } from './api'
 import i18n, { LOCALE_TAG, type AppLanguage } from '../i18n'
 import { formatNumber } from './format'
+import type { EventChannel, InvokeChannel } from '../../../shared/ipc'
 
 export type LogLevel = 'info' | 'success' | 'warn' | 'error'
 export interface LogLine {
@@ -39,8 +40,8 @@ interface RunResult {
   runs?: number
 }
 interface RunConfig {
-  channel: string
-  method: string
+  channel: EventChannel
+  method: InvokeChannel
   startLine: () => string
   done: (r: RunResult) => string
 }

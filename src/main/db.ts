@@ -11,6 +11,13 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
 import type { TurnInput, ThreadGroup } from './threading'
+import {
+  conversationAgentFromRaw,
+  matchAuditAgentsToThreads,
+  type AuditAgentReference,
+  type ConversationAgentIdentity,
+  type InteractionAgentReference
+} from './agentIdentity'
 
 let db: DatabaseSync | null = null
 let profileMeta: { name: string; tenant: string } | null = null
@@ -46,13 +53,41 @@ function resolveDbPath(): string | null {
   return existsSync(legacy) ? legacy : null
 }
 
+function ensureRuntimeSchema(database: DatabaseSync): void {
+  const columns = database.prepare('PRAGMA table_info(audit_collection_state)').all() as Array<{ name: string }>
+  if (columns.length && !columns.some((column) => column.name === 'coverage_start_at')) {
+    database.exec('ALTER TABLE audit_collection_state ADD COLUMN coverage_start_at TEXT')
+  }
+  const threadColumns = database.prepare('PRAGMA table_info(conversation_threads)').all() as Array<{ name: string }>
+  for (const [name, type] of [
+    ['agent_key', 'TEXT'],
+    ['agent_id', 'TEXT'],
+    ['agent_name', 'TEXT']
+  ]) {
+    if (threadColumns.length && !threadColumns.some((column) => column.name === name)) {
+      database.exec(`ALTER TABLE conversation_threads ADD COLUMN ${name} ${type}`)
+    }
+  }
+  database.exec(
+    'CREATE INDEX IF NOT EXISTS ix_threads_source_agent_time ON conversation_threads(source_type, agent_key, started_at DESC)'
+  )
+  database.exec(
+    'CREATE INDEX IF NOT EXISTS ix_threads_source_agent_user_time ON conversation_threads(source_type, agent_key, user_id, started_at DESC)'
+  )
+}
+
 export function openDb(): boolean {
   if (db) return true
   const path = resolveDbPath()
   if (!path) return false
   try {
     db = new DatabaseSync(path, { readOnly: false })
+    ensureRuntimeSchema(db)
     currentPath = path
+    if (getSettingText('thread_agent_attribution_v1') !== '1') {
+      refreshConversationAgentAttribution()
+      setSettingText('thread_agent_attribution_v1', '1')
+    }
     return true
   } catch {
     db = null
@@ -253,7 +288,7 @@ export function systemInfo(): { app: string; profile: string; tenant: string; ve
     app: 'CopilotWatchTower',
     profile: profileMeta?.name ?? 'profile',
     tenant: profileMeta?.tenant ?? '—',
-    version: '0.3.0-electron'
+    version: '2.2.0'
   }
 }
 
@@ -562,50 +597,198 @@ export function insightsApps(source?: string): Array<{ value: string; label: str
 
 interface ThreadRow {
   id: string
+  user_id: string
   title: string | null
   app: string | null
   started_at: string
   who: string | null
+  source_type: string
+  agent_key: string | null
+  agent_id: string | null
+  agent_name: string | null
 }
 export interface ConversationDTO {
   id: string
+  userId: string
   user: string
   title: string
   app: string
   agent?: string
+  agentId?: string
+  agentKey?: string
   when: string
   tone: string
 }
 export interface ConvFilters {
   source?: string
   limit?: number
+  offset?: number
   dateFrom?: string
   dateTo?: string
   search?: string
   scope?: 'all' | 'title' | 'body'
+  agentKey?: string
   userId?: string
   app?: string
 }
-/** Extract the agent/bot display name from a captured interaction's raw_json
- * (Dataverse/Teams transcripts store the turn under `activity.from.name`). */
-function agentNameFromRaw(raw: string | null): string | null {
-  if (!raw) return null
-  try {
-    const o = JSON.parse(raw) as { agent_name?: unknown; activity?: { from?: { name?: unknown } } }
-    if (typeof o.agent_name === 'string' && o.agent_name.trim()) return o.agent_name.trim()
-    const name = o.activity?.from?.name
-    return typeof name === 'string' && name.trim() ? name.trim() : null
-  } catch {
-    return null
-  }
-}
+export const UNKNOWN_CONVERSATION_AGENT_KEY = '__unknown__'
 /** True when a label is just a raw conversation/GUID id (no human name). */
 function looksLikeId(s: string | null): boolean {
   return !!s && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s.trim())
 }
-export function conversations(arg: number | ConvFilters, source?: string): ConversationDTO[] {
-  // Back-compat: conversations(limit, source?) or conversations({...filters}).
-  const f: ConvFilters = typeof arg === 'number' ? { limit: arg, source } : arg
+
+interface ThreadAgentRow {
+  id: string
+  source_type: string
+  agent_key: string | null
+  agent_id: string | null
+  agent_name: string | null
+}
+
+function enrichApiAgents(rows: ThreadAgentRow[], agentByThread: Map<string, ConversationAgentIdentity>): void {
+  const apiThreadIds = rows.filter((row) => row.source_type === 'api').map((row) => row.id)
+  if (!apiThreadIds.length) return
+
+  const interactions: InteractionAgentReference[] = []
+  for (let offset = 0; offset < apiThreadIds.length; offset += 500) {
+    const chunk = apiThreadIds.slice(offset, offset + 500)
+    const ph = chunk.map(() => '?').join(',')
+    const refs = all<{
+      id: string
+      request_id: string | null
+      thread_id: string
+      session_id: string | null
+      created_at: string
+      user_id: string
+      upn: string | null
+    }>(
+      `SELECT i.id, i.request_id, i.thread_id, i.session_id, i.created_at, i.user_id, u.upn
+       FROM interactions i LEFT JOIN users u ON u.id = i.user_id
+       WHERE i.thread_id IN (${ph}) AND i.source_type = 'api'`,
+      ...chunk
+    )
+    interactions.push(
+      ...refs.map((ref) => ({
+        id: ref.id,
+        requestId: ref.request_id,
+        threadId: ref.thread_id,
+        sessionId: ref.session_id,
+        createdAt: ref.created_at,
+        userKeys: [ref.user_id, ref.upn ?? '']
+      }))
+    )
+  }
+  if (!interactions.length) return
+
+  const timestamps = interactions.map((row) => Date.parse(row.createdAt)).filter((value) => !Number.isNaN(value))
+  if (!timestamps.length) return
+  const windowStart = new Date(Math.min(...timestamps) - 180_000).toISOString()
+  const windowEnd = new Date(Math.max(...timestamps) + 180_000).toISOString()
+  const auditEvents = all<{
+    event_time: string
+    user_id: string | null
+    upn: string | null
+    raw_json: string | null
+  }>(
+    `SELECT event_time, user_id, upn, raw_json FROM audit_events
+     WHERE source = 'purview' AND LOWER(COALESCE(operation,'')) = 'copilotinteraction'
+       AND event_time >= ? AND event_time <= ?
+     ORDER BY event_time ASC`,
+    windowStart,
+    windowEnd
+  ).map<AuditAgentReference>((event) => ({
+    eventTime: event.event_time,
+    userKeys: [event.user_id ?? '', event.upn ?? ''],
+    rawJson: event.raw_json
+  }))
+  if (!auditEvents.length) return
+
+  const matched = matchAuditAgentsToThreads(interactions, auditEvents)
+  if (!matched.size) return
+  const inventoryNames = new Map<string, string>()
+  for (const agent of all<{
+    id: string
+    display_name: string | null
+    app_identity: string | null
+    app_external_id: string | null
+    add_on_guid: string | null
+  }>('SELECT id, display_name, app_identity, app_external_id, add_on_guid FROM copilot_agents')) {
+    if (!agent.display_name) continue
+    for (const value of [agent.id, agent.app_identity, agent.app_external_id, agent.add_on_guid]) {
+      if (value) inventoryNames.set(value.toLowerCase(), agent.display_name)
+    }
+  }
+  for (const [threadId, agent] of matched) {
+    agentByThread.set(threadId, {
+      ...agent,
+      name: agent.name || inventoryNames.get(agent.id.toLowerCase()) || null
+    })
+  }
+}
+
+function resolveThreadAgents(rows: ThreadAgentRow[]): Map<string, ConversationAgentIdentity> {
+  const agentByThread = new Map<string, ConversationAgentIdentity>()
+  const ids = rows.map((row) => row.id)
+  for (let offset = 0; offset < ids.length; offset += 500) {
+    const chunk = ids.slice(offset, offset + 500)
+    const ph = chunk.map(() => '?').join(',')
+    const botRows = all<{ thread_id: string; source_type: string; raw_json: string | null }>(
+      `SELECT thread_id, source_type, raw_json FROM interactions
+       WHERE thread_id IN (${ph}) AND interaction_type = 'aiResponse' AND raw_json IS NOT NULL
+       ORDER BY created_at ASC`,
+      ...chunk
+    )
+    for (const botRow of botRows) {
+      if (!botRow.thread_id || agentByThread.has(botRow.thread_id)) continue
+      const agent = conversationAgentFromRaw(botRow.raw_json, botRow.source_type)
+      if (agent) agentByThread.set(botRow.thread_id, agent)
+    }
+  }
+  enrichApiAgents(rows, agentByThread)
+  return agentByThread
+}
+
+export function refreshConversationAgentAttribution(sourceType?: string, userId?: string): number {
+  if (!db) return 0
+  const clauses: string[] = []
+  const params: string[] = []
+  if (sourceType) {
+    clauses.push('source_type = ?')
+    params.push(sourceType)
+  }
+  if (userId) {
+    clauses.push('user_id = ?')
+    params.push(userId)
+  }
+  const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : ''
+  const rows = all<ThreadAgentRow>(
+    `SELECT id, source_type, agent_key, agent_id, agent_name FROM conversation_threads ${where}`,
+    ...params
+  )
+  if (!rows.length) return 0
+  const resolved = resolveThreadAgents(rows)
+  const update = db.prepare('UPDATE conversation_threads SET agent_key=?, agent_id=?, agent_name=? WHERE id=?')
+  let changed = 0
+  db.exec('BEGIN IMMEDIATE')
+  try {
+    for (const row of rows) {
+      const agent = resolved.get(row.id)
+      const key = agent?.key ?? null
+      const id = agent?.id ?? null
+      const name = agent?.name ?? null
+      if (row.agent_key === key && row.agent_id === id && row.agent_name === name) continue
+      update.run(key, id, name, row.id)
+      changed++
+    }
+    db.exec('COMMIT')
+  } catch (error) {
+    db.exec('ROLLBACK')
+    throw error
+  }
+  return changed
+}
+
+function conversationWhere(f: ConvFilters): { where: string; params: Array<string | number> } {
   const clauses: string[] = []
   const params: Array<string | number> = []
   if (f.source) {
@@ -615,6 +798,12 @@ export function conversations(arg: number | ConvFilters, source?: string): Conve
   if (f.userId) {
     clauses.push('t.user_id = ?')
     params.push(f.userId)
+  }
+  if (f.agentKey === UNKNOWN_CONVERSATION_AGENT_KEY) {
+    clauses.push('t.agent_key IS NULL')
+  } else if (f.agentKey) {
+    clauses.push('t.agent_key = ?')
+    params.push(f.agentKey)
   }
   if (f.app) {
     clauses.push('t.app = ?')
@@ -651,10 +840,79 @@ export function conversations(arg: number | ConvFilters, source?: string): Conve
          AND trim(REPLACE(COALESCE(i.body_text,''),'unknown-file-name','')) <> ''
      ))`
   )
-  const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : ''
-  const limit = f.limit ?? 500
-  const rows = all<{ id: string; title: string | null; app: string | null; started_at: string; who: string | null }>(
-    `SELECT t.id, t.title, t.app, t.started_at,
+  return { where: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '', params }
+}
+
+export interface ConversationFacetDTO {
+  key: string
+  name: string
+  count: number
+}
+
+export interface ConversationPageDTO {
+  rows: ConversationDTO[]
+  total: number
+  limit: number
+  offset: number
+}
+
+export function conversationAgentFacets(f: ConvFilters): ConversationFacetDTO[] {
+  const { where, params } = conversationWhere({ ...f, agentKey: undefined, userId: undefined })
+  return all<{ facet_key: string; name: string | null; count: number }>(
+    `SELECT COALESCE(t.agent_key, ?) facet_key,
+            MAX(COALESCE(NULLIF(t.agent_name,''), NULLIF(t.agent_id,''), '')) name,
+            COUNT(*) count
+     FROM conversation_threads t
+     ${where}
+     GROUP BY t.agent_key
+     ORDER BY count DESC, name COLLATE NOCASE`,
+    UNKNOWN_CONVERSATION_AGENT_KEY,
+    ...params
+  ).map((row) => ({ key: row.facet_key, name: row.name || '', count: Number(row.count) }))
+}
+
+export function conversationUserFacets(f: ConvFilters): ConversationFacetDTO[] {
+  const { where, params } = conversationWhere({ ...f, userId: undefined })
+  return all<{ facet_key: string; name: string | null; count: number }>(
+    `SELECT t.user_id facet_key,
+            COALESCE(NULLIF(NULLIF(u.display_name,''), t.user_id), NULLIF(g.display_name,''), NULLIF(g.upn,''),
+                     REPLACE(t.user_id,'dataverse:','')) name,
+            COUNT(*) count
+     FROM conversation_threads t
+     LEFT JOIN users u ON u.id = t.user_id
+     LEFT JOIN users g ON g.id = REPLACE(t.user_id,'dataverse:','')
+     ${where}
+     GROUP BY t.user_id, name
+     ORDER BY count DESC, name COLLATE NOCASE`,
+    ...params
+  ).map((row) => ({ key: row.facet_key, name: row.name || row.facet_key, count: Number(row.count) }))
+}
+
+export function conversationCount(f: ConvFilters): number {
+  const { where, params } = conversationWhere(f)
+  return get<{ count: number }>(`SELECT COUNT(*) count FROM conversation_threads t ${where}`, ...params)?.count ?? 0
+}
+
+export function conversationPage(f: ConvFilters): ConversationPageDTO {
+  const limit = Math.max(1, Math.min(100, f.limit ?? 50))
+  const offset = Math.max(0, f.offset ?? 0)
+  return {
+    rows: conversations({ ...f, limit, offset }),
+    total: conversationCount(f),
+    limit,
+    offset
+  }
+}
+
+export function conversations(arg: number | ConvFilters, source?: string): ConversationDTO[] {
+  // Back-compat: conversations(limit, source?) or conversations({...filters}).
+  const f: ConvFilters = typeof arg === 'number' ? { limit: arg, source } : arg
+  const { where, params } = conversationWhere(f)
+  const limit = Math.max(1, Math.min(2000, f.limit ?? 500))
+  const offset = Math.max(0, f.offset ?? 0)
+  const rows = all<ThreadRow>(
+    `SELECT t.id, t.user_id, t.title, t.app, t.started_at, t.source_type,
+            t.agent_key, t.agent_id, t.agent_name,
             COALESCE(NULLIF(NULLIF(u.display_name,''), t.user_id), NULLIF(g.display_name,''), NULLIF(g.upn,''),
                      REPLACE(t.user_id,'dataverse:','')) AS who
      FROM conversation_threads t
@@ -662,40 +920,28 @@ export function conversations(arg: number | ConvFilters, source?: string): Conve
      LEFT JOIN users g ON g.id = REPLACE(t.user_id,'dataverse:','')
      ${where}
      ORDER BY t.started_at DESC
-     LIMIT ?`,
+     LIMIT ? OFFSET ?`,
     ...params,
-    limit
+    limit,
+    offset
   )
-  // Resolve the agent/bot name per thread from the first aiResponse turn's
-  // captured activity (raw_json.activity.from.name) — Dataverse/Teams agents.
-  const agentByThread = new Map<string, string>()
-  const ids = rows.slice(0, 900).map((r) => r.id)
-  if (ids.length) {
-    const ph = ids.map(() => '?').join(',')
-    const botRows = all<{ thread_id: string; raw_json: string | null }>(
-      `SELECT thread_id, raw_json FROM interactions
-       WHERE thread_id IN (${ph}) AND interaction_type = 'aiResponse' AND raw_json IS NOT NULL
-       ORDER BY created_at ASC`,
-      ...ids
-    )
-    for (const b of botRows) {
-      if (!b.thread_id || agentByThread.has(b.thread_id)) continue
-      const name = agentNameFromRaw(b.raw_json)
-      if (name) agentByThread.set(b.thread_id, name)
+  return rows.map((r) => {
+    return {
+      id: r.id,
+      userId: r.user_id,
+      // Teams/Dataverse threads often have no resolved person — `who` is then the
+      // raw conversation GUID, which is noise. Drop it so the UI leans on the
+      // topic + agent instead.
+      user: looksLikeId(r.who) ? '' : r.who || '',
+      title: (cleanBody(r.title).replace(/[<>]/g, '').trim() || '(제목 없음)').slice(0, 90),
+      app: friendlyApp(r.app),
+      agent: r.agent_name || r.agent_id || undefined,
+      agentId: r.agent_id || undefined,
+      agentKey: r.agent_key || undefined,
+      when: shortTime(r.started_at),
+      tone: 'muted'
     }
-  }
-  return rows.map((r) => ({
-    id: r.id,
-    // Teams/Dataverse threads often have no resolved person — `who` is then the
-    // raw conversation GUID, which is noise. Drop it so the UI leans on the
-    // topic + agent instead.
-    user: looksLikeId(r.who) ? '' : r.who || '',
-    title: (cleanBody(r.title).replace(/[<>]/g, '').trim() || '(제목 없음)').slice(0, 90),
-    app: friendlyApp(r.app),
-    agent: agentByThread.get(r.id),
-    when: shortTime(r.started_at),
-    tone: 'muted'
-  }))
+  })
 }
 
 export function conversationUsers(source: string): Array<{ id: string; name: string }> {
@@ -1141,6 +1387,7 @@ export function upsertAuditEvents(rows: AuditEventRow[]): number {
 export interface AuditCollectionState {
   source: string
   last_collected_at: string | null
+  coverage_start_at: string | null
   pending_query_id: string | null
   pending_submitted_at: string | null
   pending_window_start: string | null
@@ -1155,6 +1402,7 @@ export function getAuditCollectionState(source: string): AuditCollectionState | 
   const r = get<{
     source: string
     last_collected_at: string | null
+    coverage_start_at: string | null
     pending_query_id: string | null
     pending_submitted_at: string | null
     pending_window_start: string | null
@@ -1165,7 +1413,7 @@ export function getAuditCollectionState(source: string): AuditCollectionState | 
     last_record_count: number
     enabled: number
   }>(
-    `SELECT source, last_collected_at, pending_query_id, pending_submitted_at, pending_window_start,
+    `SELECT source, last_collected_at, coverage_start_at, pending_query_id, pending_submitted_at, pending_window_start,
             pending_window_end, last_error, last_error_at, last_success_at, last_record_count, enabled
      FROM audit_collection_state WHERE source=?`,
     source
@@ -1175,12 +1423,13 @@ export function getAuditCollectionState(source: string): AuditCollectionState | 
 }
 export function updateAuditCollectionState(s: AuditCollectionState): void {
   run(
-    `INSERT INTO audit_collection_state(source,last_collected_at,pending_query_id,pending_submitted_at,pending_window_start,pending_window_end,last_error,last_error_at,last_success_at,last_record_count,enabled)
-     VALUES(?,?,?,?,?,?,?,?,?,?,?)
-     ON CONFLICT(source) DO UPDATE SET last_collected_at=excluded.last_collected_at, pending_query_id=excluded.pending_query_id, pending_submitted_at=excluded.pending_submitted_at, pending_window_start=excluded.pending_window_start, pending_window_end=excluded.pending_window_end, last_error=excluded.last_error, last_error_at=excluded.last_error_at, last_success_at=excluded.last_success_at, last_record_count=excluded.last_record_count, enabled=excluded.enabled`,
+    `INSERT INTO audit_collection_state(source,last_collected_at,coverage_start_at,pending_query_id,pending_submitted_at,pending_window_start,pending_window_end,last_error,last_error_at,last_success_at,last_record_count,enabled)
+     VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+     ON CONFLICT(source) DO UPDATE SET last_collected_at=excluded.last_collected_at, coverage_start_at=excluded.coverage_start_at, pending_query_id=excluded.pending_query_id, pending_submitted_at=excluded.pending_submitted_at, pending_window_start=excluded.pending_window_start, pending_window_end=excluded.pending_window_end, last_error=excluded.last_error, last_error_at=excluded.last_error_at, last_success_at=excluded.last_success_at, last_record_count=excluded.last_record_count, enabled=excluded.enabled`,
     [
       s.source,
       s.last_collected_at,
+      s.coverage_start_at,
       s.pending_query_id,
       s.pending_submitted_at,
       s.pending_window_start,
@@ -1192,6 +1441,13 @@ export function updateAuditCollectionState(s: AuditCollectionState): void {
       s.enabled ? 1 : 0
     ]
   )
+}
+
+export function apiInteractionBounds(): { earliest: string; latest: string } | null {
+  const row = get<{ earliest: string | null; latest: string | null }>(
+    "SELECT MIN(created_at) earliest, MAX(created_at) latest FROM interactions WHERE source_type='api'"
+  )
+  return row?.earliest && row.latest ? { earliest: row.earliest, latest: row.latest } : null
 }
 
 // ---- copilot usage snapshots --------------------------------------------
@@ -1955,7 +2211,7 @@ const AUDIT_SRC_LABEL: Record<string, string> = {
 
 export interface AuditCollectDTO {
   kpis: { total: number; purview: number; entraAudit: number; entraSignin: number }
-  sources: Array<{ source: string; label: string; enabled: boolean; last: string; count: number; error: string | null }>
+  sources: Array<{ source: string; label: string; enabled: boolean; pending: boolean; last: string; count: number; error: string | null }>
   recent: Array<{ time: string; source: string; operation: string; actor: string }>
 }
 export function auditCollectStatus(): AuditCollectDTO {
@@ -1964,10 +2220,12 @@ export function auditCollectStatus(): AuditCollectDTO {
   const stateRows = all<{
     source: string
     last_collected_at: string | null
+    coverage_start_at: string | null
+    pending_query_id: string | null
     last_record_count: number
     last_error: string | null
     enabled: number
-  }>('SELECT source, last_collected_at, last_record_count, last_error, enabled FROM audit_collection_state')
+  }>('SELECT source, last_collected_at, coverage_start_at, pending_query_id, last_record_count, last_error, enabled FROM audit_collection_state')
   const byState = new Map(stateRows.map((r) => [r.source, r]))
   const sources = ['purview', 'entra_audit', 'entra_signin'].map((src) => {
     const st = byState.get(src)
@@ -1975,7 +2233,13 @@ export function auditCollectStatus(): AuditCollectDTO {
       source: src,
       label: AUDIT_SRC_LABEL[src] || src,
       enabled: st ? Boolean(st.enabled) : true,
-      last: st?.last_collected_at ? shortTime(st.last_collected_at) : '—',
+      pending: Boolean(st?.pending_query_id),
+      last:
+        st?.coverage_start_at && st.last_collected_at
+          ? `${dateOnly(st.coverage_start_at)} ~ ${dateOnly(st.last_collected_at)}`
+          : st?.last_collected_at
+            ? shortTime(st.last_collected_at)
+            : '—',
       count: cnt(src),
       error: st?.last_error ?? null
     }

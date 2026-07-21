@@ -11,6 +11,7 @@ interface Source {
   source: string
   label: string
   enabled: boolean
+  pending: boolean
   last: string
   count: number
   error: string | null
@@ -30,9 +31,9 @@ interface DTO {
 const FALLBACK: DTO = {
   kpis: { total: 0, purview: 0, entraAudit: 0, entraSignin: 0 },
   sources: [
-    { source: 'purview', label: 'Purview 통합 감사', enabled: true, last: '—', count: 0, error: null },
-    { source: 'entra_audit', label: 'Entra 디렉터리 감사', enabled: true, last: '—', count: 0, error: null },
-    { source: 'entra_signin', label: 'Entra 로그인', enabled: true, last: '—', count: 0, error: null }
+    { source: 'purview', label: 'Purview 통합 감사', enabled: true, pending: false, last: '—', count: 0, error: null },
+    { source: 'entra_audit', label: 'Entra 디렉터리 감사', enabled: true, pending: false, last: '—', count: 0, error: null },
+    { source: 'entra_signin', label: 'Entra 로그인', enabled: true, pending: false, last: '—', count: 0, error: null }
   ],
   recent: []
 }
@@ -56,6 +57,8 @@ export function AuditCollect(): JSX.Element {
   }
   useEffect(() => {
     load()
+    const timer = setInterval(load, 5_000)
+    return () => clearInterval(timer)
   }, [])
 
   const prevRunning = useRef(run.running)
@@ -103,8 +106,14 @@ export function AuditCollect(): JSX.Element {
                 <tr key={s.source}>
                   <td className="ttl">{s.label}</td>
                   <td>
-                    <span className={`stat ${s.error ? 'err' : s.enabled ? 'ok' : 'idle'}`}>
-                      {s.error ? t('sourceStatus.status.error') : s.enabled ? t('sourceStatus.status.active') : t('sourceStatus.status.inactive')}
+                    <span className={`stat ${s.pending ? 'run' : s.error ? 'err' : s.enabled ? 'ok' : 'idle'}`}>
+                      {s.pending
+                        ? t('sourceStatus.status.processing')
+                        : s.error
+                          ? t('sourceStatus.status.error')
+                          : s.enabled
+                            ? t('sourceStatus.status.active')
+                            : t('sourceStatus.status.inactive')}
                     </span>
                   </td>
                   <td className="muted">{s.last}</td>

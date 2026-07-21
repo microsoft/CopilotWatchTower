@@ -20,6 +20,28 @@
     "apply": "適用",
     "reset": "リセット"
   },
+  "agents": {
+    "title": "エージェント",
+    "groups": "{{total}}グループ",
+    "auditGroups": "監査ログ連携 · {{total}}グループ",
+    "all": "すべて",
+    "search": "エージェント名またはIDを検索",
+    "noMatch": "一致するエージェントがありません。",
+    "unknown": "識別できません",
+    "apiUnknown": "監査ログで識別できません",
+    "unnamed": "エージェント {{id}}"
+  },
+  "users": {
+    "title": "ユーザー",
+    "groups": "{{total}}人",
+    "all": "すべてのユーザー",
+    "search": "ユーザー名またはIDを検索",
+    "noMatch": "一致するユーザーがありません。",
+    "backToAgents": "エージェント一覧へ戻る",
+    "unknown": "不明なユーザー"
+  },
+  "panels": { "conversations": "会話", "collapseAgents": "エージェントパネルを折りたたむ", "expandAgents": "エージェントパネルを展開", "collapseUsers": "ユーザーパネルを折りたたむ", "expandUsers": "ユーザーパネルを展開" },
+  "pagination": { "previous": "前のページ", "next": "次のページ", "status": "{{page}} / {{pages}} · {{total}}件" },
   "count_other": "{{count}}件の会話",
   "noMatch": "一致する会話がありません。",
   "messageCount_other": "{{count}}件のメッセージ",

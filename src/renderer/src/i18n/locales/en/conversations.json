@@ -20,6 +20,28 @@
     "apply": "Apply",
     "reset": "Reset"
   },
+  "agents": {
+    "title": "Agents",
+    "groups": "{{total}} groups",
+    "auditGroups": "Audit-linked · {{total}} groups",
+    "all": "All",
+    "search": "Search agent name or ID",
+    "noMatch": "No matching agents.",
+    "unknown": "Unidentified",
+    "apiUnknown": "Not identified in audit logs",
+    "unnamed": "Agent {{id}}"
+  },
+  "users": {
+    "title": "Users",
+    "groups": "{{total}} users",
+    "all": "All users",
+    "search": "Search user name or ID",
+    "noMatch": "No matching users.",
+    "backToAgents": "Back to agents",
+    "unknown": "Unknown user"
+  },
+  "panels": { "conversations": "Conversations", "collapseAgents": "Collapse agent panel", "expandAgents": "Expand agent panel", "collapseUsers": "Collapse user panel", "expandUsers": "Expand user panel" },
+  "pagination": { "previous": "Previous page", "next": "Next page", "status": "{{page}} / {{pages}} · {{total}}" },
   "count_other": "{{count}} conversations",
   "count_one": "{{count}} conversation",
   "noMatch": "No matching conversations.",

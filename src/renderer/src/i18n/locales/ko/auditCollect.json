@@ -5,7 +5,7 @@
     "title": "수집 소스 상태",
     "count_other": "{{count}}개 소스",
     "columns": { "source": "소스", "status": "상태", "last": "마지막 수집", "count": "건수" },
-    "status": { "error": "오류", "active": "활성", "inactive": "비활성" }
+    "status": { "error": "오류", "processing": "처리 중", "active": "활성", "inactive": "비활성" }
   },
   "recent": {
     "title": "최근 감사 이벤트",

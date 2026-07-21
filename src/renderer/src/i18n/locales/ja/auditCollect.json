@@ -5,7 +5,7 @@
     "title": "収集ソース状態",
     "count_other": "{{count}}件のソース",
     "columns": { "source": "ソース", "status": "状態", "last": "最終収集", "count": "件数" },
-    "status": { "error": "エラー", "active": "有効", "inactive": "無効" }
+    "status": { "error": "エラー", "processing": "処理中", "active": "有効", "inactive": "無効" }
   },
   "recent": {
     "title": "最近の監査イベント",

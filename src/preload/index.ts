@@ -1,4 +1,10 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
+import {
+  isEventChannel,
+  isInvokeChannel,
+  type EventChannel,
+  type InvokeChannel
+} from '../shared/ipc'
 
 /**
  * The single bridge the renderer is allowed to use. It mirrors the Python
@@ -7,9 +13,12 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
  * change — this surface stays stable.
  */
 const api = {
-  invoke: (channel: string, ...args: unknown[]): Promise<unknown> =>
-    ipcRenderer.invoke(channel, ...args),
-  on: (channel: string, listener: (payload: unknown) => void): (() => void) => {
+  invoke: (channel: InvokeChannel, ...args: unknown[]): Promise<unknown> => {
+    if (!isInvokeChannel(channel)) return Promise.reject(new Error(`IPC invoke channel is not allowed: ${channel}`))
+    return ipcRenderer.invoke(channel, ...args)
+  },
+  on: (channel: EventChannel, listener: (payload: unknown) => void): (() => void) => {
+    if (!isEventChannel(channel)) throw new Error(`IPC event channel is not allowed: ${channel}`)
     const handler = (_event: IpcRendererEvent, payload: unknown): void => listener(payload)
     ipcRenderer.on(channel, handler)
     return () => {

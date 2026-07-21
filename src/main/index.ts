@@ -1,5 +1,6 @@
-import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron'
+import { app, BrowserWindow, ipcMain as electronIpcMain, shell, dialog, type IpcMainInvokeEvent } from 'electron'
 import { join, dirname } from 'path'
+import { pathToFileURL } from 'node:url'
 import * as realdb from './db'
 import * as profiles from './profiles'
 import { hasCredentials, resetAuth } from './auth'
@@ -33,6 +34,9 @@ import { runEdiscoveryJob } from './collectors/ediscovery'
 import { randomUUID } from 'node:crypto'
 import { recomputeThreads } from './threading'
 import { evaluateCreditAlerts } from './collectors/creditAlerts'
+import { collectPurview } from './collectors/audit'
+import type { EventChannel, InvokeChannel } from '../shared/ipc'
+import { isAllowedPrimaryNavigation, isSafeExternalUrl } from './windowSecurity'
 
 /**
  * Real backend. Channel names mirror the Python bridge surface
@@ -53,9 +57,51 @@ let collectingUsage = false
 let collectingDiagnostics = false
 let collectingEdiscovery = false
 let stopEdiscovery = false
+let purviewAttributionTimer: ReturnType<typeof setTimeout> | null = null
+
+const ipcMain = {
+  handle(channel: InvokeChannel, listener: Parameters<typeof electronIpcMain.handle>[1]): void {
+    electronIpcMain.handle(channel, listener)
+  }
+}
+
+function sendEvent(event: IpcMainInvokeEvent, channel: EventChannel, payload: unknown): void {
+  if (!event.sender.isDestroyed()) event.sender.send(channel, payload)
+}
 
 function errMsg(e: unknown): string {
   return e instanceof Error ? e.message : String(e)
+}
+
+function schedulePurviewAttribution(delayMs = 10_000): void {
+  if (purviewAttributionTimer) clearTimeout(purviewAttributionTimer)
+  purviewAttributionTimer = setTimeout(() => void recoverPurviewAttribution(), delayMs)
+}
+
+async function recoverPurviewAttribution(): Promise<void> {
+  purviewAttributionTimer = null
+  if (!realdb.dbReady() || !hasCredentials() || !realdb.apiInteractionBounds()) {
+    schedulePurviewAttribution(900_000)
+    return
+  }
+  if (collecting || collectingConversation || collectingAudit || collectingDiagnostics || collectingUsage) {
+    schedulePurviewAttribution(30_000)
+    return
+  }
+
+  collectingAudit = true
+  try {
+    const outcome = await collectPurview()
+    if (outcome.pending) schedulePurviewAttribution(30_000)
+    else if (outcome.coverageComplete) schedulePurviewAttribution(900_000)
+    else if (outcome.error) schedulePurviewAttribution(900_000)
+    else schedulePurviewAttribution(5_000)
+  } catch (e) {
+    console.error('Purview agent attribution recovery failed', e)
+    schedulePurviewAttribution(900_000)
+  } finally {
+    collectingAudit = false
+  }
 }
 
 // ---- license capability gating (port of capabilities.py) ------------------
@@ -131,6 +177,36 @@ function registerHandlers(): void {
       }
     }
     return arr(() => realdb.conversations({ limit: 2000 }))
+  })
+  ipcMain.handle('conversation_agent_facets', (_e, filters: unknown) => {
+    if (!realdb.dbReady()) return []
+    const f = filters && typeof filters === 'object' ? (filters as realdb.ConvFilters) : {}
+    try {
+      return realdb.conversationAgentFacets(f)
+    } catch (e) {
+      console.error('conversation_agent_facets', e)
+      return []
+    }
+  })
+  ipcMain.handle('conversation_user_facets', (_e, filters: unknown) => {
+    if (!realdb.dbReady()) return []
+    const f = filters && typeof filters === 'object' ? (filters as realdb.ConvFilters) : {}
+    try {
+      return realdb.conversationUserFacets(f)
+    } catch (e) {
+      console.error('conversation_user_facets', e)
+      return []
+    }
+  })
+  ipcMain.handle('conversation_page', (_e, filters: unknown) => {
+    const f = filters && typeof filters === 'object' ? (filters as realdb.ConvFilters) : {}
+    if (!realdb.dbReady()) return { rows: [], total: 0, limit: f.limit ?? 50, offset: f.offset ?? 0 }
+    try {
+      return realdb.conversationPage(f)
+    } catch (e) {
+      console.error('conversation_page', e)
+      return { rows: [], total: 0, limit: f.limit ?? 50, offset: f.offset ?? 0 }
+    }
   })
   ipcMain.handle('conversation_users', (_e, source: unknown) => {
     if (!realdb.dbReady()) return []
@@ -248,7 +324,7 @@ function registerHandlers(): void {
     if (!upns.length) return { ok: false, error: 'no-upn' }
     const fs = await import('node:fs')
     const log = (message: string): void => {
-      if (!event.sender.isDestroyed()) event.sender.send('ediscovery_progress', { message })
+      sendEvent(event, 'ediscovery_progress', { message })
     }
     const results: Array<{ upn: string; rows: number; error?: string }> = []
     let totalRows = 0
@@ -326,7 +402,7 @@ function registerHandlers(): void {
     collectingEdiscovery = true
     stopEdiscovery = false
     const send = (data: unknown): void => {
-      if (!event.sender.isDestroyed()) event.sender.send('ediscovery_progress', data)
+      sendEvent(event, 'ediscovery_progress', data)
     }
     try {
       const uid = job.targetUserId ?? `ediscovery:${job.targetUpn.toLowerCase()}`
@@ -519,10 +595,10 @@ function registerHandlers(): void {
       const res = await onboard(
         String(p.name ?? ''),
         (message, percent) => {
-          if (!event.sender.isDestroyed()) event.sender.send('onboard_progress', { message, percent })
+          sendEvent(event, 'onboard_progress', { message, percent })
         },
         (dc) => {
-          if (!event.sender.isDestroyed()) event.sender.send('onboard_device_code', dc)
+          sendEvent(event, 'onboard_device_code', dc)
         },
         edCreds
       )
@@ -549,7 +625,7 @@ function registerHandlers(): void {
     collecting = true
     try {
       const result = await runCollection('manual', (p) => {
-        if (!event.sender.isDestroyed()) event.sender.send('collect_progress', p)
+        sendEvent(event, 'collect_progress', p)
       })
       return { ok: true, ...result }
     } catch (e) {
@@ -569,13 +645,14 @@ function registerHandlers(): void {
     collectingConversation = true
     try {
       const result = await runConversationCollection('manual', (p) => {
-        if (!event.sender.isDestroyed()) event.sender.send('conversation_progress', p)
+        sendEvent(event, 'conversation_progress', p)
       })
       return { ok: true, ...result }
     } catch (e) {
       return { ok: false, error: errMsg(e) }
     } finally {
       collectingConversation = false
+      schedulePurviewAttribution(1_000)
     }
   })
 
@@ -592,7 +669,7 @@ function registerHandlers(): void {
       const result = await runConversationCollection(
         'manual:user',
         (p) => {
-          if (!event.sender.isDestroyed()) event.sender.send('conversation_progress', p)
+          sendEvent(event, 'conversation_progress', p)
         },
         { userIds: [id] }
       )
@@ -601,6 +678,7 @@ function registerHandlers(): void {
       return { ok: false, error: errMsg(e) }
     } finally {
       collectingConversation = false
+      schedulePurviewAttribution(1_000)
     }
   })
 
@@ -610,13 +688,14 @@ function registerHandlers(): void {
     collectingAudit = true
     try {
       const result = await runAuditCollection((p) => {
-        if (!event.sender.isDestroyed()) event.sender.send('audit_progress', p)
+        sendEvent(event, 'audit_progress', p)
       })
       return { ok: true, ...result }
     } catch (e) {
       return { ok: false, error: errMsg(e) }
     } finally {
       collectingAudit = false
+      schedulePurviewAttribution(5_000)
     }
   })
 
@@ -628,7 +707,7 @@ function registerHandlers(): void {
     collectingUsage = true
     try {
       const result = await runUsageCollection((p) => {
-        if (!event.sender.isDestroyed()) event.sender.send('usage_progress', p)
+        sendEvent(event, 'usage_progress', p)
       })
       return { ok: true, ...result }
     } catch (e) {
@@ -646,7 +725,7 @@ function registerHandlers(): void {
     collectingDiagnostics = true
     try {
       const result = await runDiagnosticsCollection((p) => {
-        if (!event.sender.isDestroyed()) event.sender.send('diagnostics_progress', p)
+        sendEvent(event, 'diagnostics_progress', p)
       })
       return { ok: true, ...result }
     } catch (e) {
@@ -698,7 +777,7 @@ function registerHandlers(): void {
     if (!tenantId) return { ok: false, error: 'no-tenant' }
     consuming = true
     const log = (line: string): void => {
-      if (!event.sender.isDestroyed()) event.sender.send('consumption_progress', { message: line })
+      sendEvent(event, 'consumption_progress', { message: line })
     }
     try {
       const token = await captureBearerToken({
@@ -743,7 +822,7 @@ function registerHandlers(): void {
     const logLines: Array<{ at: string; text: string }> = []
     const log = (line: string): void => {
       logLines.push({ at: new Date().toISOString(), text: line })
-      if (!event.sender.isDestroyed()) event.sender.send('transcripts_progress', { message: line })
+      sendEvent(event, 'transcripts_progress', { message: line })
     }
     const runId = realdb.dbReady() ? realdb.startRunLog('transcripts', 'manual') : 0
     try {
@@ -778,7 +857,7 @@ function registerHandlers(): void {
     if (collectingFlowRuns) return { ok: false, error: 'already-running' }
     collectingFlowRuns = true
     const log = (line: string): void => {
-      if (!event.sender.isDestroyed()) event.sender.send('flowruns_progress', { message: line })
+      sendEvent(event, 'flowruns_progress', { message: line })
     }
     try {
       const tokens = await captureDataverseTokens({
@@ -802,7 +881,7 @@ function registerHandlers(): void {
     if (collectingAgentDefs) return { ok: false, error: 'already-running' }
     collectingAgentDefs = true
     const log = (line: string): void => {
-      if (!event.sender.isDestroyed()) event.sender.send('agentdefs_progress', { message: line })
+      sendEvent(event, 'agentdefs_progress', { message: line })
     }
     try {
       const tokens = await captureDataverseTokens({
@@ -937,7 +1016,7 @@ function createWindow(): void {
     icon: join(__dirname, '../../resources/app.ico'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
+      sandbox: true,
       contextIsolation: true,
       nodeIntegration: false
     }
@@ -945,16 +1024,25 @@ function createWindow(): void {
 
   win.once('ready-to-show', () => win.show())
 
+  const rendererFile = join(__dirname, '../renderer/index.html')
+  const devUrl = process.env['ELECTRON_RENDERER_URL']
+  const rendererEntry = devUrl || pathToFileURL(rendererFile).toString()
+
   win.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    if (isSafeExternalUrl(details.url)) void shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
-  const devUrl = process.env['ELECTRON_RENDERER_URL']
+  win.webContents.on('will-navigate', (event, targetUrl) => {
+    if (isAllowedPrimaryNavigation(targetUrl, rendererEntry)) return
+    event.preventDefault()
+    if (isSafeExternalUrl(targetUrl)) void shell.openExternal(targetUrl)
+  })
+
   if (devUrl) {
     win.loadURL(devUrl)
   } else {
-    win.loadFile(join(__dirname, '../renderer/index.html'))
+    win.loadFile(rendererFile)
   }
 }
 
@@ -1296,6 +1384,7 @@ app.whenReady().then(async () => {
   }
 
   createWindow()
+  schedulePurviewAttribution()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
@@ -1303,4 +1392,9 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
+})
+
+app.on('before-quit', () => {
+  if (purviewAttributionTimer) clearTimeout(purviewAttributionTimer)
+  purviewAttributionTimer = null
 })

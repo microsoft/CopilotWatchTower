@@ -5,7 +5,7 @@
     "title": "Estado de las fuentes de recopilación",
     "count_other": "{{count}} fuentes",
     "columns": { "source": "Fuente", "status": "Estado", "last": "Última recopilación", "count": "Cantidad" },
-    "status": { "error": "Error", "active": "Activo", "inactive": "Inactivo" }
+    "status": { "error": "Error", "processing": "Procesando", "active": "Activo", "inactive": "Inactivo" }
   },
   "recent": {
     "title": "Eventos de auditoría recientes",

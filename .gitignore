@@ -30,6 +30,7 @@ legacy/web/dist/
 # Tests
 .pytest_cache/
 .coverage
+coverage/
 htmlcov/
 pytest-output*.txt
 

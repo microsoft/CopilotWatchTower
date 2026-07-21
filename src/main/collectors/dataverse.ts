@@ -254,7 +254,7 @@ async function resolveEnvironments(
 async function fetchTranscripts(env: DataverseEnvironment, token: string, maxPages = 50): Promise<Dict[]> {
   const base = env.url.replace(/\/+$/, '')
   let url: string | null =
-    `${base}/api/data/${API_VERSION}/conversationtranscripts?$select=conversationtranscriptid,content,createdon,name,schematype`
+    `${base}/api/data/${API_VERSION}/conversationtranscripts?$select=conversationtranscriptid,content,createdon,name,schematype,_botid_value`
   const out: Dict[] = []
   let pages = 0
   while (url && pages < maxPages) {
@@ -323,7 +323,7 @@ export async function collectTranscripts(
       const participants = new Map<string, string>()
       let skippedNonTeams = 0
       for (const t of transcripts) {
-        const agentId = (t._botid_value ?? t.schematype) != null ? String(t._botid_value ?? t.schematype) : null
+        const agentId = t._botid_value != null ? String(t._botid_value) : null
         const agentName = agentId ? bots.get(agentId.toLowerCase()) ?? null : null
         const parsed = parseConversationTranscript(t.content, {
           transcriptId: String(t.conversationtranscriptid ?? ''),

@@ -5,7 +5,7 @@
     "title": "收集来源状态",
     "count_other": "{{count}} 个来源",
     "columns": { "source": "来源", "status": "状态", "last": "最后收集", "count": "数量" },
-    "status": { "error": "错误", "active": "活跃", "inactive": "不活跃" }
+    "status": { "error": "错误", "processing": "处理中", "active": "活跃", "inactive": "不活跃" }
   },
   "recent": {
     "title": "最近的审计事件",

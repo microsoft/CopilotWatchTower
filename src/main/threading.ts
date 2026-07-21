@@ -260,5 +260,6 @@ export function recomputeThreads(userId: string, sourceType: string): number {
   const pairs: Array<[string, string]> = []
   for (const t of threads) for (const iid of t.interactionIds) pairs.push([iid, t.id])
   db.assignThreadsToInteractions(pairs)
+  db.refreshConversationAgentAttribution(sourceType, userId)
   return threads.length
 }

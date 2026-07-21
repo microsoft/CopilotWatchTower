@@ -142,6 +142,9 @@ CREATE TABLE IF NOT EXISTS conversation_threads (
     topic_keywords  TEXT,                                -- JSON list of top keywords
     title           TEXT,                                -- first user prompt summary
     cluster_label   TEXT,                                -- optional manual/auto label
+    agent_key       TEXT,                                -- normalized source-scoped agent identity
+    agent_id        TEXT,                                -- source-native agent/bot identifier
+    agent_name      TEXT,                                -- resolved display name
     computed_at     TEXT NOT NULL,
     source_type     TEXT NOT NULL DEFAULT 'api',          -- api | ediscovery
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -150,6 +153,8 @@ CREATE TABLE IF NOT EXISTS conversation_threads (
 CREATE INDEX IF NOT EXISTS ix_threads_user_time ON conversation_threads(user_id, started_at DESC);
 CREATE INDEX IF NOT EXISTS ix_threads_started ON conversation_threads(started_at DESC);
 CREATE INDEX IF NOT EXISTS ix_threads_source_user_time ON conversation_threads(source_type, user_id, started_at DESC);
+CREATE INDEX IF NOT EXISTS ix_threads_source_agent_time ON conversation_threads(source_type, agent_key, started_at DESC);
+CREATE INDEX IF NOT EXISTS ix_threads_source_agent_user_time ON conversation_threads(source_type, agent_key, user_id, started_at DESC);
 
 -- ``thread_id`` is added by the migration step (cannot be expressed in a
 -- single CREATE TABLE because v1 stores already exist without it).
@@ -182,6 +187,7 @@ CREATE INDEX IF NOT EXISTS ix_audit_event_time ON audit_events(event_time DESC);
 CREATE TABLE IF NOT EXISTS audit_collection_state (
     source                  TEXT PRIMARY KEY,            -- purview | entra_audit | entra_signin
     last_collected_at       TEXT,                        -- watermark
+    coverage_start_at       TEXT,                        -- earliest successfully searched timestamp
     pending_query_id        TEXT,                        -- Purview asyncQuery id (cross-cycle pickup)
     pending_submitted_at    TEXT,
     pending_window_start    TEXT,

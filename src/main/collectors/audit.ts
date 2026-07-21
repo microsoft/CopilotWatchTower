@@ -7,6 +7,8 @@ import {
   getAuditCollectionState,
   updateAuditCollectionState,
   upsertAuditEvents,
+  apiInteractionBounds,
+  refreshConversationAgentAttribution,
   type AuditCollectionState,
   type AuditEventRow
 } from '../db'
@@ -19,6 +21,7 @@ import {
   GraphError
 } from '../graph'
 import { auditDataFromRaw, copilotEventData, auditPayloadItems, payloadJson } from '../auditPayload'
+import { planPurviewCoverageWindow } from '../purviewCoverage'
 
 type Dict = Record<string, unknown>
 
@@ -27,6 +30,7 @@ export interface CollectionOutcome {
   fetched: number
   error?: string
   pending?: boolean
+  coverageComplete?: boolean
   details: string[]
 }
 
@@ -54,6 +58,7 @@ function newState(source: string): AuditCollectionState {
   return {
     source,
     last_collected_at: null,
+    coverage_start_at: null,
     pending_query_id: null,
     pending_submitted_at: null,
     pending_window_start: null,
@@ -64,6 +69,35 @@ function newState(source: string): AuditCollectionState {
     last_record_count: 0,
     enabled: true
   }
+}
+
+function earlierIso(current: string | null, candidate: string | null): string | null {
+  if (!candidate) return current
+  return !current || candidate < current ? candidate : current
+}
+
+function laterIso(current: string | null, candidate: string | null): string | null {
+  if (!candidate) return current
+  return !current || candidate > current ? candidate : current
+}
+
+function clearPending(state: AuditCollectionState): void {
+  state.pending_query_id = null
+  state.pending_submitted_at = null
+  state.pending_window_start = null
+  state.pending_window_end = null
+}
+
+function isApiCoverageComplete(state: AuditCollectionState): boolean | undefined {
+  const bounds = apiInteractionBounds()
+  if (!bounds) return undefined
+  return !planPurviewCoverageWindow({
+    now: isoNow(),
+    apiEarliestAt: bounds.earliest,
+    apiLatestAt: bounds.latest,
+    coverageStartAt: state.coverage_start_at,
+    coverageEndAt: state.last_collected_at
+  })
 }
 
 function windowDetail(start: string | null, end: string | null): string {
@@ -136,8 +170,7 @@ async function drainPurviewQuery(
   if (status === 'failed' || status === 'cancelled') {
     const errObj = (payload.error as Dict) ?? {}
     const msg = status === 'failed' ? String(errObj.message ?? 'query failed') : 'query cancelled'
-    state.pending_query_id = null
-    state.pending_submitted_at = null
+    clearPending(state)
     state.last_error = msg
     state.last_error_at = isoNow()
     updateAuditCollectionState(state)
@@ -147,30 +180,61 @@ async function drainPurviewQuery(
   const fetchedAt = isoNow()
   const rows: AuditEventRow[] = []
   for await (const raw of listAuditQueryRecords(qid)) rows.push(parsePurviewEvent(raw, fetchedAt))
-  if (rows.length) upsertAuditEvents(rows)
+  if (rows.length) {
+    upsertAuditEvents(rows)
+    refreshConversationAgentAttribution('api')
+  }
   const userKeys = new Set(rows.map((r) => r.user_id ?? r.upn).filter(Boolean) as string[])
   const details = [windowDetail(state.pending_window_start, state.pending_window_end), `query ${qid} (succeeded)`]
   if (userKeys.size) details.push(`영향 사용자 ${userKeys.size}명`)
-  state.last_collected_at = state.pending_window_end ?? isoNow()
+  state.coverage_start_at = earlierIso(state.coverage_start_at, state.pending_window_start)
+  state.last_collected_at = laterIso(state.last_collected_at, state.pending_window_end ?? isoNow())
   state.last_success_at = isoNow()
   state.last_record_count = rows.length
   state.last_error = null
   state.last_error_at = null
-  state.pending_query_id = null
-  state.pending_submitted_at = null
-  state.pending_window_start = null
-  state.pending_window_end = null
+  clearPending(state)
   updateAuditCollectionState(state)
-  return { source: 'purview', fetched: rows.length, details }
+  return { source: 'purview', fetched: rows.length, coverageComplete: isApiCoverageComplete(state), details }
 }
 
 export async function collectPurview(backfillDays = DEFAULT_BACKFILL_DAYS): Promise<CollectionOutcome> {
   const state = getAuditCollectionState('purview') ?? newState('purview')
   if (!state.enabled) return { source: 'purview', fetched: 0, details: [] }
   try {
-    if (state.pending_query_id) return await drainPurviewQuery(state, 10, 60)
-    const windowEnd = isoNow()
-    const windowStart = state.last_collected_at ?? isoDaysAgo(backfillDays)
+    if (state.pending_query_id) {
+      try {
+        return await drainPurviewQuery(state, 10, 60)
+      } catch (e) {
+        if (!(e instanceof GraphError) || (e.status !== 400 && e.status !== 404)) throw e
+        clearPending(state)
+        state.last_error = '기존 Purview 쿼리가 만료되어 새 검색을 제출합니다.'
+        state.last_error_at = isoNow()
+        updateAuditCollectionState(state)
+      }
+    }
+
+    const now = isoNow()
+    const apiBounds = apiInteractionBounds()
+    const planned = apiBounds
+      ? planPurviewCoverageWindow({
+          now,
+          apiEarliestAt: apiBounds.earliest,
+          apiLatestAt: apiBounds.latest,
+          coverageStartAt: state.coverage_start_at,
+          coverageEndAt: state.last_collected_at
+        })
+      : null
+    if (apiBounds && !planned) {
+      return {
+        source: 'purview',
+        fetched: 0,
+        coverageComplete: true,
+        details: ['API 대화 기간의 Purview 감사 범위가 최신 상태입니다.']
+      }
+    }
+    const windowEnd = planned?.end ?? now
+    const windowStart = planned?.start ?? state.last_collected_at ?? isoDaysAgo(backfillDays)
     const qid = await submitAuditLogQuery({
       displayName: `CopilotWatchTower-${windowEnd}`,
       start: windowStart,
