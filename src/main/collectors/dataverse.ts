@@ -9,6 +9,7 @@ import * as db from '../db'
 import { recomputeThreads } from '../threading'
 import { analyzeAgent, parentBotId } from './agentRisk'
 import type { PortalTokens } from '../portal'
+import { httpRequest } from '../http'
 
 const DISCOVERY_INSTANCES_URL = 'https://globaldisco.crm.dynamics.com/api/discovery/v2.0/Instances'
 const DISCOVERY_HOST = 'globaldisco.crm.dynamics.com'
@@ -207,7 +208,7 @@ export function parseEnvironmentsJson(data: unknown): DataverseEnvironment[] {
 // ---- HTTP client -------------------------------------------------------
 
 async function getJson(url: string, token: string, prefer = 'odata.maxpagesize=200'): Promise<Dict> {
-  const res = await fetch(url, {
+  const res = await httpRequest(url, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'application/json',
@@ -217,10 +218,16 @@ async function getJson(url: string, token: string, prefer = 'odata.maxpagesize=2
     }
   })
   if (!res.ok) {
-    const body = await res.text()
+    const body = await res.text().catch(() => '')
     throw new Error(`Dataverse ${res.status} ${url.slice(0, 80)} :: ${body.slice(0, 160)}`)
   }
-  return (await res.json()) as Dict
+  const text = await res.text()
+  if (!text.trim()) return {} as Dict
+  try {
+    return JSON.parse(text) as Dict
+  } catch {
+    throw new Error(`Dataverse ${url.slice(0, 80)} :: expected JSON, got ${text.slice(0, 160)}`)
+  }
 }
 
 async function discoverEnvironments(token: string): Promise<DataverseEnvironment[]> {
@@ -251,7 +258,25 @@ async function resolveEnvironments(
   return orgHosts.map((host) => ({ id: host, url: `https://${host}`, friendlyName: host }))
 }
 
-async function fetchTranscripts(env: DataverseEnvironment, token: string, maxPages = 50): Promise<Dict[]> {
+type OnLog = (line: string) => void
+
+/**
+ * Paging stops at `maxPages` to bound a runaway collection. Truncation used to
+ * be silent, so a partial dataset was indistinguishable from a complete one —
+ * unacceptable for a governance report. Always say so out loud.
+ */
+function warnTruncated(onLog: OnLog | undefined, label: string, pages: number, rows: number): void {
+  onLog?.(
+    `⚠ ${label}: ${pages} 페이지(${rows} 행)에서 중단했습니다 — 결과가 잘렸을 수 있습니다. 기간/필터를 좁혀 다시 수집하세요.`
+  )
+}
+
+async function fetchTranscripts(
+  env: DataverseEnvironment,
+  token: string,
+  onLog?: OnLog,
+  maxPages = 50
+): Promise<Dict[]> {
   const base = env.url.replace(/\/+$/, '')
   let url: string | null =
     `${base}/api/data/${API_VERSION}/conversationtranscripts?$select=conversationtranscriptid,content,createdon,name,schematype,_botid_value`
@@ -263,6 +288,7 @@ async function fetchTranscripts(env: DataverseEnvironment, token: string, maxPag
     url = (data['@odata.nextLink'] as string) ?? null
     pages++
   }
+  if (url) warnTruncated(onLog, `${env.friendlyName || env.id} conversationtranscripts`, pages, out.length)
   return out
 }
 
@@ -316,7 +342,7 @@ export async function collectTranscripts(
       continue
     }
     try {
-      const transcripts = await fetchTranscripts(env, token)
+      const transcripts = await fetchTranscripts(env, token, onLog)
       result.transcripts += transcripts.length
       const bots = await fetchBots(env, token)
       const interactions: db.InteractionUpsert[] = []
@@ -416,7 +442,12 @@ export function parseFlowRunRecord(record: Dict, environmentId: string | null, e
   }
 }
 
-async function fetchFlowRuns(env: DataverseEnvironment, token: string, maxPages = 50): Promise<Dict[]> {
+async function fetchFlowRuns(
+  env: DataverseEnvironment,
+  token: string,
+  onLog?: OnLog,
+  maxPages = 50
+): Promise<Dict[]> {
   const base = env.url.replace(/\/+$/, '')
   let url: string | null = `${base}/api/data/${API_VERSION}/flowruns?$select=${FLOW_RUN_SELECT}&$orderby=createdon desc`
   const out: Dict[] = []
@@ -427,6 +458,7 @@ async function fetchFlowRuns(env: DataverseEnvironment, token: string, maxPages 
     url = (data['@odata.nextLink'] as string) ?? null
     pages++
   }
+  if (url) warnTruncated(onLog, `${env.friendlyName || env.id} flowruns`, pages, out.length)
   return out
 }
 
@@ -453,7 +485,7 @@ export async function collectFlowRuns(tokens: PortalTokens, onLog?: (line: strin
       continue
     }
     try {
-      const records = await fetchFlowRuns(env, token)
+      const records = await fetchFlowRuns(env, token, onLog)
       const rows = records
         .map((r) => parseFlowRunRecord(r, env.id, env.friendlyName))
         .filter((r): r is db.FlowRunRow => r !== null)
@@ -479,7 +511,7 @@ async function fetchEntity(
   env: DataverseEnvironment,
   token: string,
   entitySet: string,
-  opts: { select?: string; top?: number; includeFormatted?: boolean; maxPages?: number }
+  opts: { select?: string; top?: number; includeFormatted?: boolean; maxPages?: number; onLog?: OnLog }
 ): Promise<Dict[]> {
   const base = env.url.replace(/\/+$/, '')
   const params = new URLSearchParams()
@@ -499,6 +531,7 @@ async function fetchEntity(
     url = (data['@odata.nextLink'] as string) ?? null
     pages++
   }
+  if (url) warnTruncated(opts.onLog, `${env.friendlyName || env.id} ${entitySet}`, pages, out.length)
   return out
 }
 
@@ -534,7 +567,12 @@ export async function collectAgentDefinitions(tokens: PortalTokens, onLog?: (lin
       continue
     }
     try {
-      const bots = await fetchEntity(env, token, 'bots', { select: BOT_SELECT, includeFormatted: true, maxPages: 20 })
+      const bots = await fetchEntity(env, token, 'bots', {
+        select: BOT_SELECT,
+        includeFormatted: true,
+        maxPages: 20,
+        onLog
+      })
       if (!bots.length) {
         onLog?.(`${label}: 에이전트 없음`)
         continue
@@ -542,7 +580,8 @@ export async function collectAgentDefinitions(tokens: PortalTokens, onLog?: (lin
       const components = await fetchEntity(env, token, 'botcomponents', {
         select: BOTCOMPONENT_SELECT,
         top: 5000,
-        maxPages: 50
+        maxPages: 50,
+        onLog
       })
       const byBot = new Map<string, Dict[]>()
       for (const c of components) {

@@ -4,7 +4,7 @@
    background, one violet accent, generous spacing, soft borders.
    ========================================================================== */
 
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css');
+@import 'pretendard/dist/web/variable/pretendardvariable.css';
 
 :root {
   --bg: #0a0b0d;

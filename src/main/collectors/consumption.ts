@@ -5,6 +5,7 @@
  * point-in-time snapshots into power_platform_consumption.
  */
 import { upsertConsumptionRows, type ConsumptionRow } from '../db'
+import { httpRequest } from '../http'
 
 const LICENSING_HOST = 'https://licensing.powerplatform.microsoft.com'
 
@@ -43,14 +44,20 @@ function datePart(value: unknown): string | null {
 async function getJson(token: string, path: string, params?: Record<string, string>): Promise<unknown> {
   const url = new URL(LICENSING_HOST + path)
   if (params) for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
-  const res = await fetch(url, {
+  const res = await httpRequest(url.toString(), {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
   })
   if (!res.ok) {
-    const body = await res.text()
+    const body = await res.text().catch(() => '')
     throw new Error(`Licensing ${res.status} ${path} :: ${body.slice(0, 160)}`)
   }
-  return res.json()
+  const text = await res.text()
+  if (!text.trim()) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    throw new Error(`Licensing ${path} :: expected JSON, got ${text.slice(0, 160)}`)
+  }
 }
 
 function parseCurrencyReports(data: unknown, snapshotDate: string): ConsumptionRow[] {

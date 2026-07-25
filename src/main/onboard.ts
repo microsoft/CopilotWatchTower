@@ -13,6 +13,7 @@ import { hostname } from 'node:os'
 import { dirname } from 'node:path'
 import * as profiles from './profiles'
 import { persistTokenCache } from './tokenCache'
+import { httpRequest } from './http'
 
 const BOOTSTRAP_CLIENT_ID = '14d82eec-204b-4c2f-b7e8-296a70dab67e'
 const GRAPH = 'https://graph.microsoft.com/v1.0'
@@ -107,13 +108,15 @@ async function deviceLogin(
 }
 
 async function gpost(token: string, path: string, body: unknown): Promise<Record<string, unknown>> {
-  const res = await fetch(GRAPH + path, {
+  const res = await httpRequest(GRAPH + path, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   })
-  if (!res.ok) throw new Error(`Graph POST ${path} ${res.status}: ${(await res.text()).slice(0, 300)}`)
-  return (await res.json()) as Record<string, unknown>
+  if (!res.ok) throw new Error(`Graph POST ${path} ${res.status}: ${(await res.text().catch(() => '')).slice(0, 300)}`)
+  const text = await res.text()
+  if (!text.trim()) return {}
+  return JSON.parse(text) as Record<string, unknown>
 }
 
 async function registerApp(
@@ -188,7 +191,7 @@ async function verifyRedirectUri(
   const deadline = Date.now() + timeoutMs
   for (;;) {
     try {
-      const res = await fetch(`${GRAPH}/applications/${appObjectId}?$select=web`, {
+      const res = await httpRequest(`${GRAPH}/applications/${appObjectId}?$select=web`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.ok) {

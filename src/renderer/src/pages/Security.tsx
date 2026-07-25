@@ -20,7 +20,14 @@ interface EventRow {
   raw: string
 }
 interface SecurityData {
-  kpis: { total: number; blocked: number; uniqueUsers: number; topOperation: string | null; topOperationCount: number }
+  kpis: {
+    total: number
+    blocked: number
+    uniqueUsers: number
+    topOperation: string | null
+    topOperationCount: number
+    truncated: boolean
+  }
   events: EventRow[]
 }
 interface DiagRow {
@@ -42,7 +49,7 @@ interface Filters {
 }
 
 const EMPTY_DATA: SecurityData = {
-  kpis: { total: 0, blocked: 0, uniqueUsers: 0, topOperation: null, topOperationCount: 0 },
+  kpis: { total: 0, blocked: 0, uniqueUsers: 0, topOperation: null, topOperationCount: 0, truncated: false },
   events: []
 }
 const EMPTY_FILTERS: Filters = { source: '', dateFrom: '', dateTo: '', search: '' }
@@ -178,7 +185,10 @@ export function Security(): JSX.Element {
         <button type="button" className="conv-btn ghost" onClick={reset}>
           {t('filters.reset')}
         </button>
-        <span className="muted conv-count">{t('count', { count: n(data.events.length) })}</span>
+        <span className="muted conv-count">
+          {t('count', { count: n(data.events.length) })}
+          {k.truncated ? ` · ${t('truncated', { shown: n(data.events.length), total: n(k.total) })}` : ''}
+        </span>
       </form>
 
       <div className="kpi-row">

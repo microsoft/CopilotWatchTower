@@ -43,8 +43,14 @@ interface ParsedItem {
 function isoNow(): string {
   return new Date().toISOString()
 }
-function iso(value: unknown): string {
-  if (value === null || value === undefined || value === '') return isoNow()
+/**
+ * Parse an export timestamp. Returns null when the value is absent or
+ * unparseable so the caller can flag it: substituting "now" silently made an
+ * undated item look like the most recent activity in the tenant, which is
+ * exactly the kind of fabricated evidence a governance tool must never emit.
+ */
+function iso(value: unknown): string | null {
+  if (value === null || value === undefined || value === '') return null
   const text = String(value).trim()
   // Teams/Copilot timestamps are epoch milliseconds (e.g. creationDate
   // 1782027647001). Date(string) can't parse those, so convert explicitly.
@@ -59,6 +65,9 @@ function iso(value: unknown): string {
   if (Number.isNaN(d.getTime())) return text
   return d.toISOString()
 }
+
+/** Marker written into `raw` when `createdAt` had to be synthesised. */
+export const CREATED_AT_UNKNOWN = '__createdAtUnknown'
 
 /** Split a combined Copilot body into ordered (type, text) turns. */
 export function splitCopilotBody(body: string): Array<[string, string]> {
@@ -109,7 +118,8 @@ function turnsFromPairs(itemId: string, pairs: Array<[string, string]>, createdA
 function parseNormalisedRecord(rec: Dict, fallbackId: string): ParsedItem {
   const itemId = String(rec.id ?? rec.itemId ?? fallbackId)
   const conversationId = rec.conversationId ?? rec.conversation_id ?? rec.threadId
-  const createdAt = iso(rec.createdDateTime ?? rec.created_at ?? rec.date)
+  const parsedAt = iso(rec.createdDateTime ?? rec.created_at ?? rec.date)
+  const createdAt = parsedAt ?? isoNow()
   const app = (rec.app ?? rec.appHost ?? DEFAULT_APP) as string
   const pairs: Array<[string, string]> = []
   if (rec.prompt) pairs.push([USER_PROMPT, String(rec.prompt)])
@@ -121,7 +131,7 @@ function parseNormalisedRecord(rec: Dict, fallbackId: string): ParsedItem {
     createdAt,
     app: app ? String(app) : DEFAULT_APP,
     turns: turnsFromPairs(itemId, finalPairs, createdAt),
-    raw: rec
+    raw: parsedAt ? rec : { ...rec, [CREATED_AT_UNKNOWN]: true }
   }
 }
 
@@ -146,7 +156,8 @@ function parseEmlBytes(data: Buffer, name: string): ParsedItem | null {
   const subject = headers.get('subject') ?? ''
   const messageId = (headers.get('message-id') ?? name).replace(/[<>]/g, '') || name
   const conversationId = headers.get('thread-index') ?? headers.get('x-conversation-id') ?? messageId
-  const createdAt = iso(headers.get('date'))
+  const parsedAt = iso(headers.get('date')) ?? iso(headers.get('received')?.split(';').pop()?.trim())
+  const createdAt = parsedAt ?? isoNow()
   let pairs = body ? splitCopilotBody(body) : []
   if (subject && (!pairs.length || pairs[0][0] !== USER_PROMPT)) {
     pairs = [[USER_PROMPT, subject], ...pairs]
@@ -157,7 +168,7 @@ function parseEmlBytes(data: Buffer, name: string): ParsedItem | null {
     createdAt,
     app: DEFAULT_APP,
     turns: turnsFromPairs(messageId, pairs, createdAt),
-    raw: { subject, name }
+    raw: parsedAt ? { subject, name } : { subject, name, [CREATED_AT_UNKNOWN]: true }
   }
 }
 
@@ -169,13 +180,16 @@ function msgStream(container: CfbContainer, name: string): Buffer | null {
   if (!e || !e.content) return null
   return Buffer.from(e.content as Uint8Array)
 }
+/** MSG properties are UTF-16 blobs; NUL padding is data, not text. */
 function cleanMsgText(value: string): string {
+  // eslint-disable-next-line no-control-regex -- NUL is meaningful binary padding here
   return value.replace(/\u0000/g, '').replace(/[ \t\r\f\v]+/g, ' ').trim()
 }
 /** Parse a Teams/Copilot ItemData JSON blob (a `{SchemaVersion,ItemData}`
  * wrapper, or the item object directly). */
 function parseItemDataText(text: string): Dict | null {
   try {
+    // eslint-disable-next-line no-control-regex -- NUL is meaningful binary padding here
     const outer = JSON.parse(text.replace(/\u0000/g, '').trim()) as Dict
     let parsed: unknown = outer.ItemData
     if (typeof parsed === 'string') parsed = JSON.parse(parsed)
@@ -412,7 +426,8 @@ function parseMsgBytes(data: Buffer, name: string): ParsedItem | null {
       itemData.originalarrivaltime ??
       itemData.composetime ??
       itemData.createdDateTime
-    const createdAt = iso(ts ?? (msgDate(container) || undefined))
+    const parsedAt = iso(ts ?? (msgDate(container) || undefined))
+    const createdAt = parsedAt ?? isoNow()
     const body = unwrapSwiftCard(
       cleanMsgText(String(itemData.content ?? '')) || uni('1000001F') || htmlBodyText(container)
     )
@@ -426,11 +441,12 @@ function parseMsgBytes(data: Buffer, name: string): ParsedItem | null {
       createdAt,
       app: DEFAULT_APP,
       turns,
-      raw: { subject, name, messageId, itemData }
+      raw: parsedAt ? { subject, name, messageId, itemData } : { subject, name, messageId, itemData, [CREATED_AT_UNKNOWN]: true }
     }
   }
   // Non-Teams item: split the plain body on User:/Copilot: markers.
-  const createdAt = iso(msgDate(container) || undefined)
+  const parsedAt = iso(msgDate(container) || undefined)
+  const createdAt = parsedAt ?? isoNow()
   const body = unwrapSwiftCard(uni('1000001F') || htmlBodyText(container)) // PidTagBody, HTML, then SWIFT card
   let pairs = body ? splitCopilotBody(body) : []
   if (subject && (!pairs.length || pairs[0][0] !== USER_PROMPT)) pairs = [[USER_PROMPT, subject], ...pairs]
@@ -448,41 +464,159 @@ function parseMsgBytes(data: Buffer, name: string): ParsedItem | null {
     createdAt,
     app: DEFAULT_APP,
     turns: turnsFromPairs(messageId, pairs, createdAt),
-    raw: { subject, name }
+    raw: parsedAt ? { subject, name } : { subject, name, [CREATED_AT_UNKNOWN]: true }
   }
 }
 
-/** Minimal dependency-free ZIP reader (central directory + raw inflate). */
-export function readZipEntries(buf: Buffer): Array<{ name: string; data: Buffer }> {
+const EOCD_SIG = 0x06054b50
+const EOCD64_LOCATOR_SIG = 0x07064b50
+const EOCD64_SIG = 0x06064b50
+const CD_ENTRY_SIG = 0x02014b50
+const U32_MAX = 0xffffffff
+const U16_MAX = 0xffff
+/** ZIP comment is at most 64 KiB, so the EOCD can never be further back than this. */
+const MAX_EOCD_SEARCH = 0xffff + 22
+
+/** Read a ZIP64 8-byte value, refusing offsets a Buffer index cannot represent. */
+function u64(buf: Buffer, at: number): number {
+  const v = buf.readBigUInt64LE(at)
+  if (v > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error(`ZIP64 값이 너무 큽니다: ${v}`)
+  return Number(v)
+}
+
+/**
+ * ZIP64 stores the real sizes/offsets in a 0x0001 extra field whenever the
+ * classic 32-bit slot is saturated (0xffffffff). Fields appear in a fixed order
+ * but only the saturated ones are present, so they must be consumed in order.
+ */
+function zip64Extra(
+  extra: Buffer,
+  need: { uncompSize: boolean; compSize: boolean; localHeaderOffset: boolean }
+): { compSize?: number; localHeaderOffset?: number } {
+  let at = 0
+  while (at + 4 <= extra.length) {
+    const id = extra.readUInt16LE(at)
+    const size = extra.readUInt16LE(at + 2)
+    const dataAt = at + 4
+    if (dataAt + size > extra.length) break
+    if (id === 0x0001) {
+      const field = extra.subarray(dataAt, dataAt + size)
+      let cursor = 0
+      const take = (): number | undefined => {
+        if (cursor + 8 > field.length) return undefined
+        const v = u64(field, cursor)
+        cursor += 8
+        return v
+      }
+      if (need.uncompSize) take()
+      const compSize = need.compSize ? take() : undefined
+      const localHeaderOffset = need.localHeaderOffset ? take() : undefined
+      return { compSize, localHeaderOffset }
+    }
+    at = dataAt + size
+  }
+  return {}
+}
+
+/**
+ * Minimal dependency-free ZIP reader (central directory + raw inflate) with
+ * ZIP64 support. eDiscovery export packages routinely exceed 4 GB or 65 535
+ * entries; without ZIP64 the classic EOCD reports 0xffff/0xffffffff sentinels
+ * and the reader silently returned an empty or truncated entry list — i.e. a
+ * "0 interactions" collection that looked successful.
+ *
+ * @param onWarn receives per-entry problems. A single corrupt entry must not
+ *   abort the package, but it must never be silently swallowed either.
+ */
+export function readZipEntries(
+  buf: Buffer,
+  onWarn?: (line: string) => void
+): Array<{ name: string; data: Buffer }> {
   const out: Array<{ name: string; data: Buffer }> = []
   let eocd = -1
-  for (let i = buf.length - 22; i >= 0; i--) {
-    if (buf.readUInt32LE(i) === 0x06054b50) {
+  const floor = Math.max(0, buf.length - MAX_EOCD_SEARCH)
+  for (let i = buf.length - 22; i >= floor; i--) {
+    if (buf.readUInt32LE(i) === EOCD_SIG) {
       eocd = i
       break
     }
   }
-  if (eocd < 0) return out
-  const count = buf.readUInt16LE(eocd + 10)
+  if (eocd < 0) {
+    onWarn?.('ZIP 중앙 디렉터리(EOCD)를 찾지 못했습니다 — 손상되었거나 ZIP이 아닙니다.')
+    return out
+  }
+
+  let count = buf.readUInt16LE(eocd + 10)
   let cd = buf.readUInt32LE(eocd + 16)
+
+  // ZIP64: the locator sits immediately before the classic EOCD.
+  const locator = eocd - 20
+  if (locator >= 0 && buf.readUInt32LE(locator) === EOCD64_LOCATOR_SIG) {
+    try {
+      const eocd64 = u64(buf, locator + 8)
+      if (eocd64 >= 0 && eocd64 + 56 <= buf.length && buf.readUInt32LE(eocd64) === EOCD64_SIG) {
+        count = u64(buf, eocd64 + 32)
+        cd = u64(buf, eocd64 + 48)
+      }
+    } catch (e) {
+      onWarn?.(`ZIP64 헤더를 읽지 못했습니다: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  } else if (count === U16_MAX || cd === U32_MAX) {
+    onWarn?.('ZIP64 형식으로 보이지만 ZIP64 로케이터가 없습니다 — 일부 항목이 누락될 수 있습니다.')
+  }
+
   for (let n = 0; n < count; n++) {
-    if (cd + 46 > buf.length || buf.readUInt32LE(cd) !== 0x02014b50) break
+    if (cd + 46 > buf.length || buf.readUInt32LE(cd) !== CD_ENTRY_SIG) {
+      if (n < count) onWarn?.(`중앙 디렉터리가 ${n}/${count} 항목에서 끊겼습니다.`)
+      break
+    }
     const method = buf.readUInt16LE(cd + 10)
-    const compSize = buf.readUInt32LE(cd + 20)
+    let compSize = buf.readUInt32LE(cd + 20)
+    const uncompSize = buf.readUInt32LE(cd + 24)
     const nameLen = buf.readUInt16LE(cd + 28)
     const extraLen = buf.readUInt16LE(cd + 30)
     const commentLen = buf.readUInt16LE(cd + 32)
-    const lho = buf.readUInt32LE(cd + 42)
+    let lho = buf.readUInt32LE(cd + 42)
     const name = buf.toString('utf8', cd + 46, cd + 46 + nameLen)
+
+    if (compSize === U32_MAX || lho === U32_MAX || uncompSize === U32_MAX) {
+      try {
+        const extra = buf.subarray(cd + 46 + nameLen, cd + 46 + nameLen + extraLen)
+        const z = zip64Extra(extra, {
+          uncompSize: uncompSize === U32_MAX,
+          compSize: compSize === U32_MAX,
+          localHeaderOffset: lho === U32_MAX
+        })
+        if (z.compSize !== undefined) compSize = z.compSize
+        if (z.localHeaderOffset !== undefined) lho = z.localHeaderOffset
+      } catch (e) {
+        onWarn?.(`${name}: ZIP64 확장 필드 해석 실패 — 건너뜁니다 (${e instanceof Error ? e.message : String(e)})`)
+        cd += 46 + nameLen + extraLen + commentLen
+        continue
+      }
+    }
+
+    if (lho + 30 > buf.length) {
+      onWarn?.(`${name}: 로컬 헤더 오프셋이 패키지 범위를 벗어났습니다 — 건너뜁니다.`)
+      cd += 46 + nameLen + extraLen + commentLen
+      continue
+    }
     const lfnLen = buf.readUInt16LE(lho + 26)
     const lefLen = buf.readUInt16LE(lho + 28)
     const dataStart = lho + 30 + lfnLen + lefLen
+    if (dataStart + compSize > buf.length) {
+      onWarn?.(`${name}: 압축 데이터가 패키지 범위를 벗어났습니다 — 건너뜁니다.`)
+      cd += 46 + nameLen + extraLen + commentLen
+      continue
+    }
     const comp = buf.subarray(dataStart, dataStart + compSize)
     let data: Buffer
     try {
       data = method === 0 ? Buffer.from(comp) : inflateRawSync(comp)
-    } catch {
-      data = Buffer.alloc(0)
+    } catch (e) {
+      onWarn?.(`${name}: 압축 해제 실패 — 이 항목은 수집되지 않습니다 (${e instanceof Error ? e.message : String(e)})`)
+      cd += 46 + nameLen + extraLen + commentLen
+      continue
     }
     out.push({ name, data })
     cd += 46 + nameLen + extraLen + commentLen
@@ -541,13 +675,18 @@ export function parseExportEntries(
         else msgDropped++
       } else if (lower.endsWith('.zip')) {
         // Nested export package (some tenants wrap items in per-source zips).
-        items.push(...parseExportEntries(readZipEntries(entry.data), onLog))
+        items.push(...parseExportEntries(readZipEntries(entry.data, onLog), onLog))
       }
     } catch (e) {
       onLog?.(`항목 파싱 실패 ${entry.name}: ${e instanceof Error ? e.message : String(e)}`)
     }
   }
   if (msgDropped) onLog?.(`본문 없는 .msg ${msgDropped}개 건너뜀`)
+  const undated = items.filter((i) => i.raw[CREATED_AT_UNKNOWN]).length
+  if (undated)
+    onLog?.(
+      `⚠ 타임스탬프가 없는 항목 ${undated}개 — 수집 시각으로 대체했습니다. 이 항목의 시간 기반 분석은 신뢰할 수 없습니다.`
+    )
   return items
 }
 
@@ -557,7 +696,7 @@ export function parseExportPackage(
   targetUserId: string,
   onLog?: (line: string) => void
 ): InteractionUpsert[] {
-  const items = parseExportEntries(readZipEntries(zipBytes), onLog)
+  const items = parseExportEntries(readZipEntries(zipBytes, onLog), onLog)
   const rows: InteractionUpsert[] = []
   for (const item of items) {
     item.turns.forEach((turn, idx) => {

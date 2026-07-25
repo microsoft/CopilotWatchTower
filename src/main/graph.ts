@@ -1,8 +1,10 @@
 /**
  * Microsoft Graph client (app-only), ported from services/graph.py.
- * Uses built-in fetch + OData @odata.nextLink pagination.
+ * Uses the shared HTTP client (hard timeout + 429/5xx backoff + one-shot 401
+ * refresh) and OData @odata.nextLink pagination.
  */
 import { getAppToken, resetAuth } from './auth'
+import { httpRequest, type HttpOptions } from './http'
 
 const BETA = 'https://graph.microsoft.com/beta'
 const V1 = 'https://graph.microsoft.com/v1.0'
@@ -21,31 +23,43 @@ interface ODataPage {
   ['@odata.nextLink']?: string
 }
 
-const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms))
-const MAX_THROTTLE_RETRIES = 5
-/** Wait time for a 429: honor Retry-After header, else exponential backoff, cap 60s. */
-function throttleDelayMs(res: Response, attempt: number): number {
-  const hdr = Number(res.headers.get('retry-after'))
-  const fromHdr = Number.isFinite(hdr) && hdr > 0 ? hdr * 1000 : 0
-  return Math.min(60000, Math.max(fromHdr, 1000 * 2 ** attempt))
+/** On 401, drop the cached app token so the single retry mints a fresh one. */
+const graphAuthRetry: HttpOptions = {
+  onUnauthorized: () => {
+    resetAuth()
+    return true
+  }
 }
 
-async function graphGet(url: string, retry = true, attempt = 0): Promise<ODataPage> {
+async function graphFetch(url: string, init: RequestInit = {}, opts: HttpOptions = {}): Promise<Response> {
   const token = await getAppToken()
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-  if (res.status === 401 && retry) {
-    resetAuth()
-    return graphGet(url, false)
-  }
-  if (res.status === 429 && attempt < MAX_THROTTLE_RETRIES) {
-    await sleep(throttleDelayMs(res, attempt))
-    return graphGet(url, retry, attempt + 1)
-  }
+  return httpRequest(
+    url,
+    {
+      ...init,
+      headers: { ...((init.headers as Record<string, string>) ?? {}), Authorization: `Bearer ${token}` }
+    },
+    { ...graphAuthRetry, ...opts }
+  )
+}
+
+async function graphJson<T>(url: string, init: RequestInit = {}, opts: HttpOptions = {}): Promise<T> {
+  const res = await graphFetch(url, init, opts)
   if (!res.ok) {
-    const body = await res.text()
+    const body = await res.text().catch(() => '')
     throw new GraphError(res.status, `Graph ${res.status} ${url.slice(0, 90)} :: ${body.slice(0, 200)}`)
   }
-  return (await res.json()) as ODataPage
+  const text = await res.text()
+  if (!text.trim()) return {} as T
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    throw new GraphError(res.status, `Graph ${res.status} ${url.slice(0, 90)} :: non-JSON response body`)
+  }
+}
+
+async function graphGet(url: string): Promise<ODataPage> {
+  return graphJson<ODataPage>(url)
 }
 
 export interface GraphUser {
@@ -104,44 +118,21 @@ export async function* listInteractions(userId: string, since: string | null): A
 
 // ---- raw GET / POST helpers (non-OData payloads) ------------------------
 
-async function graphGetOne(url: string, retry = true, attempt = 0): Promise<Record<string, unknown>> {
-  const token = await getAppToken()
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-  if (res.status === 401 && retry) {
-    resetAuth()
-    return graphGetOne(url, false)
-  }
-  if (res.status === 429 && attempt < MAX_THROTTLE_RETRIES) {
-    await sleep(throttleDelayMs(res, attempt))
-    return graphGetOne(url, retry, attempt + 1)
-  }
-  if (!res.ok) {
-    const body = await res.text()
-    throw new GraphError(res.status, `Graph ${res.status} ${url.slice(0, 90)} :: ${body.slice(0, 200)}`)
-  }
-  return (await res.json()) as Record<string, unknown>
+async function graphGetOne(url: string): Promise<Record<string, unknown>> {
+  return graphJson<Record<string, unknown>>(url)
 }
 
-async function graphPost(url: string, body: unknown, retry = true, attempt = 0): Promise<Record<string, unknown>> {
-  const token = await getAppToken()
-  const res = await fetch(url, {
+/**
+ * POST is retried on 429 only. A 429 means Graph explicitly did not process
+ * the request, so replaying it is safe; a 5xx leaves the outcome unknown and
+ * a blind retry could duplicate a submitted query.
+ */
+async function graphPost(url: string, body: unknown): Promise<Record<string, unknown>> {
+  return graphJson<Record<string, unknown>>(url, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   })
-  if (res.status === 401 && retry) {
-    resetAuth()
-    return graphPost(url, body, false)
-  }
-  if (res.status === 429 && attempt < MAX_THROTTLE_RETRIES) {
-    await sleep(throttleDelayMs(res, attempt))
-    return graphPost(url, body, retry, attempt + 1)
-  }
-  if (!res.ok) {
-    const text = await res.text()
-    throw new GraphError(res.status, `Graph ${res.status} ${url.slice(0, 90)} :: ${text.slice(0, 200)}`)
-  }
-  return (await res.json()) as Record<string, unknown>
 }
 
 const GRAPH_DT_RE = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.\d+)?(?:Z|\+00:00)?$/
@@ -240,18 +231,17 @@ export async function* listSignIns(
 
 // ---- Copilot usage reports (CSV) ----------------------------------------
 
-async function fetchReportCsv(url: string, retry = true): Promise<string> {
-  const token = await getAppToken()
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}`, Accept: 'text/csv, application/octet-stream, */*' },
+/**
+ * Usage reports are served as CSV (often via a 302 to a storage URL) and are
+ * throttled aggressively, so they go through the shared client for backoff.
+ */
+async function fetchReportCsv(url: string): Promise<string> {
+  const res = await graphFetch(url, {
+    headers: { Accept: 'text/csv, application/octet-stream, */*' },
     redirect: 'follow'
   })
-  if (res.status === 401 && retry) {
-    resetAuth()
-    return fetchReportCsv(url, false)
-  }
   if (!res.ok) {
-    const body = await res.text()
+    const body = await res.text().catch(() => '')
     throw new GraphError(res.status, `Graph ${res.status} ${url.slice(0, 90)} :: ${body.slice(0, 160)}`)
   }
   return res.text()

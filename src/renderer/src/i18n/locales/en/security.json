@@ -5,8 +5,16 @@
     "entra_audit": "Entra directory audit",
     "entra_signin": "Entra sign-in"
   },
-  "filters": { "sourceFilter": "Source filter", "dateFrom": "Start date", "dateTo": "End date", "searchPlaceholder": "Search operation/user/app", "apply": "Apply", "reset": "Reset" },
+  "filters": {
+    "sourceFilter": "Source filter",
+    "dateFrom": "Start date",
+    "dateTo": "End date",
+    "searchPlaceholder": "Search operation/user/app",
+    "apply": "Apply",
+    "reset": "Reset"
+  },
   "count_other": "{{count}}",
+  "truncated": "showing {{shown}} of {{total}}",
   "kpis": {
     "total": "Audit events",
     "totalFoot": "Filtered results",
@@ -36,5 +44,8 @@
     "result": "Result"
   },
   "rawAuditEventTitle": "Raw audit event",
-  "auditEvents": { "title": "Audit events", "subtitle_other": "{{count}} · Latest first" }
+  "auditEvents": {
+    "title": "Audit events",
+    "subtitle_other": "{{count}} · Latest first"
+  }
 }

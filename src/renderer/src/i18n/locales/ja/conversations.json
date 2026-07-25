@@ -1,5 +1,9 @@
 {
-  "scope": { "all": "すべて", "title": "タイトル", "body": "本文" },
+  "scope": {
+    "all": "すべて",
+    "title": "タイトル",
+    "body": "本文"
+  },
   "searchPlaceholder": {
     "title": "会話タイトルを検索",
     "body": "会話本文を検索",
@@ -40,12 +44,27 @@
     "backToAgents": "エージェント一覧へ戻る",
     "unknown": "不明なユーザー"
   },
-  "panels": { "conversations": "会話", "collapseAgents": "エージェントパネルを折りたたむ", "expandAgents": "エージェントパネルを展開", "collapseUsers": "ユーザーパネルを折りたたむ", "expandUsers": "ユーザーパネルを展開" },
-  "pagination": { "previous": "前のページ", "next": "次のページ", "status": "{{page}} / {{pages}} · {{total}}件" },
+  "panels": {
+    "conversations": "会話",
+    "collapseAgents": "エージェントパネルを折りたたむ",
+    "expandAgents": "エージェントパネルを展開",
+    "collapseUsers": "ユーザーパネルを折りたたむ",
+    "expandUsers": "ユーザーパネルを展開"
+  },
+  "pagination": {
+    "previous": "前のページ",
+    "next": "次のページ",
+    "status": "{{page}} / {{pages}} · {{total}}件"
+  },
   "count_other": "{{count}}件の会話",
   "noMatch": "一致する会話がありません。",
   "messageCount_other": "{{count}}件のメッセージ",
   "noMessages": "表示するメッセージがありません。",
   "rawInteractionTitle": "生のインタラクションJSON",
-  "empty": { "title": "会話を選択してください", "desc": "左側のリストから会話を選択すると、すべてのメッセージがここに表示されます。" }
+  "empty": {
+    "title": "会話を選択してください",
+    "desc": "左側のリストから会話を選択すると、すべてのメッセージがここに表示されます。"
+  },
+  "threadUnavailable": "この会話には保存された対話IDがないため、本文を読み込めません。",
+  "threadLoadFailed": "会話の読み込みに失敗しました: {{message}}"
 }
