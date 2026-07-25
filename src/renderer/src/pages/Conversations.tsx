@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
   Bot,
   ChevronLeft,
@@ -81,73 +81,6 @@ function isTechnicalAgentName(name: string, id?: string): boolean {
   )
 }
 
-const THREADS: Record<string, Turn[]> = {
-  '밀라노 쇼핑 일정 짜줘': [
-    { role: 'user', text: '밀라노 2박 3일 쇼핑 위주 일정 짜줘. 명품 아울렛도 포함했으면 좋겠어.' },
-    {
-      role: 'bot',
-      text:
-        '밀라노 2박 3일 쇼핑 일정입니다.\n\n1일차: 몬테나폴레오네 거리(명품 부티크) → 두오모 → 갤러리아\n2일차: 세라발레 디자이너 아울렛(당일 왕복)\n3일차: 코르소 부에노스아이레스(중저가) → 출국\n\n각 일정에 이동 수단과 예상 소요 시간을 더 넣어드릴까요?'
-    },
-    { role: 'user', text: '둘째 날 아울렛 가는 교통편이랑 소요시간 알려줘.' },
-    {
-      role: 'bot',
-      text:
-        '세라발레 아울렛은 밀라노 시내에서 약 70km 거리입니다.\n\n• 셔틀버스: 두오모 인근 출발, 편도 약 1시간, 왕복 €20\n• 기차+버스: 중앙역 → 아르콰타 스크리비아(약 1시간) → 셔틀(15분)\n\n셔틀버스가 가장 편리합니다. 예약 링크를 정리해 드릴까요?'
-    }
-  ],
-  '계약서 핵심 조항 요약해줘': [
-    { role: 'user', text: '첨부한 계약서에서 핵심 조항만 요약해줘.' },
-    {
-      role: 'bot',
-      text:
-        '핵심 조항 요약입니다.\n\n1. 계약 기간: 2026-07-01 ~ 2027-06-30 (1년, 자동 갱신)\n2. 대금 지급: 매월 말일, 세금계산서 발행 후 30일 이내\n3. 위약금: 중도 해지 시 잔여 계약금액의 20%\n4. 비밀유지: 계약 종료 후 3년간\n\n특정 조항을 더 자세히 볼까요?'
-    },
-    { role: 'user', text: '위약금 조항만 더 자세히.' },
-    {
-      role: 'bot',
-      text:
-        '제8조(위약금) 상세입니다.\n\n• 산정: 잔여 계약 기간 × 월 계약금액 × 20%\n• 예외: 천재지변·법령 변경 등 불가항력 시 면제\n• 감면: 해지 30일 전 서면 통지 시 50% 감면\n\n원문(제8조, 4페이지)을 인용으로 표시해 드릴까요?'
-    }
-  ],
-  '고객 불만 이메일 정중하게 회신': [
-    { role: 'user', text: '배송 지연으로 화가 난 고객에게 보낼 정중한 사과 회신 작성해줘.' },
-    {
-      role: 'bot',
-      text:
-        '아래 초안을 제안합니다.\n\n제목: 배송 지연에 대해 진심으로 사과드립니다\n\n안녕하세요 고객님,\n\n주문하신 상품의 배송이 지연되어 불편을 끼쳐 드린 점 진심으로 사과드립니다. 확인 결과 예상 도착일은 6월 30일입니다.\n\n사과의 뜻으로 다음 구매 시 사용 가능한 10% 할인 쿠폰을 보내드렸습니다.\n\n감사합니다.\n\n톤을 더 격식 있게 또는 캐주얼하게 조정할까요?'
-    }
-  ],
-  '월간 매출 데이터 피벗 분석': [
-    { role: 'user', text: '첨부한 6월 매출 데이터로 카테고리별 피벗 분석해줘.' },
-    {
-      role: 'bot',
-      text:
-        '6월 매출 피벗 분석 결과입니다.\n\n• 총 매출: ₩4.82억 (전월 대비 +8.3%)\n• 1위 카테고리: 신선식품 ₩1.61억 (33%)\n• 성장률 1위: 가공식품 +21%\n• 하락: 음료 -4%\n\n주말 매출이 평일 대비 1.7배입니다. 카테고리×주차 교차표도 만들어 드릴까요?'
-    },
-    { role: 'user', text: '응, 주차별 교차표 만들어줘.' },
-    {
-      role: 'bot',
-      text:
-        '주차 × 카테고리 교차표를 시트2에 생성했습니다.\n\n가장 큰 변동은 4주차 신선식품(+38%)으로, 가정의 달 프로모션 영향으로 보입니다. 해당 셀에 메모를 추가했습니다.'
-    }
-  ]
-}
-
-function buildThread(c: Conversation): Turn[] {
-  const t = THREADS[c.title]
-  if (t) return t
-  return [
-    { role: 'user', text: c.title },
-    {
-      role: 'bot',
-      text: `${c.app}에서 요청하신 내용을 처리했습니다. 결과 초안을 정리해 드렸으니 확인 후 수정할 부분을 알려주세요.`
-    },
-    { role: 'user', text: '좋아, 조금만 더 다듬어줘.' },
-    { role: 'bot', text: '핵심 내용을 더 간결하게 정리하고 항목별로 구분했습니다. 추가로 반영할 부분이 있으면 말씀해 주세요.' }
-  ]
-}
-
 export function Conversations({ source }: PageProps): JSX.Element {
   const { t } = useTranslation('conversations')
   function scopeLabel(s: Scope): string {
@@ -175,6 +108,7 @@ export function Conversations({ source }: PageProps): JSX.Element {
   const [selectedUserKey, setSelectedUserKey] = useState(ALL_USER_KEY)
   const [selected, setSelected] = useState<Conversation | null>(null)
   const [thread, setThread] = useState<Turn[]>([])
+  const [threadError, setThreadError] = useState<string | null>(null)
 
   const agentDisplayName = (conversation: Conversation): string => {
     const name = conversation.agent?.trim()
@@ -188,14 +122,17 @@ export function Conversations({ source }: PageProps): JSX.Element {
     if (name && !isTechnicalAgentName(name)) return name
     return name ? t('agents.unnamed', { id: compactAgentId(name) }) : t('agents.unknown')
   }
-  const basePayload = {
-    source,
-    search: applied.search.trim() || undefined,
-    scope: applied.scope,
-    app: applied.app || undefined,
-    dateFrom: applied.dateFrom || undefined,
-    dateTo: applied.dateTo || undefined
-  }
+  const basePayload = useMemo(
+    () => ({
+      source,
+      search: applied.search.trim() || undefined,
+      scope: applied.scope,
+      app: applied.app || undefined,
+      dateFrom: applied.dateFrom || undefined,
+      dateTo: applied.dateTo || undefined
+    }),
+    [source, applied]
+  )
   const agentTotal = agentFacets.reduce((sum, facet) => sum + facet.count, 0)
   const userTotal = userFacets.reduce((sum, facet) => sum + facet.count, 0)
   const selectedAgent = agentFacets.find((facet) => facet.key === selectedAgentKey)
@@ -286,7 +223,7 @@ export function Conversations({ source }: PageProps): JSX.Element {
       active = false
       if (timer) clearInterval(timer)
     }
-  }, [source, applied])
+  }, [source, basePayload])
 
   useEffect(() => {
     if (selectedAgentKey === ALL_AGENT_KEY) return
@@ -329,7 +266,7 @@ export function Conversations({ source }: PageProps): JSX.Element {
       active = false
       if (timer) clearInterval(timer)
     }
-  }, [source, applied, selectedAgentKey])
+  }, [source, basePayload, selectedAgentKey])
 
   // Fetch one bounded page for the selected agent/user scope.
   useEffect(() => {
@@ -367,7 +304,7 @@ export function Conversations({ source }: PageProps): JSX.Element {
       active = false
       if (timer) clearInterval(timer)
     }
-  }, [source, applied, selectedAgentKey, selectedUserKey, page])
+  }, [source, basePayload, selectedAgentKey, selectedUserKey, page])
 
   useEffect(() => {
     setSelected((current) => {
@@ -381,18 +318,33 @@ export function Conversations({ source }: PageProps): JSX.Element {
   }, [page, pageCount])
 
   useEffect(() => {
+    setThreadError(null)
     if (!selected) {
       setThread([])
       return
     }
+    // A conversation without a stable id cannot be resolved back to stored
+    // interactions. Never synthesise turns here — this view is evidence.
     if (!selected.id) {
-      setThread(buildThread(selected))
+      setThread([])
+      setThreadError(t('threadUnavailable'))
       return
     }
+    let active = true
     invoke<Turn[]>('conversation_thread', selected.id)
-      .then((t) => setThread(t ?? []))
-      .catch(() => setThread([]))
-  }, [selected])
+      .then((rows) => {
+        if (!active) return
+        setThread(Array.isArray(rows) ? rows : [])
+      })
+      .catch((e: unknown) => {
+        if (!active) return
+        setThread([])
+        setThreadError(t('threadLoadFailed', { message: e instanceof Error ? e.message : String(e) }))
+      })
+    return () => {
+      active = false
+    }
+  }, [selected, t])
 
   const apply = (e: React.FormEvent): void => {
     e.preventDefault()
@@ -703,7 +655,9 @@ export function Conversations({ source }: PageProps): JSX.Element {
                 </div>
               </div>
               <div className="thread">
-                {thread.length === 0 ? (
+                {threadError ? (
+                  <div className="muted">{threadError}</div>
+                ) : thread.length === 0 ? (
                   <div className="muted">{t('noMessages')}</div>
                 ) : (
                   thread.map((t2, i) => (

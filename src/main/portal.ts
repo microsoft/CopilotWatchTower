@@ -10,6 +10,8 @@ import { readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { httpRequest } from './http'
+import { hardenPortalWindow } from './windowSecurity'
 
 export interface CaptureOptions {
   /** URL to load (e.g. the PPAC capacity page). */
@@ -53,6 +55,7 @@ export function captureBearerToken(opts: CaptureOptions): Promise<string> {
         sandbox: true
       }
     })
+    hardenPortalWindow(win, opts.onLog)
 
     function reveal(reason: string): void {
       if (shown || settled || win.isDestroyed()) return
@@ -272,6 +275,7 @@ export function downloadViaBrowser(
       autoHideMenuBar: true,
       webPreferences: { partition, nodeIntegration: false, contextIsolation: true, sandbox: true }
     })
+    hardenPortalWindow(win, opts.onLog)
 
     function reveal(reason: string): void {
       if (shown || settled || win.isDestroyed()) return
@@ -469,6 +473,7 @@ export function capturePortalTokens(opts: {
       autoHideMenuBar: true,
       webPreferences: { partition, nodeIntegration: false, contextIsolation: true, sandbox: true }
     })
+    hardenPortalWindow(win, opts.onLog)
 
     ses.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
       const headers = details.requestHeaders
@@ -673,6 +678,7 @@ export function captureDataverseTokens(opts: DataverseCaptureOptions): Promise<P
       autoHideMenuBar: true,
       webPreferences: { partition, nodeIntegration: false, contextIsolation: true, sandbox: true }
     })
+    hardenPortalWindow(win, opts.onLog)
 
     function reveal(reason: string): void {
       if (shown || settled || win.isDestroyed()) return
@@ -787,7 +793,7 @@ export function captureDataverseTokens(opts: DataverseCaptureOptions): Promise<P
     async function enumerateEnvs(bap: string): Promise<EnvTarget[]> {
       let body = ''
       try {
-        const r = await fetch(BAP_ENVIRONMENTS_URL, { headers: { Authorization: `Bearer ${bap}` } })
+        const r = await httpRequest(BAP_ENVIRONMENTS_URL, { headers: { Authorization: `Bearer ${bap}` } })
         if (!r.ok) {
           opts.onLog?.(`환경 목록 조회 실패: HTTP ${r.status}`)
           return []
@@ -894,7 +900,7 @@ export function captureDataverseTokens(opts: DataverseCaptureOptions): Promise<P
       if (auth) {
         try {
           const url = `https://${auth.host}/usermanagement/environments/${t.envId}/user/applyAdminRole?api-version=2022-03-01-preview`
-          const r = await fetch(url, {
+          const r = await httpRequest(url, {
             method: 'POST',
             headers: { Authorization: `Bearer ${auth.token}`, Accept: 'application/json' }
           })
@@ -950,7 +956,7 @@ export function captureDataverseTokens(opts: DataverseCaptureOptions): Promise<P
     /** HTTP status of a 1-row conversationtranscript read with `token` (0 on network error). */
     async function testReadAccess(orgHost: string, token: string): Promise<number> {
       try {
-        const r = await fetch(
+        const r = await httpRequest(
           `https://${orgHost}/api/data/v9.2/conversationtranscripts?$top=1&$select=conversationtranscriptid`,
           {
             headers: {

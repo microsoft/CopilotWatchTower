@@ -1,5 +1,9 @@
 {
-  "scope": { "all": "All", "title": "Title", "body": "Body" },
+  "scope": {
+    "all": "All",
+    "title": "Title",
+    "body": "Body"
+  },
   "searchPlaceholder": {
     "title": "Search conversation titles",
     "body": "Search conversation body",
@@ -40,8 +44,18 @@
     "backToAgents": "Back to agents",
     "unknown": "Unknown user"
   },
-  "panels": { "conversations": "Conversations", "collapseAgents": "Collapse agent panel", "expandAgents": "Expand agent panel", "collapseUsers": "Collapse user panel", "expandUsers": "Expand user panel" },
-  "pagination": { "previous": "Previous page", "next": "Next page", "status": "{{page}} / {{pages}} · {{total}}" },
+  "panels": {
+    "conversations": "Conversations",
+    "collapseAgents": "Collapse agent panel",
+    "expandAgents": "Expand agent panel",
+    "collapseUsers": "Collapse user panel",
+    "expandUsers": "Expand user panel"
+  },
+  "pagination": {
+    "previous": "Previous page",
+    "next": "Next page",
+    "status": "{{page}} / {{pages}} · {{total}}"
+  },
   "count_other": "{{count}} conversations",
   "count_one": "{{count}} conversation",
   "noMatch": "No matching conversations.",
@@ -49,5 +63,10 @@
   "messageCount_one": "{{count}} message",
   "noMessages": "No messages to display.",
   "rawInteractionTitle": "Raw interaction JSON",
-  "empty": { "title": "Select a conversation", "desc": "Select a conversation from the list on the left to see the full messages here." }
+  "empty": {
+    "title": "Select a conversation",
+    "desc": "Select a conversation from the list on the left to see the full messages here."
+  },
+  "threadUnavailable": "This conversation has no stored interaction id, so its turns cannot be loaded.",
+  "threadLoadFailed": "Failed to load conversation: {{message}}"
 }

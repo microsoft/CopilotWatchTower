@@ -31,15 +31,11 @@ interface DTO {
 const FALLBACK: DTO = {
   kpis: { total: 0, purview: 0, entraAudit: 0, entraSignin: 0 },
   sources: [
-    { source: 'purview', label: 'Purview 통합 감사', enabled: true, pending: false, last: '—', count: 0, error: null },
-    { source: 'entra_audit', label: 'Entra 디렉터리 감사', enabled: true, pending: false, last: '—', count: 0, error: null },
-    { source: 'entra_signin', label: 'Entra 로그인', enabled: true, pending: false, last: '—', count: 0, error: null }
+    { source: 'purview', label: '', enabled: true, pending: false, last: '—', count: 0, error: null },
+    { source: 'entra_audit', label: '', enabled: true, pending: false, last: '—', count: 0, error: null },
+    { source: 'entra_signin', label: '', enabled: true, pending: false, last: '—', count: 0, error: null }
   ],
   recent: []
-}
-
-function n(v: number): string {
-  return v.toLocaleString('ko-KR')
 }
 
 export function AuditCollect(): JSX.Element {
@@ -104,7 +100,7 @@ export function AuditCollect(): JSX.Element {
             <tbody>
               {d.sources.map((s) => (
                 <tr key={s.source}>
-                  <td className="ttl">{s.label}</td>
+                  <td className="ttl">{s.label || t(`sourceLabel.${s.source}`, { defaultValue: s.source })}</td>
                   <td>
                     <span className={`stat ${s.pending ? 'run' : s.error ? 'err' : s.enabled ? 'ok' : 'idle'}`}>
                       {s.pending

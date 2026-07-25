@@ -1,16 +1,43 @@
 {
   "collectStart": "Start collection",
-  "kpis": { "total": "Total audit events", "purview": "Purview", "purviewFoot": "Unified audit", "entraAudit": "Entra audit", "entraAuditFoot": "Directory", "entraSignin": "Entra sign-in" },
+  "kpis": {
+    "total": "Total audit events",
+    "purview": "Purview",
+    "purviewFoot": "Unified audit",
+    "entraAudit": "Entra audit",
+    "entraAuditFoot": "Directory",
+    "entraSignin": "Entra sign-in"
+  },
+  "sourceLabel": {
+    "purview": "Purview unified audit",
+    "entra_audit": "Entra directory audit",
+    "entra_signin": "Entra sign-in"
+  },
   "sourceStatus": {
     "title": "Collection source status",
     "count_other": "{{count}} sources",
-    "columns": { "source": "Source", "status": "Status", "last": "Last collected", "count": "Count" },
-    "status": { "error": "Error", "processing": "Processing", "active": "Active", "inactive": "Inactive" }
+    "columns": {
+      "source": "Source",
+      "status": "Status",
+      "last": "Last collected",
+      "count": "Count"
+    },
+    "status": {
+      "error": "Error",
+      "processing": "Processing",
+      "active": "Active",
+      "inactive": "Inactive"
+    }
   },
   "recent": {
     "title": "Recent audit events",
     "subtitle_other": "Latest {{count}}",
-    "columns": { "time": "Time", "source": "Source", "operation": "Operation", "actor": "Actor" },
+    "columns": {
+      "time": "Time",
+      "source": "Source",
+      "operation": "Operation",
+      "actor": "Actor"
+    },
     "empty": "No audit events collected yet. Click Start collection."
   }
 }

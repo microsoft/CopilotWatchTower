@@ -24,6 +24,7 @@ import { PublicClientApplication, type AccountInfo } from '@azure/msal-node'
 import * as db from '../db'
 import { makeCachePlugin } from '../tokenCache'
 import { parseExportPackage } from './ediscoveryExport'
+import { httpRequest, DOWNLOAD_TIMEOUT_MS, type HttpOptions } from '../http'
 
 const GRAPH_V1 = 'https://graph.microsoft.com/v1.0'
 // Well-known Microsoft Graph PowerShell public client (multi-tenant, device-code).
@@ -119,12 +120,25 @@ async function delegatedToken(tenantId: string, cacheDir: string, onCode: OnDevi
 // ---- Graph request helpers ----------------------------------------------
 type Json = Record<string, unknown>
 
-async function gReq(token: string, method: string, url: string, body?: unknown): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: { Authorization: `Bearer ${token}`, ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
-    body: body !== undefined ? JSON.stringify(body) : undefined
-  })
+async function gReq(
+  token: string,
+  method: string,
+  url: string,
+  body?: unknown,
+  opts: HttpOptions = {}
+): Promise<Response> {
+  const res = await httpRequest(
+    url,
+    {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {})
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined
+    },
+    opts
+  )
   if (!res.ok) {
     const text = await res.text().catch(() => '')
     if (res.status === 403)
@@ -136,9 +150,28 @@ async function gReq(token: string, method: string, url: string, body?: unknown):
   return res
 }
 
-async function gJson(token: string, method: string, url: string, body?: unknown): Promise<Json> {
-  const res = await gReq(token, method, url, body)
-  return (await res.json().catch(() => ({}))) as Json
+/**
+ * A response body that is not valid JSON is an error, never `{}`. Swallowing
+ * it here used to turn an HTML error page into "0 cases found", which silently
+ * produced duplicate cases and empty collections.
+ */
+async function gJson(
+  token: string,
+  method: string,
+  url: string,
+  body?: unknown,
+  opts: HttpOptions = {}
+): Promise<Json> {
+  const res = await gReq(token, method, url, body, opts)
+  const text = await res.text()
+  if (!text.trim()) return {}
+  try {
+    return JSON.parse(text) as Json
+  } catch {
+    throw new EdiscoveryError(
+      `Graph ${method} ${url.slice(0, 80)}: JSON 응답을 기대했지만 다른 형식을 받았습니다: ${text.slice(0, 200)}`
+    )
+  }
 }
 
 async function gPaginate(token: string, url: string): Promise<Json[]> {
@@ -314,11 +347,6 @@ function extractDownloadUrl(payload: Json): [string | null, boolean] {
 function nowIso(): string {
   return new Date().toISOString().replace(/\.\d+Z$/, 'Z')
 }
-function runStamp(job: db.EdiscoveryJob): string {
-  const digits = (job.createdAt || '').split('+')[0].replace(/[^0-9]/g, '')
-  if (digits.length >= 14) return `${digits.slice(0, 8)}-${digits.slice(8, 14)}`
-  return (job.id || 'job').slice(0, 12)
-}
 function caseDisplayName(job: db.EdiscoveryJob): string {
   const alias = (job.targetUpn || 'all').split('@')[0] || 'all'
   // Stable per-user name so the case is REUSED instead of piling up one per run.
@@ -352,6 +380,13 @@ async function pollOperation(
   }
 }
 
+/**
+ * Node cannot allocate a Buffer larger than ~2 GiB, and the ZIP parser needs the
+ * whole package resident. Refuse oversized packages with an actionable message
+ * instead of dying with an out-of-memory crash mid-collection.
+ */
+const MAX_EXPORT_BYTES = 1_500_000_000
+
 async function downloadAndParse(
   job: db.EdiscoveryJob,
   onProgress: OnProgress,
@@ -371,9 +406,20 @@ async function downloadAndParse(
   } else {
     // ME5 / eDiscovery Premium: Azure Blob SAS — direct programmatic download.
     onProgress('downloading', '내보내기 패키지를 다운로드하는 중…')
-    const res = await fetch(job.exportUrl)
+    const res = await httpRequest(job.exportUrl, {}, { timeoutMs: DOWNLOAD_TIMEOUT_MS })
     if (!res.ok) throw new EdiscoveryError(`다운로드 실패 ${res.status}`)
+    const declared = Number(res.headers.get('content-length') ?? '0')
+    if (declared > MAX_EXPORT_BYTES) {
+      throw new EdiscoveryError(
+        `내보내기 패키지가 너무 큽니다(${Math.round(declared / 1e9)} GB). 기간을 좁혀 다시 수집하세요.`
+      )
+    }
     buf = Buffer.from(await res.arrayBuffer())
+  }
+  if (buf.length > MAX_EXPORT_BYTES) {
+    throw new EdiscoveryError(
+      `내보내기 패키지가 너무 큽니다(${Math.round(buf.length / 1e9)} GB). 기간을 좁혀 다시 수집하세요.`
+    )
   }
   onProgress('parsing', `패키지 파싱 중… (${Math.round(buf.length / 1024)} KB)`)
   const userId = job.targetUserId || `ediscovery:${job.targetUpn.toLowerCase()}`

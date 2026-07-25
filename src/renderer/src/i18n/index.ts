@@ -62,4 +62,12 @@ void i18n.use(initReactI18next).init({
   returnNull: false
 })
 
+// Keep <html lang> in sync so screen readers, hyphenation and `:lang()` rules
+// follow the selected language instead of the hardcoded `ko` in index.html.
+function syncDocumentLanguage(lng: string): void {
+  if (typeof document !== 'undefined') document.documentElement.lang = lng
+}
+syncDocumentLanguage(i18n.language)
+i18n.on('languageChanged', syncDocumentLanguage)
+
 export default i18n

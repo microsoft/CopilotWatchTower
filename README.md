@@ -16,7 +16,7 @@ Repository / 리포지토리: <https://github.com/microsoft/CopilotWatchTower>
 
 ### Quick start (Electron)
 
-Requirements: Node.js 20+ (bundles Electron 42 / Node 24), Windows.
+Requirements: Node.js 22+ (`node:sqlite` is required at build/test time; bundles Electron 42 / Node 24), Windows.
 
 ```powershell
 # Install dependencies (first time only)
@@ -113,7 +113,7 @@ copilot-watchtower
 
 ### 빠른 시작 (Electron)
 
-요구사항: Node.js 20+ (Electron 42 / Node 24 번들), Windows.
+요구사항: Node.js 22+ (빌드/테스트에 `node:sqlite` 필요, Electron 42 / Node 24 번들), Windows.
 
 ```powershell
 # 의존성 설치 (최초 1회)

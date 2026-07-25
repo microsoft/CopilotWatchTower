@@ -1,10 +1,11 @@
 /**
- * Read-only data access over the Python app's per-profile SQLite store.
+ * Read/write data access over the per-profile SQLite store shared with the
+ * legacy Python app.
  *
  * Uses Electron's built-in `node:sqlite` (Node 22+/Electron 42) so there is
  * NO native module to compile or ship — important for portable builds.
  * Resolves the active profile from %LOCALAPPDATA%/CopilotWatchTower/profiles.json
- * and opens profiles/<active>/store.db read-only.
+ * and opens profiles/<active>/store.db.
  */
 import { DatabaseSync } from 'node:sqlite'
 import { existsSync, readFileSync } from 'node:fs'
@@ -76,23 +77,51 @@ function ensureRuntimeSchema(database: DatabaseSync): void {
   )
 }
 
+let lastOpenError: string | null = null
+
+/** Diagnostic for the last failed openDb() — surfaced to the UI instead of a bare "no data". */
+export function lastDbError(): string | null {
+  return lastOpenError
+}
+
 export function openDb(): boolean {
   if (db) return true
   const path = resolveDbPath()
-  if (!path) return false
+  if (!path) {
+    lastOpenError = 'no-profile-db'
+    return false
+  }
   try {
     db = new DatabaseSync(path, { readOnly: false })
+    // The store is shared with the legacy Python app and can be reached by a
+    // second copy of this app, so a writer lock is normal. Without a busy
+    // timeout every concurrent access fails instantly with SQLITE_BUSY.
+    for (const pragma of ['PRAGMA busy_timeout = 10000', 'PRAGMA journal_mode = WAL', 'PRAGMA foreign_keys = ON']) {
+      try {
+        db.exec(pragma)
+      } catch {
+        /* older/locked stores may refuse a mode change — keep the connection */
+      }
+    }
     ensureRuntimeSchema(db)
     currentPath = path
+    lastOpenError = null
+  } catch (e) {
+    lastOpenError = e instanceof Error ? e.message : String(e)
+    db = null
+    return false
+  }
+  // Agent attribution is a best-effort backfill over potentially huge raw_json
+  // blobs. It must never take the whole database down with it.
+  try {
     if (getSettingText('thread_agent_attribution_v1') !== '1') {
       refreshConversationAgentAttribution()
       setSettingText('thread_agent_attribution_v1', '1')
     }
-    return true
-  } catch {
-    db = null
-    return false
+  } catch (e) {
+    lastOpenError = `attribution-backfill-failed: ${e instanceof Error ? e.message : String(e)}`
   }
+  return true
 }
 
 export function dbReady(): boolean {
@@ -451,7 +480,7 @@ function interactionWhere(f: InsightsFilters): { where: string; params: Array<st
   }
   if (f.dateTo) {
     clauses.push('i.created_at <= ?')
-    params.push(`${f.dateTo}T23:59:59Z`)
+    params.push(endOfDay(f.dateTo))
   }
   return { where: `WHERE ${clauses.join(' AND ')}`, params }
 }
@@ -509,7 +538,7 @@ export function insightsData(f: InsightsFilters): InsightsDTO {
   }
   if (f.dateTo) {
     tClauses.push('t.started_at <= ?')
-    tParams.push(`${f.dateTo}T23:59:59Z`)
+    tParams.push(endOfDay(f.dateTo))
   }
   const tWhere = `WHERE ${tClauses.join(' AND ')}`
   const threadRows = all<{ uid: string; c: number }>(
@@ -633,6 +662,25 @@ export interface ConvFilters {
 }
 export const UNKNOWN_CONVERSATION_AGENT_KEY = '__unknown__'
 /** True when a label is just a raw conversation/GUID id (no human name). */
+/**
+ * `%` and `_` in operator-supplied search text are LIKE wildcards. Passing them
+ * through verbatim made a search for "50%" match every row; escape them and pair
+ * every LIKE with ESCAPE '\\'.
+ */
+export function likeNeedle(search: string): string {
+  const escaped = search.trim().toLowerCase().replace(/[\\%_]/g, (c) => `\\${c}`)
+  return `%${escaped}%`
+}
+
+/**
+ * Timestamps are stored with millisecond precision, so a `<= "…T23:59:59Z"`
+ * bound silently dropped the last second of the range. Use the inclusive
+ * end-of-day instant instead.
+ */
+export function endOfDay(date: string): string {
+  return `${date}T23:59:59.999Z`
+}
+
 function looksLikeId(s: string | null): boolean {
   return !!s && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s.trim())
 }
@@ -815,19 +863,19 @@ function conversationWhere(f: ConvFilters): { where: string; params: Array<strin
   }
   if (f.dateTo) {
     clauses.push('t.started_at <= ?')
-    params.push(`${f.dateTo}T23:59:59Z`)
+    params.push(endOfDay(f.dateTo))
   }
   if (f.search && f.search.trim()) {
-    const needle = `%${f.search.trim().toLowerCase()}%`
-    const bodyExists = 'EXISTS (SELECT 1 FROM interactions i WHERE i.thread_id = t.id AND LOWER(i.body_text) LIKE ?)'
+    const needle = likeNeedle(f.search)
+    const bodyExists = String.raw`EXISTS (SELECT 1 FROM interactions i WHERE i.thread_id = t.id AND LOWER(i.body_text) LIKE ? ESCAPE '\')`
     if (f.scope === 'title') {
-      clauses.push('LOWER(t.title) LIKE ?')
+      clauses.push(String.raw`LOWER(t.title) LIKE ? ESCAPE '\'`)
       params.push(needle)
     } else if (f.scope === 'body') {
       clauses.push(bodyExists)
       params.push(needle)
     } else {
-      clauses.push(`(LOWER(t.title) LIKE ? OR ${bodyExists})`)
+      clauses.push(String.raw`(LOWER(t.title) LIKE ? ESCAPE '\' OR ` + bodyExists + ')')
       params.push(needle, needle)
     }
   }
@@ -1266,6 +1314,35 @@ function run(sql: string, params: Array<string | number | null>): void {
   db.prepare(sql).run(...params)
 }
 
+/**
+ * Run `fn` inside a single IMMEDIATE transaction, rolling back on any error.
+ * Nested calls reuse the outermost transaction so callers can compose safely.
+ * Without this, multi-statement writes (delete-then-insert, reset-then-set)
+ * leave the store in a half-written state if the process dies mid-way.
+ */
+let txDepth = 0
+export function transaction<T>(fn: () => T): T {
+  if (!db) throw new Error('db not open')
+  if (txDepth > 0) return fn()
+  const handle = db
+  handle.exec('BEGIN IMMEDIATE')
+  txDepth++
+  try {
+    const result = fn()
+    handle.exec('COMMIT')
+    return result
+  } catch (e) {
+    try {
+      handle.exec('ROLLBACK')
+    } catch {
+      /* connection already unwound — surface the original error */
+    }
+    throw e
+  } finally {
+    txDepth--
+  }
+}
+
 export interface UserUpsert {
   id: string
   upn: string | null
@@ -1273,17 +1350,21 @@ export interface UserUpsert {
   enabled: boolean
 }
 export function upsertUsers(users: UserUpsert[]): void {
-  for (const u of users) {
-    run(
-      `INSERT INTO users(id, upn, display_name, enabled) VALUES(?,?,?,?)
+  transaction(() => {
+    for (const u of users) {
+      run(
+        `INSERT INTO users(id, upn, display_name, enabled) VALUES(?,?,?,?)
        ON CONFLICT(id) DO UPDATE SET upn=excluded.upn, display_name=excluded.display_name, enabled=excluded.enabled`,
-      [u.id, u.upn, u.displayName, u.enabled ? 1 : 0]
-    )
-  }
+        [u.id, u.upn, u.displayName, u.enabled ? 1 : 0]
+      )
+    }
+  })
 }
 export function setCopilotLicensed(ids: string[]): void {
-  run('UPDATE users SET has_copilot_license=0', [])
-  for (const id of ids) run('UPDATE users SET has_copilot_license=1 WHERE id=?', [id])
+  transaction(() => {
+    run('UPDATE users SET has_copilot_license=0', [])
+    for (const id of ids) run('UPDATE users SET has_copilot_license=1 WHERE id=?', [id])
+  })
 }
 
 export interface InteractionUpsert {
@@ -1300,7 +1381,11 @@ export interface InteractionUpsert {
   rawJson: string
   sourceType: string
 }
+/** Bulk write — single transaction: atomic on crash and far faster than per-row implicit commits. */
 export function upsertInteractions(rows: InteractionUpsert[]): void {
+  return transaction(() => upsertInteractionsRows(rows))
+}
+function upsertInteractionsRows(rows: InteractionUpsert[]): void {
   const fetchedAt = new Date().toISOString()
   for (const r of rows) {
     run(
@@ -1358,7 +1443,11 @@ export interface AuditEventRow {
   raw_json: string
   fetched_at: string
 }
+/** Bulk write — single transaction: atomic on crash and far faster than per-row implicit commits. */
 export function upsertAuditEvents(rows: AuditEventRow[]): number {
+  return transaction(() => upsertAuditEventsRows(rows))
+}
+function upsertAuditEventsRows(rows: AuditEventRow[]): number {
   for (const e of rows) {
     run(
       `INSERT INTO audit_events(id,source,event_time,user_id,upn,operation,workload,app,target_resources,client_ip,result,raw_json,fetched_at)
@@ -1468,7 +1557,11 @@ export interface UsageSnapshotRow {
   last_activity_bizchat: string | null
   raw_json: string | null
 }
+/** Bulk write — single transaction: atomic on crash and far faster than per-row implicit commits. */
 export function upsertUsageSnapshots(snaps: UsageSnapshotRow[]): number {
+  return transaction(() => upsertUsageSnapshotsRows(snaps))
+}
+function upsertUsageSnapshotsRows(snaps: UsageSnapshotRow[]): number {
   for (const s of snaps) {
     const userKey = s.user_id || s.upn || '_total'
     const sid = createHash('sha1').update(`${s.snapshot_date}|${s.period}|${userKey}`).digest('hex').slice(0, 32)
@@ -1537,7 +1630,11 @@ export interface CopilotAgentRow {
   raw_json: string | null
   captured_at: string
 }
+/** Bulk write — single transaction: atomic on crash and far faster than per-row implicit commits. */
 export function upsertCopilotAgents(rows: CopilotAgentRow[]): number {
+  return transaction(() => upsertCopilotAgentsRows(rows))
+}
+function upsertCopilotAgentsRows(rows: CopilotAgentRow[]): number {
   let n = 0
   for (const r of rows) {
     if (!r.id) continue
@@ -1564,8 +1661,10 @@ export function upsertCopilotAgents(rows: CopilotAgentRow[]): number {
   return n
 }
 export function replaceCopilotAgentsForSource(source: string, rows: CopilotAgentRow[]): number {
-  run('DELETE FROM copilot_agents WHERE source=?', [source])
-  return upsertCopilotAgents(rows.filter((r) => r.source === source))
+  return transaction(() => {
+    run('DELETE FROM copilot_agents WHERE source=?', [source])
+    return upsertCopilotAgents(rows.filter((r) => r.source === source))
+  })
 }
 
 // ---- power platform consumption -----------------------------------------
@@ -1582,7 +1681,11 @@ export interface ConsumptionRow {
   window_end: string | null
   raw_json: string | null
 }
+/** Bulk write — single transaction: atomic on crash and far faster than per-row implicit commits. */
 export function upsertConsumptionRows(rows: ConsumptionRow[]): number {
+  return transaction(() => upsertConsumptionRowsRows(rows))
+}
+function upsertConsumptionRowsRows(rows: ConsumptionRow[]): number {
   const now = new Date().toISOString()
   for (const c of rows) {
     const userKey = c.user_id || (c.environment_id ? `_env:${c.environment_id}` : '_total')
@@ -1696,28 +1799,48 @@ export function deleteUserThreads(userId: string, sourceType: string): void {
 }
 export function upsertThreads(threads: ThreadGroup[], sourceType: string): void {
   const now = new Date().toISOString()
-  for (const t of threads) {
-    run(
-      `INSERT OR REPLACE INTO conversation_threads(id,user_id,started_at,ended_at,app,turn_count,prompt_count,response_count,session_ids,topic_keywords,title,cluster_label,computed_at,source_type)
-       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [
-        t.id,
-        t.userId,
-        t.startedAt,
-        t.endedAt,
-        t.app,
-        t.turnCount,
-        t.promptCount,
-        t.responseCount,
-        JSON.stringify(t.sessionIds),
-        JSON.stringify([]),
-        t.title,
-        null,
-        now,
-        sourceType
-      ]
-    )
-  }
+  // NOTE: deliberately NOT `INSERT OR REPLACE`. That is a DELETE+INSERT in
+  // SQLite, which would blank the agent_key/agent_id/agent_name columns added
+  // by ensureRuntimeSchema() — attribution is recomputed only once per profile,
+  // so every re-collection would permanently drop it.
+  transaction(() => {
+    for (const t of threads) {
+      run(
+        `INSERT INTO conversation_threads(id,user_id,started_at,ended_at,app,turn_count,prompt_count,response_count,session_ids,topic_keywords,title,cluster_label,computed_at,source_type)
+         VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET
+           user_id=excluded.user_id,
+           started_at=excluded.started_at,
+           ended_at=excluded.ended_at,
+           app=excluded.app,
+           turn_count=excluded.turn_count,
+           prompt_count=excluded.prompt_count,
+           response_count=excluded.response_count,
+           session_ids=excluded.session_ids,
+           topic_keywords=excluded.topic_keywords,
+           title=excluded.title,
+           cluster_label=excluded.cluster_label,
+           computed_at=excluded.computed_at,
+           source_type=excluded.source_type`,
+        [
+          t.id,
+          t.userId,
+          t.startedAt,
+          t.endedAt,
+          t.app,
+          t.turnCount,
+          t.promptCount,
+          t.responseCount,
+          JSON.stringify(t.sessionIds),
+          JSON.stringify([]),
+          t.title,
+          null,
+          now,
+          sourceType
+        ]
+      )
+    }
+  })
 }
 export function assignThreadsToInteractions(pairs: Array<[string, string]>): void {
   for (const [interactionId, threadId] of pairs) {
@@ -1784,7 +1907,15 @@ export interface SecurityEventRow {
   raw: string
 }
 export interface SecurityEventsDTO {
-  kpis: { total: number; blocked: number; uniqueUsers: number; topOperation: string | null; topOperationCount: number }
+  kpis: {
+    total: number
+    blocked: number
+    uniqueUsers: number
+    topOperation: string | null
+    topOperationCount: number
+    /** True when `events` is a truncated page of a larger result set. */
+    truncated: boolean
+  }
   events: SecurityEventRow[]
 }
 export function securityEvents(f: AuditFilters): SecurityEventsDTO {
@@ -1800,12 +1931,12 @@ export function securityEvents(f: AuditFilters): SecurityEventsDTO {
   }
   if (f.dateTo) {
     clauses.push('event_time <= ?')
-    params.push(`${f.dateTo}T23:59:59Z`)
+    params.push(endOfDay(f.dateTo))
   }
   if (f.search && f.search.trim()) {
-    const needle = `%${f.search.trim().toLowerCase()}%`
+    const needle = likeNeedle(f.search)
     clauses.push(
-      "(LOWER(COALESCE(operation,'')) LIKE ? OR LOWER(COALESCE(upn,'')) LIKE ? OR LOWER(COALESCE(user_id,'')) LIKE ? OR LOWER(COALESCE(app,'')) LIKE ? OR LOWER(COALESCE(workload,'')) LIKE ?)"
+      String.raw`(LOWER(COALESCE(operation,'')) LIKE ? ESCAPE '\' OR LOWER(COALESCE(upn,'')) LIKE ? ESCAPE '\' OR LOWER(COALESCE(user_id,'')) LIKE ? ESCAPE '\' OR LOWER(COALESCE(app,'')) LIKE ? ESCAPE '\' OR LOWER(COALESCE(workload,'')) LIKE ? ESCAPE '\')`
     )
     params.push(needle, needle, needle, needle, needle)
   }
@@ -1840,21 +1971,33 @@ export function securityEvents(f: AuditFilters): SecurityEventsDTO {
     result: r.result,
     raw: r.raw_json
   }))
-  const blocked = events.filter((e) => {
-    const x = (e.result || '').toLowerCase()
-    return x.includes('denied') || x.includes('blocked') || x === 'failure'
-  }).length
-  const uniqueUsers = new Set(events.filter((e) => e.user !== '—').map((e) => e.user)).size
-  const opCounts = new Map<string, number>()
-  for (const e of events) opCounts.set(e.operation, (opCounts.get(e.operation) ?? 0) + 1)
-  const topOp = [...opCounts.entries()].sort((a, b) => b[1] - a[1])[0]
+  // KPIs must describe the whole filtered set, not the truncated page that is
+  // displayed: counting the returned rows reported "1,000 events" for every
+  // tenant large enough to hit the limit, which is exactly the population a
+  // security dashboard must not understate.
+  const total = get<{ n: number }>(`SELECT COUNT(*) n FROM audit_events ${where}`, ...params)?.n ?? 0
+  const blocked =
+    get<{ n: number }>(
+      `SELECT COUNT(*) n FROM audit_events ${where}${where ? ' AND' : ' WHERE'} (LOWER(COALESCE(result,'')) LIKE '%denied%' OR LOWER(COALESCE(result,'')) LIKE '%blocked%' OR LOWER(COALESCE(result,'')) = 'failure')`,
+      ...params
+    )?.n ?? 0
+  const uniqueUsers =
+    get<{ n: number }>(
+      `SELECT COUNT(DISTINCT COALESCE(NULLIF(upn, ''), user_id)) n FROM audit_events ${where}${where ? ' AND' : ' WHERE'} (COALESCE(NULLIF(upn, ''), user_id) IS NOT NULL)`,
+      ...params
+    )?.n ?? 0
+  const topOp = get<{ operation: string | null; c: number }>(
+    `SELECT operation, COUNT(*) c FROM audit_events ${where} GROUP BY operation ORDER BY c DESC LIMIT 1`,
+    ...params
+  )
   return {
     kpis: {
-      total: events.length,
+      total,
       blocked,
       uniqueUsers,
-      topOperation: topOp?.[0] ?? null,
-      topOperationCount: topOp?.[1] ?? 0
+      topOperation: topOp?.operation ?? null,
+      topOperationCount: topOp?.c ?? 0,
+      truncated: rows.length >= limit && total > rows.length
     },
     events
   }
@@ -2046,8 +2189,10 @@ export function countEdiscoveryConversations(userId: string): { interactions: nu
   return { interactions, threads }
 }
 export function deleteEdiscoveryConversations(userId: string): void {
-  run("DELETE FROM interactions WHERE source_type='ediscovery' AND user_id=?", [userId])
-  run("DELETE FROM conversation_threads WHERE source_type='ediscovery' AND user_id=?", [userId])
+  transaction(() => {
+    run("DELETE FROM interactions WHERE source_type='ediscovery' AND user_id=?", [userId])
+    run("DELETE FROM conversation_threads WHERE source_type='ediscovery' AND user_id=?", [userId])
+  })
 }
 export function upsertEdiscoveryJob(j: EdiscoveryJob): void {
   run(
@@ -2489,7 +2634,15 @@ export interface CreditDelta {
   latest_quantity: number
   last_date: string
 }
+const DELTA_ENTITY_COLS = ['product', 'user_id'] as const
+
+/**
+ * `entityCol` is interpolated into SQL because SQLite cannot bind identifiers.
+ * The union type already constrains callers; this guard makes the invariant
+ * hold at runtime too, so a future caller cannot turn it into an injection.
+ */
 function creditDeltaSeries(reportType: string, entityCol: 'product' | 'user_id', days: number): DeltaRow[] {
+  if (!DELTA_ENTITY_COLS.includes(entityCol)) throw new Error(`Unsupported entity column: ${entityCol}`)
   const sql =
     `SELECT ${entityCol} AS k, environment_id, environment_name, usage_date, quantity, unit, ` +
     `quantity - LAG(quantity) OVER (PARTITION BY ${entityCol} ORDER BY usage_date) AS delta ` +
@@ -2710,7 +2863,11 @@ export interface FlowRunRow {
   created_on: string | null
   raw_json: string | null
 }
+/** Bulk write — single transaction: atomic on crash and far faster than per-row implicit commits. */
 export function upsertFlowRuns(rows: FlowRunRow[]): number {
+  return transaction(() => upsertFlowRunsRows(rows))
+}
+function upsertFlowRunsRows(rows: FlowRunRow[]): number {
   const now = new Date().toISOString()
   for (const r of rows) {
     run(
@@ -2814,7 +2971,11 @@ export interface AgentDefinitionRow {
   modified_by: string | null
   modified_on: string | null
 }
+/** Bulk write — single transaction: atomic on crash and far faster than per-row implicit commits. */
 export function upsertAgentDefinitions(rows: AgentDefinitionRow[]): number {
+  return transaction(() => upsertAgentDefinitionsRows(rows))
+}
+function upsertAgentDefinitionsRows(rows: AgentDefinitionRow[]): number {
   const now = new Date().toISOString()
   for (const r of rows) {
     run(

@@ -5,8 +5,16 @@
     "entra_audit": "Entraディレクトリ監査",
     "entra_signin": "Entraサインイン"
   },
-  "filters": { "sourceFilter": "ソースフィルター", "dateFrom": "開始日", "dateTo": "終了日", "searchPlaceholder": "操作・ユーザー・アプリを検索", "apply": "適用", "reset": "リセット" },
+  "filters": {
+    "sourceFilter": "ソースフィルター",
+    "dateFrom": "開始日",
+    "dateTo": "終了日",
+    "searchPlaceholder": "操作・ユーザー・アプリを検索",
+    "apply": "適用",
+    "reset": "リセット"
+  },
   "count_other": "{{count}}件",
+  "truncated": "全 {{total}} 件中 {{shown}} 件を表示",
   "kpis": {
     "total": "監査イベント",
     "totalFoot": "フィルター結果",
@@ -36,5 +44,8 @@
     "result": "結果"
   },
   "rawAuditEventTitle": "監査イベントの生データ",
-  "auditEvents": { "title": "監査イベント", "subtitle_other": "{{count}}件 · 新しい順" }
+  "auditEvents": {
+    "title": "監査イベント",
+    "subtitle_other": "{{count}}件 · 新しい順"
+  }
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Loader2, Play } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { invoke } from '../lib/api'
+import { useNumberFormat } from '../lib/format'
 
 interface Rule {
   name: string
@@ -39,12 +40,10 @@ const RULE_LABEL_KEYS = [
   'high_risk_agent'
 ] as const
 
-function n(v: number | null): string {
-  return (v ?? 0).toLocaleString('ko-KR', { maximumFractionDigits: 2 })
-}
-
 export function Alerts(): JSX.Element {
   const { t } = useTranslation('alerts')
+  const fmt = useNumberFormat()
+  const n = (v: number | null): string => fmt(v ?? 0, { maximumFractionDigits: 2 })
   const RULE_LABEL: Record<string, string> = Object.fromEntries(
     RULE_LABEL_KEYS.map((k) => [k, t(`ruleLabel.${k}`)])
   )

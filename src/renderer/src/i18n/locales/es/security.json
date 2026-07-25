@@ -5,8 +5,16 @@
     "entra_audit": "Auditoría de directorio de Entra",
     "entra_signin": "Inicio de sesión de Entra"
   },
-  "filters": { "sourceFilter": "Filtro de fuente", "dateFrom": "Fecha de inicio", "dateTo": "Fecha de fin", "searchPlaceholder": "Buscar operación/usuario/app", "apply": "Aplicar", "reset": "Restablecer" },
+  "filters": {
+    "sourceFilter": "Filtro de fuente",
+    "dateFrom": "Fecha de inicio",
+    "dateTo": "Fecha de fin",
+    "searchPlaceholder": "Buscar operación/usuario/app",
+    "apply": "Aplicar",
+    "reset": "Restablecer"
+  },
   "count_other": "{{count}}",
+  "truncated": "mostrando {{shown}} de {{total}}",
   "kpis": {
     "total": "Eventos de auditoría",
     "totalFoot": "Resultados filtrados",
@@ -36,5 +44,8 @@
     "result": "Resultado"
   },
   "rawAuditEventTitle": "Evento de auditoría sin procesar",
-  "auditEvents": { "title": "Eventos de auditoría", "subtitle_other": "{{count}} · Más reciente primero" }
+  "auditEvents": {
+    "title": "Eventos de auditoría",
+    "subtitle_other": "{{count}} · Más reciente primero"
+  }
 }

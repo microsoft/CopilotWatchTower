@@ -1,16 +1,43 @@
 {
   "collectStart": "수집 시작",
-  "kpis": { "total": "총 감사 이벤트", "purview": "Purview", "purviewFoot": "통합 감사", "entraAudit": "Entra 감사", "entraAuditFoot": "디렉터리", "entraSignin": "Entra 로그인" },
+  "kpis": {
+    "total": "총 감사 이벤트",
+    "purview": "Purview",
+    "purviewFoot": "통합 감사",
+    "entraAudit": "Entra 감사",
+    "entraAuditFoot": "디렉터리",
+    "entraSignin": "Entra 로그인"
+  },
+  "sourceLabel": {
+    "purview": "Purview 통합 감사",
+    "entra_audit": "Entra 디렉터리 감사",
+    "entra_signin": "Entra 로그인"
+  },
   "sourceStatus": {
     "title": "수집 소스 상태",
     "count_other": "{{count}}개 소스",
-    "columns": { "source": "소스", "status": "상태", "last": "마지막 수집", "count": "건수" },
-    "status": { "error": "오류", "processing": "처리 중", "active": "활성", "inactive": "비활성" }
+    "columns": {
+      "source": "소스",
+      "status": "상태",
+      "last": "마지막 수집",
+      "count": "건수"
+    },
+    "status": {
+      "error": "오류",
+      "processing": "처리 중",
+      "active": "활성",
+      "inactive": "비활성"
+    }
   },
   "recent": {
     "title": "최근 감사 이벤트",
     "subtitle_other": "최신 {{count}}건",
-    "columns": { "time": "시각", "source": "소스", "operation": "작업", "actor": "행위자" },
+    "columns": {
+      "time": "시각",
+      "source": "소스",
+      "operation": "작업",
+      "actor": "행위자"
+    },
     "empty": "아직 수집된 감사 이벤트가 없습니다. 수집 시작을 눌러주세요."
   }
 }
