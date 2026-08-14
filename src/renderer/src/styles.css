@@ -209,10 +209,12 @@ body {
   gap: 14px;
   margin-bottom: 18px;
 }
+.kpi-row.kpi-row-5 { grid-template-columns: repeat(5, 1fr); }
 .kpi-row.kpi-row-6 { grid-template-columns: repeat(6, 1fr); }
 .grid-2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
 
 @media (max-width: 1280px) {
+  .kpi-row.kpi-row-5 { grid-template-columns: repeat(3, 1fr); }
   .kpi-row.kpi-row-6 { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 1180px) {
@@ -220,6 +222,7 @@ body {
   .grid-2 { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
+  .kpi-row.kpi-row-5 { grid-template-columns: repeat(2, 1fr); }
   .kpi-row.kpi-row-6 { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -566,9 +569,35 @@ select.filter-field { cursor: pointer; max-width: 200px; }
 
 /* ---- Status / severity badges ------------------------------------------ */
 .sev, .stat { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.sev.crit { color: var(--danger); background: var(--danger-soft); box-shadow: inset 0 0 0 1px var(--danger); }
 .sev.high { color: var(--danger); background: var(--danger-soft); }
 .sev.med { color: var(--warn); background: var(--warn-soft); }
 .sev.low { color: var(--text-muted); background: var(--panel-3); }
+
+/* ---- Agent findings (Agent review) ------------------------------------- */
+.finding-toggle {
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px;
+  border: 1px solid var(--border-soft); border-radius: 20px; background: transparent;
+  color: var(--text-dim); font-size: 11px; font-weight: 600; cursor: pointer;
+}
+.finding-toggle:hover { color: var(--text); border-color: var(--border); }
+.finding-chips { display: inline-flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.finding-list { display: flex; flex-direction: column; gap: 10px; padding: 4px 0 8px; }
+.finding-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 9px 11px; border-radius: 8px; background: var(--panel-2);
+  border-left: 3px solid var(--border);
+}
+.finding-item.crit, .finding-item.high { border-left-color: var(--danger); }
+.finding-item.med { border-left-color: var(--warn); }
+.finding-item.low { border-left-color: var(--text-muted); }
+.finding-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.finding-title { font-size: 12.5px; font-weight: 650; color: var(--text); }
+.finding-fix { font-size: 11.5px; color: var(--text-dim); line-height: 1.5; }
+.finding-evidence {
+  font-family: var(--mono, ui-monospace, monospace); font-size: 11px;
+  color: var(--text-muted); word-break: break-all;
+}
 .stat.ok { color: var(--ok); background: var(--ok-soft); }
 .stat.run { color: var(--accent); background: var(--accent-soft); }
 .stat.err { color: var(--danger); background: var(--danger-soft); }

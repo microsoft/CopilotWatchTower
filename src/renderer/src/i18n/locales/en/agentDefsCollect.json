@@ -2,12 +2,56 @@
   "collectButton": "Analyze agent risk via portal",
   "autoLoginDesc": "Automatically signs in to the maker portal using the <strong>download account</strong> (eDiscovery service account) from Settings. A sign-in window will appear if no account is configured.",
   "band": { "critical": "Critical", "high": "High", "medium": "Medium", "low": "Low" },
-  "kpis": { "agents": "Agents", "high": "High risk", "highFoot": "Score ≥ 50", "triggers": "Autonomous triggers", "environments": "Environments" },
+  "severity": { "critical": "Critical", "high": "High", "medium": "Medium", "low": "Low" },
+  "kpis": {
+    "agents": "Agents",
+    "high": "High risk",
+    "highFoot": "Score ≥ 50",
+    "critical": "Critical findings",
+    "criticalFoot": "Act immediately",
+    "triggers": "Autonomous triggers",
+    "environments": "Environments"
+  },
   "table": {
     "title": "Agent risk scores",
     "subtitle_other": "Top {{count}} by risk",
-    "columns": { "agent": "Agent", "env": "Environment", "risk": "Risk", "signals": "Signals" },
+    "columns": { "agent": "Agent", "env": "Environment", "risk": "Risk", "findings": "Findings", "signals": "Signals" },
     "signals": "External calls {{external}} · Loops {{loops}}",
+    "noFindings": "None",
     "empty": "No agents analyzed yet. Use the button above to sign in to the maker portal and collect."
+  },
+  "findings": {
+    "embedded_secret": {
+      "title": "Credential hardcoded in the agent definition",
+      "fix": "The definition contains a plaintext key, token, or password. Revoke and rotate that credential now, then move the value to Azure Key Vault or an environment variable reference. If the agent was ever exported, investigate the exposure scope as well."
+    },
+    "autonomous_external_egress": {
+      "title": "Unattended trigger makes external calls",
+      "fix": "The agent runs without human confirmation and can send data outbound through connectors or HTTP. Review the target endpoints, and either restrict the connectors with DLP policy or add an approval step."
+    },
+    "unattended_autonomy": {
+      "title": "Unattended execution trigger present",
+      "fix": "A schedule or event runs this agent with no human in the loop. Confirm the trigger is intended, and document the owner and execution scope."
+    },
+    "unbounded_iteration": {
+      "title": "Loop construct on an autonomous path",
+      "fix": "Unattended execution combined with loops can run away and burn credits. Verify iteration caps and exit conditions, and set a credit alert threshold."
+    },
+    "generative_tool_execution": {
+      "title": "Generative orchestration can execute tools",
+      "fix": "The model decides tool invocation on its own, so prompt injection can turn into real execution. Minimize tool permissions and require confirmation for destructive actions."
+    },
+    "unauthenticated_access": {
+      "title": "No user authentication configured",
+      "fix": "The agent is reachable without authentication, which can expose knowledge source content. Enable Entra ID authentication or restrict the publishing channels."
+    },
+    "excessive_tools": {
+      "title": "Excessive number of tools",
+      "fix": "More tools means more routing errors and a larger attack surface. Remove unused tools or split the agent by role."
+    },
+    "broad_knowledge_surface": {
+      "title": "Broad knowledge source surface",
+      "fix": "Many connected knowledge sources can pull unintended information into responses. Re-review the access rights and necessity of each source."
+    }
   }
 }

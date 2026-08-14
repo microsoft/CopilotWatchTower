@@ -12,6 +12,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
 import type { TurnInput, ThreadGroup } from './threading'
+import type { Finding as AgentFinding } from './agentFindings'
 import {
   conversationAgentFromRaw,
   matchAuditAgentsToThreads,
@@ -68,6 +69,10 @@ function ensureRuntimeSchema(database: DatabaseSync): void {
     if (threadColumns.length && !threadColumns.some((column) => column.name === name)) {
       database.exec(`ALTER TABLE conversation_threads ADD COLUMN ${name} ${type}`)
     }
+  }
+  const agentDefColumns = database.prepare('PRAGMA table_info(agent_definitions)').all() as Array<{ name: string }>
+  if (agentDefColumns.length && !agentDefColumns.some((column) => column.name === 'risk_findings_json')) {
+    database.exec('ALTER TABLE agent_definitions ADD COLUMN risk_findings_json TEXT')
   }
   database.exec(
     'CREATE INDEX IF NOT EXISTS ix_threads_source_agent_time ON conversation_threads(source_type, agent_key, started_at DESC)'
@@ -2967,6 +2972,7 @@ export interface AgentDefinitionRow {
   risk_score: number
   risk_band: string | null
   risk_factors_json: string | null
+  risk_findings_json: string | null
   created_by: string | null
   modified_by: string | null
   modified_on: string | null
@@ -2979,9 +2985,9 @@ function upsertAgentDefinitionsRows(rows: AgentDefinitionRow[]): number {
   const now = new Date().toISOString()
   for (const r of rows) {
     run(
-      `INSERT INTO agent_definitions(id,environment_id,environment_name,bot_name,schema_name,state,component_count,has_trigger,external_call_count,tool_count,loop_count,knowledge_count,generative_orchestration,risk_score,risk_band,risk_factors_json,created_by,modified_by,modified_on,captured_at)
-       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-       ON CONFLICT(id) DO UPDATE SET environment_name=excluded.environment_name, bot_name=excluded.bot_name, schema_name=excluded.schema_name, state=excluded.state, component_count=excluded.component_count, has_trigger=excluded.has_trigger, external_call_count=excluded.external_call_count, tool_count=excluded.tool_count, loop_count=excluded.loop_count, knowledge_count=excluded.knowledge_count, generative_orchestration=excluded.generative_orchestration, risk_score=excluded.risk_score, risk_band=excluded.risk_band, risk_factors_json=excluded.risk_factors_json, modified_by=excluded.modified_by, modified_on=excluded.modified_on, captured_at=excluded.captured_at`,
+      `INSERT INTO agent_definitions(id,environment_id,environment_name,bot_name,schema_name,state,component_count,has_trigger,external_call_count,tool_count,loop_count,knowledge_count,generative_orchestration,risk_score,risk_band,risk_factors_json,risk_findings_json,created_by,modified_by,modified_on,captured_at)
+       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       ON CONFLICT(id) DO UPDATE SET environment_name=excluded.environment_name, bot_name=excluded.bot_name, schema_name=excluded.schema_name, state=excluded.state, component_count=excluded.component_count, has_trigger=excluded.has_trigger, external_call_count=excluded.external_call_count, tool_count=excluded.tool_count, loop_count=excluded.loop_count, knowledge_count=excluded.knowledge_count, generative_orchestration=excluded.generative_orchestration, risk_score=excluded.risk_score, risk_band=excluded.risk_band, risk_factors_json=excluded.risk_factors_json, risk_findings_json=excluded.risk_findings_json, modified_by=excluded.modified_by, modified_on=excluded.modified_on, captured_at=excluded.captured_at`,
       [
         r.id,
         r.environment_id,
@@ -2999,6 +3005,7 @@ function upsertAgentDefinitionsRows(rows: AgentDefinitionRow[]): number {
         r.risk_score,
         r.risk_band,
         r.risk_factors_json,
+        r.risk_findings_json,
         r.created_by,
         r.modified_by,
         r.modified_on,
@@ -3034,14 +3041,38 @@ export function highRiskAgents(minScore = 70): HighRiskAgent[] {
   ).map((r) => ({ ...r, has_trigger: Boolean(r.has_trigger) }))
 }
 export interface AgentDefsDTO {
-  kpis: { agents: number; high: number; triggers: number; environments: number }
-  agents: Array<{ name: string; env: string; score: number; band: string; trigger: boolean; external: number; loops: number }>
+  kpis: { agents: number; high: number; triggers: number; environments: number; critical: number }
+  agents: Array<{
+    name: string
+    env: string
+    score: number
+    band: string
+    trigger: boolean
+    external: number
+    loops: number
+    findings: AgentFinding[]
+  }>
+}
+function parseFindings(json: string | null): AgentFinding[] {
+  if (!json) return []
+  try {
+    const parsed = JSON.parse(json)
+    return Array.isArray(parsed) ? (parsed as AgentFinding[]) : []
+  } catch {
+    return []
+  }
 }
 export function agentDefsStatus(): AgentDefsDTO {
   const total = get<{ n: number }>('SELECT COUNT(*) n FROM agent_definitions')?.n ?? 0
   const high = get<{ n: number }>('SELECT COUNT(*) n FROM agent_definitions WHERE risk_score >= 50')?.n ?? 0
   const triggers = get<{ n: number }>('SELECT COUNT(*) n FROM agent_definitions WHERE has_trigger = 1')?.n ?? 0
   const environments = get<{ n: number }>('SELECT COUNT(DISTINCT environment_id) n FROM agent_definitions')?.n ?? 0
+  // Substring match is safe here: the JSON is written by JSON.stringify over the
+  // Finding shape in agentFindings.ts, so the key order is fixed.
+  const critical =
+    get<{ n: number }>(
+      `SELECT COUNT(*) n FROM agent_definitions WHERE risk_findings_json LIKE '%"severity":"critical"%'`
+    )?.n ?? 0
   const agents = all<{
     bot_name: string | null
     environment_name: string | null
@@ -3050,8 +3081,9 @@ export function agentDefsStatus(): AgentDefsDTO {
     has_trigger: number
     external_call_count: number
     loop_count: number
+    risk_findings_json: string | null
   }>(
-    'SELECT bot_name, environment_name, risk_score, risk_band, has_trigger, external_call_count, loop_count FROM agent_definitions ORDER BY risk_score DESC LIMIT 20'
+    'SELECT bot_name, environment_name, risk_score, risk_band, has_trigger, external_call_count, loop_count, risk_findings_json FROM agent_definitions ORDER BY risk_score DESC LIMIT 20'
   ).map((r) => ({
     name: r.bot_name || '(이름 없음)',
     env: r.environment_name || '—',
@@ -3059,7 +3091,8 @@ export function agentDefsStatus(): AgentDefsDTO {
     band: r.risk_band || 'low',
     trigger: Boolean(r.has_trigger),
     external: r.external_call_count,
-    loops: r.loop_count
+    loops: r.loop_count,
+    findings: parseFindings(r.risk_findings_json)
   }))
-  return { kpis: { agents: total, high, triggers, environments }, agents }
+  return { kpis: { agents: total, high, triggers, environments, critical }, agents }
 }
