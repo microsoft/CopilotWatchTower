@@ -2,12 +2,62 @@
   "collectButton": "Analizar riesgo de agentes desde el portal",
   "autoLoginDesc": "Inicia sesión automáticamente en el portal de creación usando la <strong>cuenta de descarga</strong> (cuenta de servicio de eDiscovery) de Configuración. Aparecerá una ventana de inicio de sesión si no hay una cuenta configurada.",
   "band": { "critical": "Crítico", "high": "Alto", "medium": "Medio", "low": "Bajo" },
-  "kpis": { "agents": "Agentes", "high": "Alto riesgo", "highFoot": "Puntuación ≥ 50", "triggers": "Disparadores autónomos", "environments": "Entornos" },
+  "severity": { "critical": "Crítico", "high": "Alto", "medium": "Medio", "low": "Bajo" },
+  "kpis": {
+    "agents": "Agentes",
+    "high": "Alto riesgo",
+    "highFoot": "Puntuación ≥ 50",
+    "critical": "Hallazgos críticos",
+    "criticalFoot": "Actuar de inmediato",
+    "triggers": "Disparadores autónomos",
+    "environments": "Entornos"
+  },
   "table": {
     "title": "Puntuaciones de riesgo de agentes",
     "subtitle_other": "Top {{count}} por riesgo",
-    "columns": { "agent": "Agente", "env": "Entorno", "risk": "Riesgo", "signals": "Señales" },
+    "columns": {
+      "agent": "Agente",
+      "env": "Entorno",
+      "risk": "Riesgo",
+      "findings": "Hallazgos",
+      "signals": "Señales"
+    },
     "signals": "Llamadas externas {{external}} · Bucles {{loops}}",
+    "noFindings": "Ninguno",
     "empty": "Aún no se han analizado agentes. Use el botón de arriba para iniciar sesión en el portal de creación y recopilar."
+  },
+  "findings": {
+    "embedded_secret": {
+      "title": "Credencial codificada en la definición del agente",
+      "fix": "La definición contiene una clave, un token o una contraseña en texto plano. Revoque y rote esa credencial ahora, y mueva el valor a Azure Key Vault o a una referencia de variable de entorno. Si el agente se exportó alguna vez, investigue también el alcance de la exposición."
+    },
+    "autonomous_external_egress": {
+      "title": "Un disparador desatendido realiza llamadas externas",
+      "fix": "El agente se ejecuta sin confirmación humana y puede enviar datos al exterior mediante conectores o HTTP. Revise los puntos de conexión de destino y restrinja los conectores con directivas DLP o añada un paso de aprobación."
+    },
+    "unattended_autonomy": {
+      "title": "Existe un disparador de ejecución desatendida",
+      "fix": "Una programación o un evento ejecuta este agente sin intervención humana. Confirme que el disparador es intencionado y documente el propietario y el alcance de ejecución."
+    },
+    "unbounded_iteration": {
+      "title": "Estructura de bucle en una ruta autónoma",
+      "fix": "La ejecución desatendida combinada con bucles puede descontrolarse y consumir créditos. Verifique los límites de iteración y las condiciones de salida, y configure un umbral de alerta de créditos."
+    },
+    "generative_tool_execution": {
+      "title": "La orquestación generativa puede ejecutar herramientas",
+      "fix": "El modelo decide por sí mismo la invocación de herramientas, por lo que una inyección de prompt puede convertirse en ejecución real. Minimice los permisos de las herramientas y exija confirmación para acciones destructivas."
+    },
+    "unauthenticated_access": {
+      "title": "No hay autenticación de usuario configurada",
+      "fix": "Se puede acceder sin autenticación, lo que puede exponer el contenido de las fuentes de conocimiento. Habilite la autenticación de Entra ID o restrinja los canales de publicación."
+    },
+    "excessive_tools": {
+      "title": "Número excesivo de herramientas",
+      "fix": "Más herramientas implican más errores de enrutamiento y una superficie de ataque mayor. Elimine las herramientas sin usar o divida el agente por rol."
+    },
+    "broad_knowledge_surface": {
+      "title": "Superficie amplia de fuentes de conocimiento",
+      "fix": "Muchas fuentes de conocimiento conectadas pueden introducir información no deseada en las respuestas. Vuelva a revisar los permisos de acceso y la necesidad de cada fuente."
+    }
   }
 }

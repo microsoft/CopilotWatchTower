@@ -2,7 +2,12 @@
  * Static risk scoring for Copilot Studio agents — port of services/agent_risk.py.
  * Pure, HTTP-free heuristic over Dataverse botcomponent OBI payloads. Predicts
  * which agents are likely to run away before they do (predictive alert tier).
+ *
+ * The numeric score is paired with the named findings from ``agentFindings.ts``,
+ * which explain *why* an agent is risky and how to remediate it.
  */
+import { deriveFindings, type Finding } from '../agentFindings'
+
 type Dict = Record<string, unknown>
 
 const CT_SKILL = 1
@@ -65,6 +70,8 @@ export interface RiskProfile {
   band: string
   factors: RiskFactor[]
   factorsJson: string
+  findings: Finding[]
+  findingsJson: string
 }
 
 function componentText(component: Dict): string {
@@ -97,7 +104,7 @@ function round2(v: number): number {
   return Math.round(v * 100) / 100
 }
 
-export function analyzeAgent(components: Dict[]): RiskProfile {
+export function analyzeAgent(components: Dict[], opts?: { authenticationMode?: number | null }): RiskProfile {
   const types: Array<number | null> = []
   let triggerKw = 0
   let externalKw = 0
@@ -150,6 +157,16 @@ export function analyzeAgent(components: Dict[]): RiskProfile {
     { key: 'knowledge', score: round2(knowledgeScore), count: knowledgeCount, detail: null }
   ]
 
+  const findings = deriveFindings(components, {
+    hasTrigger,
+    externalCallCount: externalCount,
+    toolCount,
+    loopCount,
+    knowledgeCount,
+    generativeOrchestration: generative,
+    authenticationMode: opts?.authenticationMode ?? null
+  })
+
   return {
     componentCount: components.length,
     hasTrigger,
@@ -161,7 +178,9 @@ export function analyzeAgent(components: Dict[]): RiskProfile {
     score,
     band: bandFor(score),
     factors,
-    factorsJson: JSON.stringify(factors)
+    factorsJson: JSON.stringify(factors),
+    findings,
+    findingsJson: JSON.stringify(findings)
   }
 }
 

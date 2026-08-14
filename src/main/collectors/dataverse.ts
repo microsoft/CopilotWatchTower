@@ -503,7 +503,11 @@ export async function collectFlowRuns(tokens: PortalTokens, onLog?: (line: strin
 
 // ---- agent definitions (bot components → risk score) -------------------
 
-const BOT_SELECT = 'botid,name,schemaname,statecode,createdon,modifiedon,_modifiedby_value,_createdby_value'
+const BOT_SELECT_BASE = 'botid,name,schemaname,statecode,createdon,modifiedon,_modifiedby_value,_createdby_value'
+// authenticationmode powers the "unauthenticated access" finding. It is appended
+// separately because an unknown $select column fails the entire OData query, and
+// not every environment exposes it — fetchBots() falls back when that happens.
+const BOT_SELECT = `${BOT_SELECT_BASE},authenticationmode`
 const BOTCOMPONENT_SELECT =
   'botcomponentid,name,componenttype,schemaname,statecode,componentstate,modifiedon,_parentbotid_value,content,data'
 
@@ -544,6 +548,33 @@ function stateLabel(bot: Dict): string | null {
   return null
 }
 
+/** Dataverse ``bot.authenticationmode``; null when the column was not returned. */
+function authModeOf(bot: Dict): number | null {
+  const raw = bot.authenticationmode
+  if (raw === null || raw === undefined) return null
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : null
+}
+
+/**
+ * Fetch bots with the auth column, degrading to the base column set when the
+ * environment rejects it, so one unsupported field can never zero out an
+ * environment's inventory.
+ */
+async function fetchBotDefinitions(env: DataverseEnvironment, token: string, label: string, onLog?: OnLog): Promise<Dict[]> {
+  try {
+    return await fetchEntity(env, token, 'bots', { select: BOT_SELECT, includeFormatted: true, maxPages: 20, onLog })
+  } catch {
+    onLog?.(`${label}: authenticationmode 미지원 — 기본 필드로 재시도`)
+    return await fetchEntity(env, token, 'bots', {
+      select: BOT_SELECT_BASE,
+      includeFormatted: true,
+      maxPages: 20,
+      onLog
+    })
+  }
+}
+
 export interface AgentDefCollectResult {
   environments: number
   agents: number
@@ -567,12 +598,7 @@ export async function collectAgentDefinitions(tokens: PortalTokens, onLog?: (lin
       continue
     }
     try {
-      const bots = await fetchEntity(env, token, 'bots', {
-        select: BOT_SELECT,
-        includeFormatted: true,
-        maxPages: 20,
-        onLog
-      })
+      const bots = await fetchBotDefinitions(env, token, label, onLog)
       if (!bots.length) {
         onLog?.(`${label}: 에이전트 없음`)
         continue
@@ -599,7 +625,7 @@ export async function collectAgentDefinitions(tokens: PortalTokens, onLog?: (lin
       for (const bot of bots) {
         const botId = String(bot.botid ?? '').trim()
         if (!botId) continue
-        const profile = analyzeAgent(byBot.get(botId) ?? [])
+        const profile = analyzeAgent(byBot.get(botId) ?? [], { authenticationMode: authModeOf(bot) })
         rows.push({
           id: botId,
           environment_id: env.id,
@@ -617,6 +643,7 @@ export async function collectAgentDefinitions(tokens: PortalTokens, onLog?: (lin
           risk_score: profile.score,
           risk_band: profile.band,
           risk_factors_json: profile.factorsJson,
+          risk_findings_json: profile.findingsJson,
           created_by: str_(bot[`_createdby_value${FORMATTED}`]),
           modified_by: str_(bot[`_modifiedby_value${FORMATTED}`]),
           modified_on: str_(bot.modifiedon)

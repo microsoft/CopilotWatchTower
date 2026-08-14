@@ -2,12 +2,56 @@
   "collectButton": "从门户分析代理风险",
   "autoLoginDesc": "使用设置中的<strong>下载账户</strong>(eDiscovery 服务账户)自动登录制作者门户。如果未配置账户，将显示登录窗口。",
   "band": { "critical": "严重", "high": "高", "medium": "中", "low": "低" },
-  "kpis": { "agents": "代理", "high": "高风险", "highFoot": "分数 ≥ 50", "triggers": "自主触发器", "environments": "环境" },
+  "severity": { "critical": "严重", "high": "高", "medium": "中", "low": "低" },
+  "kpis": {
+    "agents": "代理",
+    "high": "高风险",
+    "highFoot": "分数 ≥ 50",
+    "critical": "严重发现",
+    "criticalFoot": "需立即处理",
+    "triggers": "自主触发器",
+    "environments": "环境"
+  },
   "table": {
     "title": "代理风险评分",
     "subtitle_other": "按风险排序前 {{count}} 个",
-    "columns": { "agent": "代理", "env": "环境", "risk": "风险度", "signals": "信号" },
+    "columns": { "agent": "代理", "env": "环境", "risk": "风险度", "findings": "发现", "signals": "信号" },
     "signals": "外部调用 {{external}} · 循环 {{loops}}",
+    "noFindings": "无",
     "empty": "尚未分析任何代理。请使用上方按钮登录制作者门户进行收集。"
+  },
+  "findings": {
+    "embedded_secret": {
+      "title": "代理定义中硬编码了凭据",
+      "fix": "定义中包含明文密钥、令牌或密码。请立即吊销并轮换该凭据，并将值迁移到 Azure Key Vault 或环境变量引用。如果曾导出过该代理，还需调查泄露范围。"
+    },
+    "autonomous_external_egress": {
+      "title": "无人值守触发器执行外部调用",
+      "fix": "该代理无需人工确认即可运行，并可通过连接器或 HTTP 向外发送数据。请检查目标终结点，使用 DLP 策略限制连接器或增加审批步骤。"
+    },
+    "unattended_autonomy": {
+      "title": "存在无人值守执行触发器",
+      "fix": "计划或事件会在无人介入的情况下运行该代理。请确认触发器是否符合预期，并记录所有者与执行范围。"
+    },
+    "unbounded_iteration": {
+      "title": "自主执行路径中存在循环结构",
+      "fix": "无人值守执行与循环结合可能失控并耗尽额度。请核实迭代上限和退出条件，并设置额度告警阈值。"
+    },
+    "generative_tool_execution": {
+      "title": "生成式编排可执行工具",
+      "fix": "模型自行决定工具调用，提示注入可能演变为真实执行。请最小化工具权限，并对破坏性操作要求确认。"
+    },
+    "unauthenticated_access": {
+      "title": "未配置用户身份验证",
+      "fix": "无需身份验证即可访问，可能暴露知识源内容。请启用 Entra ID 身份验证或限制发布渠道。"
+    },
+    "excessive_tools": {
+      "title": "工具数量过多",
+      "fix": "工具越多，路由错误和攻击面越大。请移除未使用的工具，或按角色拆分代理。"
+    },
+    "broad_knowledge_surface": {
+      "title": "知识源范围过广",
+      "fix": "连接的知识源过多，可能将非预期信息带入响应。请重新审查每个源的访问权限与必要性。"
+    }
   }
 }

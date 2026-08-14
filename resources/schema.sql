@@ -459,6 +459,7 @@ CREATE TABLE IF NOT EXISTS agent_definitions (
     risk_score               REAL NOT NULL DEFAULT 0,     -- 0..100 (higher = riskier)
     risk_band                TEXT,                        -- low | medium | high | critical
     risk_factors_json        TEXT,                        -- per-factor breakdown for the UI
+    risk_findings_json       TEXT,                        -- named security findings (see agentFindings.ts)
     created_by               TEXT,
     modified_by              TEXT,
     modified_on              TEXT,

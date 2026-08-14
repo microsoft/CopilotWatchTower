@@ -2,12 +2,56 @@
   "collectButton": "포털에서 에이전트 위험 분석",
   "autoLoginDesc": "설정의 <strong>다운로드 계정</strong>(eDiscovery 서비스 계정)으로 메이커 포털에 자동 로그인합니다. 계정이 없으면 로그인 창이 표시됩니다.",
   "band": { "critical": "심각", "high": "높음", "medium": "보통", "low": "낮음" },
-  "kpis": { "agents": "에이전트", "high": "고위험", "highFoot": "점수 ≥ 50", "triggers": "자율 트리거", "environments": "환경" },
+  "severity": { "critical": "심각", "high": "높음", "medium": "보통", "low": "낮음" },
+  "kpis": {
+    "agents": "에이전트",
+    "high": "고위험",
+    "highFoot": "점수 ≥ 50",
+    "critical": "심각 발견",
+    "criticalFoot": "즉시 조치 필요",
+    "triggers": "자율 트리거",
+    "environments": "환경"
+  },
   "table": {
     "title": "에이전트 위험 점수",
     "subtitle_other": "위험순 상위 {{count}}개",
-    "columns": { "agent": "에이전트", "env": "환경", "risk": "위험도", "signals": "신호" },
+    "columns": { "agent": "에이전트", "env": "환경", "risk": "위험도", "findings": "발견", "signals": "신호" },
     "signals": "외부호출 {{external}} · 루프 {{loops}}",
+    "noFindings": "없음",
     "empty": "아직 분석된 에이전트가 없습니다. 위 버튼으로 메이커 포털에 로그인해 수집하세요."
+  },
+  "findings": {
+    "embedded_secret": {
+      "title": "에이전트 정의에 자격 증명이 하드코딩됨",
+      "fix": "정의에 평문 키·토큰·비밀번호가 포함되어 있습니다. 해당 자격 증명을 즉시 폐기·교체하고, 값을 Azure Key Vault 또는 환경 변수 참조로 옮기세요. 에이전트를 내보낸 적이 있다면 유출 범위를 함께 조사해야 합니다."
+    },
+    "autonomous_external_egress": {
+      "title": "무인 트리거가 외부 호출을 수행함",
+      "fix": "사람의 확인 없이 실행되면서 커넥터·HTTP로 외부에 데이터를 보낼 수 있습니다. 대상 엔드포인트를 검토하고, DLP 정책으로 커넥터를 제한하거나 승인 단계를 추가하세요."
+    },
+    "unattended_autonomy": {
+      "title": "무인 실행 트리거 존재",
+      "fix": "일정·이벤트로 사람 개입 없이 실행됩니다. 트리거가 의도된 것인지 확인하고, 소유자와 실행 범위를 문서화하세요."
+    },
+    "unbounded_iteration": {
+      "title": "자율 실행 경로에 반복 구문 존재",
+      "fix": "무인 실행과 루프가 결합되면 폭주해 크레딧을 소진할 수 있습니다. 반복 상한과 종료 조건을 확인하고 크레딧 알림 임계값을 설정하세요."
+    },
+    "generative_tool_execution": {
+      "title": "생성형 오케스트레이션이 도구를 실행함",
+      "fix": "모델이 도구 호출을 스스로 결정하므로 프롬프트 인젝션이 실제 실행으로 이어질 수 있습니다. 도구 권한을 최소화하고 파괴적 작업에는 확인 단계를 두세요."
+    },
+    "unauthenticated_access": {
+      "title": "사용자 인증이 구성되지 않음",
+      "fix": "인증 없이 접근할 수 있어 지식 소스 내용이 노출될 수 있습니다. Entra ID 인증을 활성화하거나 게시 채널을 제한하세요."
+    },
+    "excessive_tools": {
+      "title": "도구 수가 과다함",
+      "fix": "도구가 많을수록 라우팅 오류와 공격 표면이 커집니다. 사용하지 않는 도구를 제거하거나 에이전트를 역할별로 분리하세요."
+    },
+    "broad_knowledge_surface": {
+      "title": "지식 소스 범위가 넓음",
+      "fix": "연결된 지식 소스가 많아 의도치 않은 정보가 응답에 포함될 수 있습니다. 각 소스의 접근 권한과 필요성을 재검토하세요."
+    }
   }
 }
